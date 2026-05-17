@@ -243,8 +243,19 @@ export default function AdminProducts() {
                 <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-3">
-                      <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center text-2xl">
-                        {product.images[0] || '�'}
+                      {product.images[0] ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="h-[60px] w-[60px] rounded-lg object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`h-[60px] w-[60px] rounded-lg bg-gray-200 flex items-center justify-center ${product.images[0] ? 'hidden' : ''}`}>
+                        <span className="text-2xl">📦</span>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{product.name}</p>
