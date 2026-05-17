@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
@@ -13,7 +13,7 @@ import Footer from '@/components/Footer';
 import Toast from '@/components/Toast';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function Home() {
+function HomeContent() {
   const { data: session, status } = useSession();
   const { user, loading: firebaseLoading, isAdmin: firebaseIsAdmin } = useAuth();
   const router = useRouter();
@@ -61,5 +61,13 @@ export default function Home() {
       <DiscountDeals />
       <Footer />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex flex-col"><Navbar /><HeroBanner /><ProductCategories /><FeaturedProducts /><Services /><DiscountDeals /><Footer /></div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

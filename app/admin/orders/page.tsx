@@ -273,7 +273,7 @@ export default function AdminOrders() {
       order.id === selectedOrder.id
         ? {
             ...order,
-            status: 'Cancelled',
+            status: 'Cancelled' as const,
             timeline: [
               ...order.timeline,
               {
