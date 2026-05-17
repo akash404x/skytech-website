@@ -55,9 +55,9 @@ export default function FeaturedProducts() {
     });
   };
 
-  const discount = (original: number, current: number) => {
-    if (!original || original <= 0) return 0;
-    return Math.round(((original - current) / original) * 100);
+  const discount = (price: number, discountPrice: number) => {
+    if (!price || price <= 0) return 0;
+    return Math.round(((price - discountPrice) / price) * 100);
   };
 
   if (loading) {
@@ -100,20 +100,31 @@ export default function FeaturedProducts() {
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => {
-            const originalPrice = product.discountPrice || product.price;
-            return (
+          {products.map((product) => (
               <div
                 key={product.id}
                 className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group transform hover:-translate-y-2"
               >
                 <div className="relative">
-                  <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-6xl">
-                    {product.images[0] || '📦'}
+                  <div className="h-[220px] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                    {product.images[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full flex items-center justify-center text-6xl ${product.images[0] ? 'hidden' : ''}`}>
+                      📦
+                    </div>
                   </div>
                   {product.discountPrice && product.discountPrice < product.price && (
                     <span className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                      {discount(product.discountPrice, product.price)}% OFF
+                      {discount(product.price, product.discountPrice)}% OFF
                     </span>
                   )}
                   <button
@@ -140,14 +151,14 @@ export default function FeaturedProducts() {
                   </div>
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <span className="text-xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+                      <span className="text-xl font-bold text-gray-900">₹{product.discountPrice ? product.discountPrice.toLocaleString() : product.price.toLocaleString()}</span>
                       {product.discountPrice && product.discountPrice < product.price && (
                         <>
                           <span className="text-sm text-gray-500 line-through ml-2">
-                            ₹{product.discountPrice.toLocaleString()}
+                            ₹{product.price.toLocaleString()}
                           </span>
                           <span className="text-sm text-green-600 font-medium ml-2">
-                            {discount(product.discountPrice, product.price)}% off
+                            {discount(product.price, product.discountPrice)}% off
                           </span>
                         </>
                       )}
@@ -159,8 +170,7 @@ export default function FeaturedProducts() {
                   </button>
                 </div>
               </div>
-            );
-          })}
+            ))}
         </div>
       </div>
     </section>

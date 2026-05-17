@@ -152,21 +152,34 @@ export default function DiscountDeals() {
                       key={product.id}
                       className="text-center p-4 rounded-xl bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer group"
                     >
-                      <div className="text-4xl mb-2 group-hover:scale-110 transition-transform duration-300">
-                        {product.images[0] || '📦'}
+                      <div className="h-[220px] bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden mb-2">
+                        {product.images[0] ? (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-full h-full flex items-center justify-center text-4xl ${product.images[0] ? 'hidden' : ''}`}>
+                          📦
+                        </div>
                       </div>
                       <h4 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">
                         {product.name}
                       </h4>
                       <div className="flex flex-col items-center">
-                        <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
-                        {product.discountPrice && (
+                        <span className="text-lg font-bold text-gray-900">₹{product.discountPrice ? product.discountPrice.toLocaleString() : product.price.toLocaleString()}</span>
+                        {product.discountPrice && product.discountPrice < product.price && (
                           <>
                             <span className="text-xs text-gray-500 line-through">
-                              ₹{product.discountPrice.toLocaleString()}
+                              ₹{product.price.toLocaleString()}
                             </span>
                             <span className="text-xs text-green-600 font-medium">
-                              {Math.round(((product.discountPrice - product.price) / product.discountPrice) * 100)}% off
+                              {Math.round(((product.price - product.discountPrice) / product.price) * 100)}% off
                             </span>
                           </>
                         )}
