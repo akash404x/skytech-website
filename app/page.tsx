@@ -6,8 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import HeroBanner from '@/components/HeroBanner';
 import AnimatedBackground from '@/components/AnimatedBackground';
-import HeroFounder from '@/components/HeroFounder';
-import AboutSkyTech from '@/components/AboutSkyTech';
 import FeaturesSection from '@/components/FeaturesSection';
 import ProductCategories from '@/components/ProductCategories';
 import FeaturedProducts from '@/components/FeaturedProducts';
@@ -60,9 +58,7 @@ function HomeContent() {
       )}
       <Navbar />
       <HeroBanner />
-      <HeroFounder />
       <FeaturesSection />
-      <AboutSkyTech />
       <ProductCategories />
       <FeaturedProducts />
       <Services />

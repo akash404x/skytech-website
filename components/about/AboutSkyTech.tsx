@@ -5,7 +5,7 @@ import { Target, Lightbulb, TrendingUp, Globe } from 'lucide-react';
 
 export default function AboutSkyTech() {
   return (
-    <section className="relative py-24 px-4">
+    <section className="relative py-16 md:py-20 lg:py-24 px-4">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -28,7 +28,7 @@ export default function AboutSkyTech() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent"
           >
             Building India's Next-Generation
             <br />
@@ -36,7 +36,7 @@ export default function AboutSkyTech() {
           </motion.h2>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
           {/* Description Side */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -45,20 +45,20 @@ export default function AboutSkyTech() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="space-y-6"
           >
-            <div className="p-8 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-300">
-              <p className="text-lg text-gray-200 leading-relaxed">
+            <div className="p-6 md:p-8 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-blue-500/30 transition-all duration-300">
+              <p className="text-base md:text-lg text-gray-200 leading-relaxed">
                 SkyTech is a cutting-edge electronics and innovation platform dedicated to empowering students, makers, and innovators across India. We provide a comprehensive range of Arduino boards, IoT modules, sensors, robotics components, and smart tech solutions.
               </p>
             </div>
 
-            <div className="p-8 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-purple-500/30 transition-all duration-300">
-              <p className="text-lg text-gray-200 leading-relaxed">
+            <div className="p-6 md:p-8 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-purple-500/30 transition-all duration-300">
+              <p className="text-base md:text-lg text-gray-200 leading-relaxed">
                 Our mission is to democratize technology by making quality electronics accessible and affordable. We focus on providing modern technology solutions that enable real-world learning and innovation.
               </p>
             </div>
 
-            <div className="p-8 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-500/20 backdrop-blur-sm">
-              <p className="text-xl text-blue-200 leading-relaxed font-semibold">
+            <div className="p-6 md:p-8 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-500/20 backdrop-blur-sm">
+              <p className="text-lg md:text-xl text-blue-200 leading-relaxed font-semibold">
                 "Building India's next-generation electronics innovation ecosystem"
               </p>
             </div>
@@ -70,50 +70,50 @@ export default function AboutSkyTech() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="grid grid-cols-2 gap-6"
+            className="grid grid-cols-2 gap-4 md:gap-6"
           >
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
-              className="p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-blue-500/50 transition-all duration-300 group"
+              className="p-4 md:p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-blue-500/50 transition-all duration-300 group"
             >
-              <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-500/30 transition-colors">
-                <Target className="text-blue-400" size={24} />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:bg-blue-500/30 transition-colors">
+                <Target className="text-blue-400 w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Our Mission</h3>
-              <p className="text-gray-400 text-sm">Empower innovators with accessible technology</p>
+              <h3 className="text-base md:text-xl font-bold text-white mb-2">Our Mission</h3>
+              <p className="text-gray-400 text-xs md:text-sm">Empower innovators with accessible technology</p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
-              className="p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-purple-500/50 transition-all duration-300 group"
+              className="p-4 md:p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-purple-500/50 transition-all duration-300 group"
             >
-              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/30 transition-colors">
-                <Lightbulb className="text-purple-400" size={24} />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:bg-purple-500/30 transition-colors">
+                <Lightbulb className="text-purple-400 w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Innovation</h3>
-              <p className="text-gray-400 text-sm">Cutting-edge solutions for modern problems</p>
+              <h3 className="text-base md:text-xl font-bold text-white mb-2">Innovation</h3>
+              <p className="text-gray-400 text-xs md:text-sm">Cutting-edge solutions for modern problems</p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
-              className="p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-cyan-500/50 transition-all duration-300 group"
+              className="p-4 md:p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-cyan-500/50 transition-all duration-300 group"
             >
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-cyan-500/30 transition-colors">
-                <TrendingUp className="text-cyan-400" size={24} />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:bg-cyan-500/30 transition-colors">
+                <TrendingUp className="text-cyan-400 w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Quality</h3>
-              <p className="text-gray-400 text-sm">Premium products at affordable prices</p>
+              <h3 className="text-base md:text-xl font-bold text-white mb-2">Quality</h3>
+              <p className="text-gray-400 text-xs md:text-sm">Premium products at affordable prices</p>
             </motion.div>
 
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
-              className="p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-pink-500/50 transition-all duration-300 group"
+              className="p-4 md:p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm hover:border-pink-500/50 transition-all duration-300 group"
             >
-              <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-pink-500/30 transition-colors">
-                <Globe className="text-pink-400" size={24} />
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-3 md:mb-4 group-hover:bg-pink-500/30 transition-colors">
+                <Globe className="text-pink-400 w-5 h-5 md:w-6 md:h-6" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Vision</h3>
-              <p className="text-gray-400 text-sm">Global impact through local innovation</p>
+              <h3 className="text-base md:text-xl font-bold text-white mb-2">Vision</h3>
+              <p className="text-gray-400 text-xs md:text-sm">Global impact through local innovation</p>
             </motion.div>
           </motion.div>
         </div>

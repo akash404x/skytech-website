@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Search, ShoppingCart, User, Menu, X, LogOut, Shield, Wrench } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, LogOut, Shield, Wrench, Info } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
@@ -50,6 +50,13 @@ export default function Navbar() {
             >
               <Wrench className="h-5 w-5" />
               <span className="font-medium">Services</span>
+            </Link>
+            <Link
+              href="/about"
+              className="flex items-center space-x-1 hover:text-yellow-300 transition-colors"
+            >
+              <Info className="h-5 w-5" />
+              <span className="font-medium">About</span>
             </Link>
             {loading ? (
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
@@ -139,6 +146,13 @@ export default function Navbar() {
               >
                 <Wrench className="h-5 w-5" />
                 <span className="font-medium">Services</span>
+              </Link>
+              <Link
+                href="/about"
+                className="flex items-center space-x-2 hover:text-yellow-300 transition-colors py-2"
+              >
+                <Info className="h-5 w-5" />
+                <span className="font-medium">About</span>
               </Link>
               {loading ? (
                 <div className="flex items-center justify-center py-2">

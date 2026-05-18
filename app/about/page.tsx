@@ -1,6 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import AnimatedBackground from '@/components/about/AnimatedBackground';
 import FounderSection from '@/components/about/FounderSection';
 import AboutSkyTech from '@/components/about/AboutSkyTech';
@@ -17,9 +19,11 @@ export default function AboutPage() {
         transition={{ duration: 0.8 }}
         className="relative z-10"
       >
+        <Navbar />
         <FounderSection />
         <AboutSkyTech />
         <FeaturesSection />
+        <Footer />
       </motion.div>
     </div>
   );
