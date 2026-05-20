@@ -2,6 +2,7 @@
 
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
+import Image from 'next/image';
 import { Cpu, Globe, Heart, Shield, TrendingUp, Clock } from 'lucide-react';
 
 export default function AboutSkyTech() {
@@ -106,9 +107,15 @@ export default function AboutSkyTech() {
               <motion.div
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="w-48 h-48 md:w-64 md:h-64 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-2xl"
+                className="w-48 h-48 md:w-64 md:h-64 rounded-2xl overflow-hidden shadow-2xl"
               >
-                <Cpu className="w-24 h-24 md:w-32 md:h-32 text-white" />
+                <Image
+                  src="/founder.jpg"
+                  alt="Founder of SkyTech"
+                  width={256}
+                  height={256}
+                  className="w-full h-full object-cover"
+                />
               </motion.div>
             </div>
           </div>
