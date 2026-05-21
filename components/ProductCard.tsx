@@ -20,11 +20,11 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const discount = hasDiscount ? Math.round(((product.price - salePrice) / product.price) * 100) : 0;
 
   return (
-    <article className="group overflow-hidden rounded-lg bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+    <article className="tech-glass-card group overflow-hidden transition hover:-translate-y-1 hover:border-blue-400/30 hover:shadow-blue-500/10">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-800/50">
         <ProductImage src={product.images[0]} alt={product.name} priority={priority} />
         {hasDiscount && (
-          <span className="absolute left-3 top-3 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-blue-500/30">
             {discount}% off
           </span>
         )}
@@ -32,10 +32,10 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       <div className="p-4">
         <div className="mb-2 flex items-start justify-between gap-3">
           <div>
-            <h3 className="line-clamp-2 font-semibold text-gray-900 group-hover:text-blue-700">
+            <h3 className="line-clamp-2 font-semibold text-white group-hover:text-blue-300">
               {product.name}
             </h3>
-            <p className="mt-1 line-clamp-2 text-sm text-gray-600">{product.description}</p>
+            <p className="mt-1 line-clamp-2 text-sm tech-muted">{product.description}</p>
           </div>
           <div className="flex shrink-0 items-center rounded bg-green-600 px-2 py-1 text-xs font-medium text-white">
             <Star className="mr-1 h-3 w-3 fill-current" />
@@ -44,8 +44,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </div>
 
         <div className="mb-4 flex flex-wrap items-baseline gap-2">
-          <span className="text-xl font-bold text-gray-900">{formatCurrency(salePrice)}</span>
-          {hasDiscount && <span className="text-sm text-gray-500 line-through">{formatCurrency(product.price)}</span>}
+          <span className="text-xl font-bold text-white">{formatCurrency(salePrice)}</span>
+          {hasDiscount && <span className="text-sm tech-muted line-through">{formatCurrency(product.price)}</span>}
         </div>
 
         <button
@@ -55,7 +55,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             addItem(product);
             toast.success('Added to cart');
           }}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="tech-btn-primary flex w-full items-center justify-center gap-2 px-4 py-2.5 text-sm disabled:opacity-50"
         >
           <ShoppingCart className="h-4 w-4" />
           {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}

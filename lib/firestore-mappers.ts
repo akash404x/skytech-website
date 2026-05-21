@@ -67,15 +67,16 @@ export function mapProduct(id: string, data: DataRecord): Product {
 }
 
 export function mapService(id: string, data: DataRecord): Service {
+  const imageRaw = asString(data.image);
+  const legacyImage = asStringArray(data.images)[0] ?? '';
+
   return {
     id,
     title: asString(data.title),
     description: asString(data.description),
-    category: asString(data.category, 'Consulting'),
-    priceLabel: asString(data.priceLabel, 'Contact for pricing'),
-    features: asStringArray(data.features),
-    iconKey: asString(data.iconKey, 'wrench'),
-    featured: asBoolean(data.featured, false),
+    icon: asString(data.icon || data.iconKey, 'wrench'),
+    image: imageRaw || legacyImage || null,
+    category: asString(data.category, 'General'),
     status: normalizeServiceStatus(data.status),
     createdAt: data.createdAt as Service['createdAt'],
     updatedAt: data.updatedAt as Service['updatedAt'],

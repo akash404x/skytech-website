@@ -83,10 +83,10 @@ export default function AdminOrders() {
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Orders</h1>
+          <h1 className="tech-heading-gradient text-3xl font-bold">Orders</h1>
           <p className="mt-2 text-gray-600">Update order statuses live from Firestore</p>
         </div>
-        <div className="rounded-lg bg-white p-4 shadow-sm">
+        <div className="tech-glass-panel rounded-lg p-4">
           <p className="text-sm text-gray-500">Revenue</p>
           <p className="text-2xl font-bold text-gray-900">{formatCurrency(revenue)}</p>
         </div>
@@ -132,7 +132,7 @@ export default function AdminOrders() {
       ) : (
         <div className="space-y-5">
           {filteredOrders.map((order) => (
-            <article key={order.id} className="rounded-lg bg-white p-6 shadow-sm">
+            <article key={order.id} className="tech-glass-panel rounded-lg p-6">
               <div className="flex flex-col gap-4 border-b border-gray-200 pb-5 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">

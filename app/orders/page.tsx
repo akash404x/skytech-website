@@ -19,7 +19,7 @@ const timelineStatuses: OrderStatus[] = ['paid', 'processing', 'shipped', 'deliv
 function OrderTimeline({ order }: { order: Order }) {
   if (order.status === 'cancelled') {
     return (
-      <div className="rounded-lg bg-red-50 p-4 text-sm font-medium text-red-700">
+      <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm font-medium text-red-300">
         This order was cancelled.
       </div>
     );
@@ -34,12 +34,12 @@ function OrderTimeline({ order }: { order: Order }) {
         const done = index <= currentIndex;
         return (
           <div key={status} className="flex gap-3 sm:block">
-            <div className={`h-4 w-4 shrink-0 rounded-full ${done ? 'bg-blue-600' : 'bg-gray-300'} sm:mb-2`} />
+            <div className={`h-4 w-4 shrink-0 rounded-full ${done ? 'bg-blue-500' : 'bg-slate-600'} sm:mb-2`} />
             <div>
-              <p className={`text-sm font-semibold ${done ? 'text-gray-900' : 'text-gray-500'}`}>
+              <p className={`text-sm font-semibold ${done ? 'text-white' : 'tech-muted'}`}>
                 {orderStatusLabel(status)}
               </p>
-              {event && <p className="mt-1 text-xs text-gray-500">{formatDate(event.createdAt)}</p>}
+              {event && <p className="mt-1 text-xs tech-muted">{formatDate(event.createdAt)}</p>}
             </div>
           </div>
         );
@@ -111,24 +111,24 @@ export default function OrdersPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
+      <div className="tech-loading-screen">
+        <div className="tech-spinner" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="tech-page flex min-h-screen flex-col">
       <Navbar />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <main className="tech-main">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
-            <p className="mt-2 text-gray-600">Live order tracking and payment history</p>
+            <h1 className="tech-heading-gradient text-3xl font-bold">My Orders</h1>
+            <p className="mt-2 tech-text">Live order tracking and payment history</p>
           </div>
-          <div className="rounded-lg bg-white p-4 shadow-sm">
-            <p className="text-sm text-gray-500">Total Paid</p>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalPaid)}</p>
+          <div className="tech-glass-card p-4">
+            <p className="text-sm tech-muted">Total Paid</p>
+            <p className="text-2xl font-bold text-white">{formatCurrency(totalPaid)}</p>
           </div>
         </div>
 
@@ -147,23 +147,23 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-5">
             {orders.map((order) => (
-              <article key={order.id} className="rounded-lg bg-white p-6 shadow-sm">
-                <div className="flex flex-col gap-4 border-b border-gray-200 pb-5 md:flex-row md:items-start md:justify-between">
+              <article key={order.id} className="tech-glass-card p-6">
+                <div className="flex flex-col gap-4 border-b border-white/10 pb-5 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
-                      <h2 className="text-xl font-bold text-gray-900">{order.orderNumber}</h2>
+                      <h2 className="text-xl font-bold text-white">{order.orderNumber}</h2>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClass(order.status)}`}>
                         {orderStatusLabel(order.status)}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm text-gray-600">{formatDate(order.createdAt)}</p>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm tech-text">{formatDate(order.createdAt)}</p>
+                    <p className="mt-1 text-sm tech-text">
                       {order.items.length} item{order.items.length === 1 ? '' : 's'} shipped to {order.shippingAddress.city}
                     </p>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="text-sm text-gray-500">Order Total</p>
-                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(order.total, order.currency)}</p>
+                    <p className="text-sm tech-muted">Order Total</p>
+                    <p className="text-2xl font-bold text-white">{formatCurrency(order.total, order.currency)}</p>
                   </div>
                 </div>
 
@@ -173,9 +173,9 @@ export default function OrdersPage() {
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {order.items.map((item) => (
-                    <div key={item.productId} className="rounded-lg bg-gray-50 p-3">
-                      <p className="font-medium text-gray-900">{item.name}</p>
-                      <p className="text-sm text-gray-600">
+                    <div key={item.productId} className="tech-inner-row">
+                      <p className="font-medium text-white">{item.name}</p>
+                      <p className="text-sm tech-text">
                         {item.quantity} x {formatCurrency(item.unitPrice, order.currency)}
                       </p>
                     </div>
@@ -186,14 +186,14 @@ export default function OrdersPage() {
           </div>
         )}
 
-        <section className="mt-10 rounded-lg bg-white p-6 shadow-sm">
+        <section className="tech-glass-card mt-10 p-6">
           <div className="mb-5 flex items-center gap-3">
-            <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
+            <div className="rounded-lg bg-blue-600/30 p-3 text-blue-300">
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Payment History</h2>
-              <p className="text-sm text-gray-600">Verified Razorpay transactions saved in Firestore</p>
+              <h2 className="text-xl font-bold text-white">Payment History</h2>
+              <p className="text-sm tech-muted">Verified Razorpay transactions saved in Firestore</p>
             </div>
           </div>
 
@@ -205,7 +205,7 @@ export default function OrdersPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left">
                 <thead>
-                  <tr className="border-b border-gray-200 text-sm text-gray-600">
+                  <tr className="tech-table-head">
                     <th className="py-3 pr-4 font-semibold">Payment ID</th>
                     <th className="py-3 pr-4 font-semibold">Order</th>
                     <th className="py-3 pr-4 font-semibold">Amount</th>
@@ -215,16 +215,16 @@ export default function OrdersPage() {
                 </thead>
                 <tbody>
                   {payments.map((payment) => (
-                    <tr key={payment.id} className="border-b border-gray-100 text-sm">
-                      <td className="py-3 pr-4 font-medium text-gray-900">{payment.razorpayPaymentId}</td>
-                      <td className="py-3 pr-4 text-gray-600">{payment.orderId}</td>
-                      <td className="py-3 pr-4 font-semibold text-gray-900">{formatCurrency(payment.amount, payment.currency)}</td>
-                      <td className="py-3 pr-4">
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    <tr key={payment.id} className="tech-table-row">
+                      <td className="pr-4 font-medium text-white">{payment.razorpayPaymentId}</td>
+                      <td className="pr-4 tech-text">{payment.orderId}</td>
+                      <td className="pr-4 font-semibold text-white">{formatCurrency(payment.amount, payment.currency)}</td>
+                      <td className="pr-4">
+                        <span className="rounded-full bg-green-500/20 px-3 py-1 text-xs font-semibold text-green-300">
                           {payment.status}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 text-gray-600">{formatDate(payment.createdAt)}</td>
+                      <td className="pr-4 tech-text">{formatDate(payment.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -68,20 +68,20 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl">
+    <div className="tech-auth-page">
+      <div className="tech-auth-card">
         <div className="text-center">
-          <Link href="/" className="text-4xl font-bold italic">
-            Sky<span className="text-blue-600">Tech</span>
+          <Link href="/" className="text-4xl font-bold italic text-white">
+            Sky<span className="text-blue-400">Tech</span>
           </Link>
-          <h1 className="mt-6 text-2xl font-bold text-gray-900">Create Account</h1>
-          <p className="mt-2 text-sm text-gray-600">Join SkyTech and start shopping</p>
+          <h1 className="tech-heading mt-6 text-2xl">Create Account</h1>
+          <p className="mt-2 text-sm tech-muted">Join SkyTech and start shopping</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="mb-2 block text-sm font-medium">
                 Full Name
               </label>
               <div className="relative">
@@ -93,14 +93,14 @@ export default function SignupPage() {
                   required
                   value={formData.name}
                   onChange={(event) => setFormData({ ...formData, name: event.target.value })}
-                  className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="tech-input block w-full py-3 pl-10 pr-3"
                   placeholder="Your name"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="mb-2 block text-sm font-medium">
                 Email Address
               </label>
               <div className="relative">
@@ -112,14 +112,14 @@ export default function SignupPage() {
                   required
                   value={formData.email}
                   onChange={(event) => setFormData({ ...formData, email: event.target.value })}
-                  className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="tech-input block w-full py-3 pl-10 pr-3"
                   placeholder="you@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-2 block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="mb-2 block text-sm font-medium">
                 Password
               </label>
               <div className="relative">
@@ -131,7 +131,7 @@ export default function SignupPage() {
                   required
                   value={formData.password}
                   onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-                  className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-10 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="tech-input block w-full py-3 pl-10 pr-10"
                   placeholder="Create a password"
                 />
                 <button
@@ -146,7 +146,7 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="mb-2 block text-sm font-medium">
                 Confirm Password
               </label>
               <div className="relative">
@@ -158,35 +158,26 @@ export default function SignupPage() {
                   required
                   value={formData.confirmPassword}
                   onChange={(event) => setFormData({ ...formData, confirmPassword: event.target.value })}
-                  className="block w-full rounded-lg border border-gray-300 py-3 pl-10 pr-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="tech-input block w-full py-3 pl-10 pr-3"
                   placeholder="Repeat your password"
                 />
               </div>
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading} className="tech-btn-primary flex w-full items-center justify-center text-sm disabled:cursor-not-allowed disabled:opacity-50">
             {loading ? 'Creating account...' : 'Create Account'}
             {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
           </button>
 
-          <button
-            type="button"
-            onClick={handleGoogleSignup}
-            disabled={loading}
-            className="flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
+          <button type="button" onClick={handleGoogleSignup} disabled={loading} className="tech-btn-secondary disabled:cursor-not-allowed">
             Sign up with Google
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm tech-muted">
           Already have an account?{' '}
-          <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-500">
+          <Link href="/login" className="tech-link">
             Sign in
           </Link>
         </p>

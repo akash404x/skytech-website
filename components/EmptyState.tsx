@@ -8,12 +8,12 @@ interface EmptyStateProps {
 
 export default function EmptyState({ icon: Icon, title, description }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
-      <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-500">
+    <div className="tech-glass-card flex flex-col items-center justify-center border-dashed px-6 py-12 text-center">
+      <div className="mb-4 rounded-full border border-white/10 bg-white/5 p-4 text-blue-300">
         <Icon className="h-8 w-8" />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-      <p className="mt-1 max-w-md text-sm text-gray-600">{description}</p>
+      <h3 className="text-lg font-semibold text-white">{title}</h3>
+      <p className="mt-1 max-w-md text-sm tech-muted">{description}</p>
     </div>
   );
 }

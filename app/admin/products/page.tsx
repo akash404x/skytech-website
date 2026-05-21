@@ -192,7 +192,7 @@ export default function AdminProducts() {
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Products</h1>
+        <h1 className="tech-heading-gradient text-3xl font-bold">Products</h1>
         <p className="mt-2 text-gray-600">Manage Firestore inventory in real time</p>
       </div>
 
@@ -222,7 +222,7 @@ export default function AdminProducts() {
       ) : filteredProducts.length === 0 ? (
         <EmptyState icon={Package} title="No products found" description="Create products here to publish them to the storefront." />
       ) : (
-        <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+        <div className="tech-glass-panel overflow-hidden rounded-lg">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left">
               <thead>
@@ -282,7 +282,7 @@ export default function AdminProducts() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white shadow-xl">
+          <div className="tech-glass-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg">
             <div className="flex items-center justify-between border-b border-gray-200 p-6">
               <h2 className="text-xl font-bold text-gray-900">{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
               <button type="button" onClick={closeModal} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100" aria-label="Close modal">

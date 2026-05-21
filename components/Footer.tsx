@@ -32,7 +32,7 @@ const footerLinks: Record<string, Array<{ name: string; href: string; icon?: Luc
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300">
+    <footer className="tech-footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand Section */}
@@ -40,7 +40,7 @@ export default function Footer() {
             <div className="text-2xl font-bold italic text-white mb-4">
               Sky<span className="text-yellow-400">Tech</span>
             </div>
-            <p className="text-gray-400 mb-6 max-w-sm">
+            <p className="tech-muted mb-6 max-w-sm">
               Your one-stop destination for all your shopping needs. Quality products, best prices, and exceptional service.
             </p>
             <div className="space-y-3">
@@ -81,13 +81,13 @@ export default function Footer() {
         </div>
 
         {/* Payment Methods */}
-        <div className="border-t border-gray-800 mt-12 pt-8">
+        <div className="border-t border-white/10 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-sm text-gray-400">
+            <div className="text-sm tech-muted">
               © 2026 SkyTech. All rights reserved.
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-400">Payment Methods:</span>
+              <span className="text-sm tech-muted">Payment Methods:</span>
               <div className="flex gap-2">
                 <div className="bg-white rounded px-3 py-1 text-xs font-bold text-gray-900">VISA</div>
                 <div className="bg-white rounded px-3 py-1 text-xs font-bold text-gray-900">MasterCard</div>

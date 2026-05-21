@@ -107,8 +107,8 @@ export default function AdminDashboard() {
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className="tech-heading-gradient text-3xl font-bold">Dashboard</h1>
+        <p className="mt-2 tech-text">
           Welcome back, {profile?.displayName || 'Admin'}. These analytics are calculated from live Firestore orders.
         </p>
       </div>
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={stat.name} className="rounded-lg bg-white p-6 shadow-sm">
+            <div key={stat.name} className="tech-glass-panel p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{stat.name}</p>
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <section className="rounded-lg bg-white p-6 shadow-sm">
+        <section className="tech-glass-panel p-6">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
             <TrendingUp className="h-5 w-5 text-blue-600" />
@@ -167,7 +167,7 @@ export default function AdminDashboard() {
           </div>
         </section>
 
-        <section className="rounded-lg bg-white p-6 shadow-sm">
+        <section className="tech-glass-panel p-6">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900">Top Products</h2>
             <Package className="h-5 w-5 text-blue-600" />

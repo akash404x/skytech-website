@@ -43,15 +43,16 @@ export default function DiscountDeals() {
   }, []);
 
   return (
-    <section className="bg-white py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="tech-section">
+      <div className="tech-section-backdrop" aria-hidden />
+      <div className="tech-section-inner mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-center gap-3">
-          <div className="rounded-lg bg-rose-100 p-3 text-rose-600">
+          <div className="rounded-lg border border-rose-400/30 bg-rose-500/15 p-3 text-rose-300">
             <BadgePercent className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Hot Deals</h2>
-            <p className="text-sm text-gray-600">Discounted products update live</p>
+            <h2 className="tech-heading-gradient text-2xl font-bold">Hot Deals</h2>
+            <p className="text-sm tech-muted">Discounted products update live</p>
           </div>
         </div>
 

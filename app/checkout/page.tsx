@@ -195,66 +195,66 @@ export default function CheckoutPage() {
 
   if (authLoading || !user) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
+      <div className="tech-loading-screen">
+        <div className="tech-spinner" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="tech-page flex min-h-screen flex-col">
       <Navbar />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Secure Checkout</h1>
-          <p className="mt-2 flex items-center gap-2 text-gray-600">
+      <main className="tech-main">
+        <div className="tech-page-header">
+          <h1 className="tech-heading-gradient">Secure Checkout</h1>
+          <p className="mt-2 flex items-center gap-2 tech-text">
             <LockKeyhole className="h-4 w-4" />
             Orders are created only after Razorpay signature verification.
           </p>
         </div>
 
         <form onSubmit={startPayment} className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <section className="rounded-lg bg-white p-6 shadow-sm">
+          <section className="tech-glass-card p-6">
             <div className="mb-6 flex items-center gap-3">
-              <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
+              <div className="rounded-lg bg-blue-600/30 p-3 text-blue-300">
                 <MapPin className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Shipping Address</h2>
-                <p className="text-sm text-gray-600">Required for order tracking</p>
+                <h2 className="text-xl font-bold text-white">Shipping Address</h2>
+                <p className="text-sm tech-muted">Required for order tracking</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <input required value={shippingAddress.fullName} onChange={(event) => updateAddress('fullName', event.target.value)} placeholder="Full name" className="rounded-lg border border-gray-300 px-4 py-3" />
-              <input required value={shippingAddress.phone} onChange={(event) => updateAddress('phone', event.target.value)} placeholder="Phone number" className="rounded-lg border border-gray-300 px-4 py-3" />
-              <input required value={shippingAddress.line1} onChange={(event) => updateAddress('line1', event.target.value)} placeholder="Address line 1" className="rounded-lg border border-gray-300 px-4 py-3 sm:col-span-2" />
-              <input value={shippingAddress.line2 ?? ''} onChange={(event) => updateAddress('line2', event.target.value)} placeholder="Address line 2" className="rounded-lg border border-gray-300 px-4 py-3 sm:col-span-2" />
-              <input required value={shippingAddress.city} onChange={(event) => updateAddress('city', event.target.value)} placeholder="City" className="rounded-lg border border-gray-300 px-4 py-3" />
-              <input required value={shippingAddress.state} onChange={(event) => updateAddress('state', event.target.value)} placeholder="State" className="rounded-lg border border-gray-300 px-4 py-3" />
-              <input required value={shippingAddress.postalCode} onChange={(event) => updateAddress('postalCode', event.target.value)} placeholder="Postal code" className="rounded-lg border border-gray-300 px-4 py-3" />
-              <input required value={shippingAddress.country} onChange={(event) => updateAddress('country', event.target.value)} placeholder="Country" className="rounded-lg border border-gray-300 px-4 py-3" />
+              <input required value={shippingAddress.fullName} onChange={(event) => updateAddress('fullName', event.target.value)} placeholder="Full name" className="tech-input sm:col-span-1" />
+              <input required value={shippingAddress.phone} onChange={(event) => updateAddress('phone', event.target.value)} placeholder="Phone number" className="tech-input" />
+              <input required value={shippingAddress.line1} onChange={(event) => updateAddress('line1', event.target.value)} placeholder="Address line 1" className="tech-input sm:col-span-2" />
+              <input value={shippingAddress.line2 ?? ''} onChange={(event) => updateAddress('line2', event.target.value)} placeholder="Address line 2" className="tech-input sm:col-span-2" />
+              <input required value={shippingAddress.city} onChange={(event) => updateAddress('city', event.target.value)} placeholder="City" className="tech-input" />
+              <input required value={shippingAddress.state} onChange={(event) => updateAddress('state', event.target.value)} placeholder="State" className="tech-input" />
+              <input required value={shippingAddress.postalCode} onChange={(event) => updateAddress('postalCode', event.target.value)} placeholder="Postal code" className="tech-input" />
+              <input required value={shippingAddress.country} onChange={(event) => updateAddress('country', event.target.value)} placeholder="Country" className="tech-input" />
             </div>
           </section>
 
-          <aside className="h-fit rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900">Payment Summary</h2>
-            <div className="mt-6 space-y-3 border-b border-gray-200 pb-6">
+          <aside className="tech-glass-card h-fit p-6">
+            <h2 className="text-xl font-bold text-white">Payment Summary</h2>
+            <div className="mt-6 space-y-3 border-b border-white/10 pb-6">
               {items.map((item) => (
-                <div key={item.productId} className="flex justify-between gap-3 text-sm text-gray-600">
+                <div key={item.productId} className="flex justify-between gap-3 text-sm tech-text">
                   <span>{item.name} x {item.quantity}</span>
                   <span>{formatCurrency((item.discountPrice || item.price) * item.quantity)}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-6 flex justify-between text-lg font-bold text-gray-900">
+            <div className="mt-6 flex justify-between text-lg font-bold text-white">
               <span>Total</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             <button
               type="submit"
               disabled={processing || items.length === 0}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="tech-btn-primary mt-6 flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <CreditCard className="h-5 w-5" />
               {processing ? 'Processing...' : 'Pay with Razorpay'}

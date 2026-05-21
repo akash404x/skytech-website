@@ -1,4 +1,3 @@
-import AnimatedBackground from '@/components/AnimatedBackground';
 import DiscountDeals from '@/components/DiscountDeals';
 import FeaturedProducts from '@/components/FeaturedProducts';
 import FeaturesSection from '@/components/FeaturesSection';
@@ -10,8 +9,7 @@ import Services from '@/components/Services';
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <AnimatedBackground />
+    <div className="tech-page">
       <Navbar />
       <HeroBanner />
       <FeaturesSection />

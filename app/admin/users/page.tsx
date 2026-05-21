@@ -110,20 +110,20 @@ export default function AdminUsers() {
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Users</h1>
+        <h1 className="tech-heading-gradient text-3xl font-bold">Users</h1>
         <p className="mt-2 text-gray-600">View registered users and manage role-based access</p>
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg bg-white p-5 shadow-sm">
+        <div className="tech-glass-panel rounded-lg p-5">
           <p className="text-sm text-gray-500">Registered Users</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{users.length}</p>
         </div>
-        <div className="rounded-lg bg-white p-5 shadow-sm">
+        <div className="tech-glass-panel rounded-lg p-5">
           <p className="text-sm text-gray-500">Active Users</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{activeUsers}</p>
         </div>
-        <div className="rounded-lg bg-white p-5 shadow-sm">
+        <div className="tech-glass-panel rounded-lg p-5">
           <p className="text-sm text-gray-500">Admins</p>
           <p className="mt-2 text-2xl font-bold text-gray-900">{adminUsers}</p>
         </div>
@@ -159,7 +159,7 @@ export default function AdminUsers() {
       ) : filteredUsers.length === 0 ? (
         <EmptyState icon={Users} title="No users found" description="Users appear here when they sign up or sign in." />
       ) : (
-        <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+        <div className="tech-glass-panel overflow-hidden rounded-lg">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[960px] text-left">
               <thead>

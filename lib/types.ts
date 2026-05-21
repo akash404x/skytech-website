@@ -39,11 +39,9 @@ export interface Service {
   id: string;
   title: string;
   description: string;
+  icon: string;
+  image: string | null;
   category: string;
-  priceLabel: string;
-  features: string[];
-  iconKey: string;
-  featured: boolean;
   status: ServiceStatus;
   createdAt?: DateValue;
   updatedAt?: DateValue;

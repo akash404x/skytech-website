@@ -38,11 +38,12 @@ export default function FeaturedProducts() {
   }, []);
 
   return (
-    <section className="bg-gray-50 py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="tech-section">
+      <div className="tech-section-backdrop" aria-hidden />
+      <div className="tech-section-inner mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Featured Products</h2>
-          <p className="mt-1 text-sm text-gray-600">Live inventory from Firestore</p>
+          <h2 className="tech-heading-gradient text-2xl font-bold">Featured Products</h2>
+          <p className="mt-1 text-sm tech-muted">Live inventory from Firestore</p>
         </div>
 
         {loading ? (

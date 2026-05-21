@@ -71,9 +71,10 @@ export default function ProductCategories() {
   const visibleCategories = useMemo(() => categories.slice(0, 12), [categories]);
 
   return (
-    <section className="bg-white py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h2 className="mb-6 text-2xl font-bold text-gray-900">Shop by Category</h2>
+    <section className="tech-section py-8">
+      <div className="tech-section-backdrop" aria-hidden />
+      <div className="tech-section-inner mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 className="tech-heading-gradient mb-6 text-2xl font-bold">Shop by Category</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {loading
             ? Array.from({ length: 6 }).map((_, index) => <Skeleton key={index} className="h-32" />)
@@ -83,12 +84,12 @@ export default function ProductCategories() {
                 return (
                   <div
                     key={category}
-                    className="flex flex-col items-center rounded-lg bg-gray-50 p-4 text-center transition hover:-translate-y-1 hover:bg-white hover:shadow-md"
+                    className="tech-glass-card flex flex-col items-center p-4 text-center transition hover:-translate-y-1 hover:border-blue-400/30"
                   >
                     <div className={`mb-3 rounded-full p-4 ${color}`}>
                       <Icon className="h-8 w-8" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">{category}</span>
+                    <span className="text-sm font-medium text-slate-200">{category}</span>
                   </div>
                 );
               })}

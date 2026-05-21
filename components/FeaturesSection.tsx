@@ -91,19 +91,20 @@ export default function FeaturesSection() {
   ];
 
   return (
-    <section ref={ref} className="relative py-20 md:py-32 px-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+    <section ref={ref} className="tech-section relative px-4 py-20 md:py-32">
+      <div className="tech-section-backdrop" aria-hidden />
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate={isInView ? 'visible' : 'hidden'}
-        className="max-w-7xl mx-auto"
+        className="tech-section-inner relative z-[1] mx-auto max-w-7xl"
       >
         {/* Header */}
         <motion.div variants={itemVariants} className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="tech-heading-gradient mb-4 text-4xl font-bold md:text-5xl">
             Why Choose SkyTech?
           </h2>
-          <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          <p className="mx-auto max-w-3xl text-lg tech-text md:text-xl">
             We provide everything you need to bring your electronic projects to life with quality
             products and exceptional service.
           </p>
@@ -117,7 +118,7 @@ export default function FeaturesSection() {
               variants={itemVariants}
               whileHover={{ scale: 1.05, y: -10 }}
               whileTap={{ scale: 0.95 }}
-              className="group relative bg-white dark:bg-gray-800 p-6 md:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
+              className="tech-glass-card group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 md:p-8"
             >
               {/* Animated gradient background on hover */}
               <motion.div
@@ -134,10 +135,10 @@ export default function FeaturesSection() {
               </motion.div>
 
               {/* Content */}
-              <h3 className="text-xl md:text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all">
+              <h3 className="mb-3 text-xl font-bold text-white transition-all group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 group-hover:bg-clip-text group-hover:text-transparent md:text-2xl">
                 {feature.title}
               </h3>
-              <p className="text-gray-600 dark:text-gray-300 text-sm md:text-base leading-relaxed">
+              <p className="text-sm leading-relaxed tech-muted md:text-base">
                 {feature.description}
               </p>
 

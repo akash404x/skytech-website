@@ -31,8 +31,8 @@ export default function AdminLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="tech-loading-screen">
+        <div className="tech-spinner" />
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="min-h-screen flex bg-gray-100">
+    <div className="relative flex min-h-screen">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -140,24 +140,22 @@ export default function AdminLayout({
       {/* Main content */}
       <div className="flex-1">
         {/* Top bar */}
-        <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="tech-admin-bar">
           <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
+            <div className="flex h-16 justify-between">
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden px-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="px-4 text-slate-300 hover:text-white focus:outline-none lg:hidden"
                 aria-label="Open sidebar"
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <div className="flex-1 flex items-center justify-end">
-                <div className="ml-3 relative">
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-700">{userName}</span>
-                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                      {userInitial}
-                    </div>
+              <div className="relative ml-3 flex flex-1 items-center justify-end">
+                <div className="flex items-center space-x-4">
+                  <span className="tech-admin-bar-text text-sm">{userName}</span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+                    {userInitial}
                   </div>
                 </div>
               </div>
