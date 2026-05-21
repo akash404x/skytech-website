@@ -1,0 +1,43 @@
+import { NextResponse } from 'next/server';
+import { getAuthenticatedUser } from '@/lib/server-auth';
+import { createRazorpayOrder } from '@/lib/razorpay';
+import { validateCheckoutItems } from '@/lib/server-checkout';
+import type { CartItem } from '@/lib/types';
+
+export const runtime = 'nodejs';
+
+interface CreatePaymentOrderBody {
+  items: Pick<CartItem, 'productId' | 'quantity'>[];
+}
+
+export async function POST(request: Request) {
+  try {
+    const { profile } = await getAuthenticatedUser(request);
+    const body = (await request.json()) as CreatePaymentOrderBody;
+    const checkout = await validateCheckoutItems(body.items);
+    const receipt = `skytech_${Date.now()}_${profile.uid.slice(0, 8)}`;
+    const razorpayOrder = await createRazorpayOrder({
+      amount: checkout.total,
+      currency: checkout.currency,
+      receipt,
+      notes: {
+        userId: profile.uid,
+        userEmail: profile.email,
+      },
+    });
+
+    return NextResponse.json({
+      keyId: razorpayOrder.keyId,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      subtotal: checkout.subtotal,
+      total: checkout.total,
+      items: checkout.items,
+    });
+  } catch (error) {
+    if (error instanceof Response) return error;
+    console.error('Create Razorpay order failed:', error);
+    return NextResponse.json({ error: 'Unable to create payment order' }, { status: 500 });
+  }
+}

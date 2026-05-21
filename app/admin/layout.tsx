@@ -13,7 +13,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading: firebaseLoading, isAdmin, isEditor, role } = useAuth();
+  const { user, loading: firebaseLoading, isAdmin, isEditor, role, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,6 +45,11 @@ export default function AdminLayout({
   const userName = user?.displayName || 'Admin';
   const userInitial = userName.charAt(0).toUpperCase();
 
+  const handleLogout = async () => {
+    await signOut();
+    router.push('/');
+  };
+
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Products', href: '/admin/products', icon: Package },
@@ -74,8 +79,10 @@ export default function AdminLayout({
             Sky<span className="text-yellow-400">Tech</span>
           </div>
           <button
+            type="button"
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-gray-400 hover:text-white"
+            aria-label="Close sidebar"
           >
             <X className="h-6 w-6" />
           </button>
@@ -118,14 +125,15 @@ export default function AdminLayout({
           </nav>
         </div>
 
-        <div className="flex-shrink-0 flex bg-gray-900 p-4 border-t border-gray-700">
-          <Link
-            href="/"
-            className="flex items-center text-gray-300 hover:text-white transition-colors"
-          >
+        <div className="flex-shrink-0 space-y-3 bg-gray-900 p-4 border-t border-gray-700">
+          <Link href="/" className="flex items-center text-gray-300 hover:text-white transition-colors">
             <LayoutDashboard className="h-5 w-5 mr-3" />
             Back to Store
           </Link>
+          <button type="button" onClick={handleLogout} className="flex items-center text-gray-300 hover:text-white transition-colors">
+            <LogOut className="h-5 w-5 mr-3" />
+            Logout
+          </button>
         </div>
       </div>
 
@@ -136,8 +144,10 @@ export default function AdminLayout({
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <button
+                type="button"
                 onClick={() => setSidebarOpen(true)}
                 className="lg:hidden px-4 text-gray-500 hover:text-gray-700 focus:outline-none"
+                aria-label="Open sidebar"
               >
                 <Menu className="h-6 w-6" />
               </button>

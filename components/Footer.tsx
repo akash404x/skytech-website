@@ -1,8 +1,9 @@
 'use client';
 
 import { MessageCircle, Share2, Mail, Phone, MapPin, Globe } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
-const footerLinks: { [key: string]: Array<{ name: string; href: string; icon?: any }> } = {
+const footerLinks: Record<string, Array<{ name: string; href: string; icon?: LucideIcon }>> = {
   About: [
     { name: 'About Us', href: '#' },
     { name: 'Careers', href: '#' },
@@ -83,7 +84,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-gray-400">
-              © 2024 SkyTech. All rights reserved.
+              © 2026 SkyTech. All rights reserved.
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-400">Payment Methods:</span>

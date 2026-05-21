@@ -1,25 +1,24 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
-  User as FirebaseUser,
-  signInWithEmailAndPassword,
+  type User as FirebaseUser,
   createUserWithEmailAndPassword,
-  signInWithPopup,
   GoogleAuthProvider,
-  signOut as firebaseSignOut,
   onAuthStateChanged,
-  updateProfile
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  updateProfile,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-
-const ADMIN_EMAIL = 'akashsingh404x@gmail.com';
-
-export type UserRole = 'user' | 'editor' | 'admin';
+import { mapUserProfile, normalizeUserRole } from '@/lib/firestore-mappers';
+import type { UserProfile, UserRole } from '@/lib/types';
 
 interface AuthContextType {
   user: FirebaseUser | null;
+  profile: UserProfile | null;
   loading: boolean;
   isAdmin: boolean;
   isEditor: boolean;
@@ -29,142 +28,140 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshUserRole: () => Promise<void>;
+  getIdToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper function to check if user is admin
-export const isAdminUser = (email: string | null | undefined): boolean => {
-  return email === ADMIN_EMAIL;
-};
+function initialRoleFor(user: FirebaseUser): UserRole {
+  const bootstrapAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase();
+  return bootstrapAdminEmail && user.email?.toLowerCase() === bootstrapAdminEmail ? 'admin' : 'user';
+}
 
-// Helper function to save user metadata to Firestore
-const saveUserMetadata = async (user: FirebaseUser) => {
-  try {
-    const userRef = doc(db, 'users', user.uid);
-    const userDoc = await getDoc(userRef);
+async function saveUserMetadata(user: FirebaseUser, displayName?: string) {
+  const userRef = doc(db, 'users', user.uid);
+  const userDoc = await getDoc(userRef);
 
-    if (!userDoc.exists()) {
-      // Create new user document with role field
-      await setDoc(userRef, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName || user.email?.split('@')[0] || 'User',
-        role: isAdminUser(user.email) ? 'admin' : 'user',
-        status: 'active',
-        createdAt: serverTimestamp(),
-        lastLogin: serverTimestamp(),
-        orderCount: 0
-      });
-    } else {
-      // Update last login and ensure role field exists
-      const userData = userDoc.data();
-      await setDoc(userRef, {
-        lastLogin: serverTimestamp(),
-        role: userData.role || 'user'
-      }, { merge: true });
-    }
-  } catch (error) {
-    console.error('Error saving user metadata:', error);
+  if (!userDoc.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email ?? '',
+      displayName: displayName || user.displayName || user.email?.split('@')[0] || 'User',
+      role: initialRoleFor(user),
+      status: 'active',
+      orderCount: 0,
+      totalSpent: 0,
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+    });
+    return;
   }
-};
 
-// Helper function to fetch user role from Firestore
-const fetchUserRole = async (uid: string): Promise<UserRole> => {
-  try {
-    const userRef = doc(db, 'users', uid);
-    const userDoc = await getDoc(userRef);
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      // Ensure role is always a valid UserRole, default to 'user'
-      const userRole = userData.role;
-      if (userRole === 'admin' || userRole === 'editor' || userRole === 'user') {
-        return userRole;
-      }
-      return 'user';
-    }
-  } catch (error) {
-    console.error('Error fetching user role:', error);
-  }
-  return 'user';
-};
+  const data = userDoc.data();
+  await setDoc(
+    userRef,
+    {
+      email: user.email ?? data.email ?? '',
+      displayName: displayName || user.displayName || data.displayName || user.email?.split('@')[0] || 'User',
+      role: normalizeUserRole(data.role),
+      status: data.status === 'suspended' ? 'suspended' : 'active',
+      orderCount: typeof data.orderCount === 'number' ? data.orderCount : 0,
+      totalSpent: typeof data.totalSpent === 'number' ? data.totalSpent : 0,
+      lastLogin: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isEditor, setIsEditor] = useState(false);
-  const [role, setRole] = useState<UserRole>('user');
-
-  const refreshUserRole = async () => {
-    if (user) {
-      const userRole = await fetchUserRole(user.uid);
-      setRole(userRole);
-      setIsAdmin(userRole === 'admin');
-      setIsEditor(userRole === 'editor' || userRole === 'admin');
-      localStorage.setItem('userRole', userRole);
-    }
-  };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    let unsubscribeProfile: (() => void) | undefined;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+      unsubscribeProfile?.();
       setUser(currentUser);
-      
-      if (currentUser) {
-        // Fetch role from Firestore
-        const userRole = await fetchUserRole(currentUser.uid);
-        setRole(userRole);
-        setIsAdmin(userRole === 'admin');
-        setIsEditor(userRole === 'editor' || userRole === 'admin');
-        
-        // Store role in localStorage for persistence
-        localStorage.setItem('userRole', userRole);
-        localStorage.setItem('userEmail', currentUser.email || '');
-        
-        // Save user metadata to Firestore
-        await saveUserMetadata(currentUser);
-      } else {
-        setRole('user');
-        setIsAdmin(false);
-        setIsEditor(false);
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('userEmail');
+
+      if (!currentUser) {
+        setProfile(null);
+        setLoading(false);
+        return;
       }
-      
-      setLoading(false);
+
+      setLoading(true);
+
+      try {
+        await saveUserMetadata(currentUser);
+        const userRef = doc(db, 'users', currentUser.uid);
+        unsubscribeProfile = onSnapshot(
+          userRef,
+          (snapshot) => {
+            setProfile(snapshot.exists() ? mapUserProfile(snapshot.id, snapshot.data()) : null);
+            setLoading(false);
+          },
+          (error) => {
+            console.error('Error listening to user profile:', error);
+            setProfile(null);
+            setLoading(false);
+          },
+        );
+      } catch (error) {
+        console.error('Error preparing user profile:', error);
+        setProfile(null);
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeProfile?.();
+      unsubscribeAuth();
+    };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
-  };
+  const role = profile?.role ?? 'user';
+  const isAdmin = role === 'admin';
+  const isEditor = role === 'editor' || role === 'admin';
 
-  const signUp = async (email: string, password: string, name: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // Update the user's display name
-    if (userCredential.user) {
-      await updateProfile(userCredential.user, { displayName: name });
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-  };
-
-  const signOut = async () => {
-    await firebaseSignOut(auth);
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userEmail');
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, isEditor, role, signIn, signUp, signInWithGoogle, signOut, refreshUserRole }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      profile,
+      loading,
+      role,
+      isAdmin,
+      isEditor,
+      signIn: async (email: string, password: string) => {
+        await signInWithEmailAndPassword(auth, email, password);
+      },
+      signUp: async (email: string, password: string, name: string) => {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        await saveUserMetadata(userCredential.user, name);
+      },
+      signInWithGoogle: async () => {
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        await saveUserMetadata(result.user);
+      },
+      signOut: async () => {
+        await firebaseSignOut(auth);
+      },
+      refreshUserRole: async () => {
+        if (auth.currentUser) {
+          await saveUserMetadata(auth.currentUser);
+        }
+      },
+      getIdToken: async () => {
+        return auth.currentUser ? auth.currentUser.getIdToken() : null;
+      },
+    }),
+    [isAdmin, isEditor, loading, profile, role, user],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

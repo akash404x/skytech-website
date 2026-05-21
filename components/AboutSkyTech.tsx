@@ -3,7 +3,7 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import Image from 'next/image';
-import { Cpu, Globe, Heart, Shield, TrendingUp, Clock } from 'lucide-react';
+import { Globe, Heart, Shield, TrendingUp, Clock } from 'lucide-react';
 
 export default function AboutSkyTech() {
   const ref = useRef(null);
@@ -81,7 +81,7 @@ export default function AboutSkyTech() {
             About SkyTech
           </h2>
           <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Your trusted partner for Arduino, IoT, robotics, and electronics solutions. We're
+            Your trusted partner for Arduino, IoT, robotics, and electronics solutions. We&apos;re
             passionate about empowering creators to bring their innovative ideas to life.
           </p>
         </motion.div>

@@ -1,12 +1,23 @@
 'use client';
 
 import { AuthProvider } from '@/contexts/AuthContext';
-import { SessionProvider } from 'next-auth/react';
+import { CartProvider } from '@/contexts/CartContext';
+import { Toaster } from 'react-hot-toast';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
-      <AuthProvider>{children}</AuthProvider>
-    </SessionProvider>
+    <AuthProvider>
+      <CartProvider>{children}</CartProvider>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            borderRadius: '8px',
+            color: '#111827',
+          },
+        }}
+      />
+    </AuthProvider>
   );
 }

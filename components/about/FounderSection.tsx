@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Cpu, Zap, Rocket, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 export default function FounderSection() {
   return (
@@ -99,13 +100,13 @@ export default function FounderSection() {
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                   className="w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden border-4 border-blue-500/50 bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm"
                 >
-                  <img
-                    src="/images/founder.png"
+                  <Image
+                    src="/founder.jpg"
                     alt="Akash Singh - Founder"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"%3E%3Crect fill="%231e293b" width="400" height="400"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="%2364748b"%3EFounder Image%3C/text%3E%3C/svg%3E';
-                    }}
+                    width={384}
+                    height={384}
+                    sizes="(min-width: 1024px) 384px, (min-width: 768px) 320px, 224px"
+                    className="h-full w-full object-cover"
                   />
                 </motion.div>
 

@@ -3,6 +3,15 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  travel: number;
+  duration: number;
+  delay: number;
+}
+
 export default function AnimatedBackground() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -14,8 +23,24 @@ export default function AnimatedBackground() {
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    queueMicrotask(() => {
+      setParticles(
+        Array.from({ length: 20 }).map((_, index) => ({
+          id: index,
+          x: Math.random() * width,
+          y: Math.random() * height,
+          travel: height,
+          duration: 10 + Math.random() * 20,
+          delay: Math.random() * 5,
+        })),
+      );
+    });
+
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({
         x: (e.clientX / window.innerWidth) * 100,
@@ -88,22 +113,22 @@ export default function AnimatedBackground() {
       />
 
       {/* Floating particles */}
-      {[...Array(20)].map((_, i) => (
+      {particles.map((particle) => (
         <motion.div
-          key={i}
+          key={particle.id}
           initial={{
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: particle.x,
+            y: particle.y,
             opacity: 0,
           }}
           animate={{
-            y: [null, -window.innerHeight],
+            y: [particle.y, -particle.travel],
             opacity: [0, 1, 0],
           }}
           transition={{
-            duration: 10 + Math.random() * 20,
+            duration: particle.duration,
             repeat: Infinity,
-            delay: Math.random() * 5,
+            delay: particle.delay,
             ease: 'linear',
           }}
           className="absolute w-2 h-2 bg-white/50 dark:bg-white/30 rounded-full"

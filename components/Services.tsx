@@ -1,88 +1,78 @@
 'use client';
 
 import Link from 'next/link';
-import { Cpu, Bot, Home, Wrench, Code, CircuitBoard, ArrowRight } from 'lucide-react';
-
-const services = [
-  {
-    id: 1,
-    title: 'IoT Project Development',
-    description: 'Complete IoT solutions from concept to deployment',
-    icon: Cpu,
-    price: 'Starting ₹5,000'
-  },
-  {
-    id: 2,
-    title: 'Arduino Programming',
-    description: 'Expert Arduino programming for your projects',
-    icon: Code,
-    price: 'Starting ₹2,000'
-  },
-  {
-    id: 3,
-    title: 'Robotics Projects',
-    description: 'Custom robots for education and industry',
-    icon: Bot,
-    price: 'Starting ₹10,000'
-  },
-  {
-    id: 4,
-    title: 'PCB Designing',
-    description: 'Professional PCB design services',
-    icon: CircuitBoard,
-    price: 'Starting ₹3,000'
-  },
-  {
-    id: 5,
-    title: 'Smart Home Automation',
-    description: 'Transform your home into a smart home',
-    icon: Home,
-    price: 'Starting ₹8,000'
-  },
-  {
-    id: 6,
-    title: 'Embedded Systems',
-    description: 'Custom embedded system development',
-    icon: Wrench,
-    price: 'Starting ₹7,000'
-  },
-];
+import { ArrowRight, Wrench } from 'lucide-react';
+import { collection, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import EmptyState from '@/components/EmptyState';
+import ServiceCard from '@/components/ServiceCard';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { db } from '@/lib/firebase';
+import { mapService } from '@/lib/firestore-mappers';
+import type { Service } from '@/lib/types';
 
 export default function Services() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const servicesQuery = query(collection(db, 'services'), orderBy('title'), limit(6));
+    const unsubscribe = onSnapshot(
+      servicesQuery,
+      (snapshot) => {
+        const servicesData = snapshot.docs
+          .map((document) => mapService(document.id, document.data()))
+          .filter((service) => service.status === 'active')
+          .sort((a, b) => Number(b.featured) - Number(a.featured));
+
+        setServices(servicesData);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Error loading services:', error);
+        setLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <section className="py-12 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
+    <section className="bg-white py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 flex items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Our Services</h2>
-            <p className="text-gray-600 mt-1">Professional tech solutions for your projects</p>
+            <p className="mt-1 text-gray-600">Professional tech solutions for your projects</p>
           </div>
           <Link
             href="/services"
-            className="text-blue-600 hover:text-blue-700 font-medium transition-colors flex items-center gap-1"
+            className="flex items-center gap-1 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
           >
-            View All Services
+            View All
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service) => {
-            const Icon = service.icon;
-            return (
-              <div
-                key={service.id}
-                className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 hover:shadow-lg transition-all border border-blue-100 hover:border-blue-300 group"
-              >
-                <div className="bg-blue-600 text-white p-3 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
-                  <Icon className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{service.title}</h3>
-                <p className="text-gray-600 text-sm mb-3">{service.description}</p>
-                <p className="text-blue-600 font-semibold">{service.price}</p>
-              </div>
-            );
-          })}
-        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton key={index} className="h-56" />
+            ))}
+          </div>
+        ) : services.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((service) => (
+              <ServiceCard key={service.id} service={service} compact />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={Wrench}
+            title="No active services yet"
+            description="Services added from the admin panel will appear here automatically."
+          />
+        )}
       </div>
     </section>
   );

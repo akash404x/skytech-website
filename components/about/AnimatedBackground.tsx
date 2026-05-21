@@ -14,7 +14,7 @@ export default function AnimatedBackground() {
       size: Math.random() * 4 + 2,
       delay: Math.random() * 5,
     }));
-    setParticles(newParticles);
+    queueMicrotask(() => setParticles(newParticles));
   }, []);
 
   return (

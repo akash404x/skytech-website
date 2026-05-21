@@ -120,7 +120,7 @@ export default function HeroFounder() {
               className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed"
             >
               From humble beginnings to becoming a trusted partner for thousands of customers, we continue
-              to push the boundaries of what's possible in electronics and automation.
+              to push the boundaries of what&apos;s possible in electronics and automation.
             </motion.p>
             <motion.button
               variants={itemVariants}

@@ -30,7 +30,7 @@ export default function AboutSkyTech() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent"
           >
-            Building India's Next-Generation
+            Building India&apos;s Next-Generation
             <br />
             Electronics Innovation Ecosystem
           </motion.h2>
@@ -59,7 +59,7 @@ export default function AboutSkyTech() {
 
             <div className="p-6 md:p-8 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-blue-500/20 backdrop-blur-sm">
               <p className="text-lg md:text-xl text-blue-200 leading-relaxed font-semibold">
-                "Building India's next-generation electronics innovation ecosystem"
+                &quot;Building India&apos;s next-generation electronics innovation ecosystem&quot;
               </p>
             </div>
           </motion.div>
