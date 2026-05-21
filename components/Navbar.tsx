@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Info, LogOut, Menu, PackageCheck, Search, Shield, ShoppingCart, User, Wrench, X } from 'lucide-react';
+import { Info, LogOut, Menu, Package, PackageCheck, Search, Shield, ShoppingCart, User, Wrench, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -43,6 +43,12 @@ export default function Navbar() {
     router.push('/');
   };
 
+  const submitSearch = () => {
+    const q = searchQuery.trim();
+    if (q) router.push(`/products?q=${encodeURIComponent(q)}`);
+    else router.push('/products');
+  };
+
   const cartBadge = (
     <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-cyan-400 text-xs font-bold text-slate-950 shadow-[0_0_12px_rgba(34,211,238,0.5)]">
       {itemCount}
@@ -71,6 +77,9 @@ export default function Navbar() {
                 placeholder="Search products, brands and more"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') submitSearch();
+                }}
                 className="tech-nav-search w-full rounded-lg py-2.5 pl-10 pr-4"
               />
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -78,6 +87,10 @@ export default function Navbar() {
           </div>
 
           <div className="hidden items-center gap-1 md:flex md:gap-2">
+            <NavLink href="/products">
+              <Package className="h-4 w-4 shrink-0 opacity-80" />
+              <span className="font-medium">Products</span>
+            </NavLink>
             <NavLink href="/services">
               <Wrench className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">Services</span>
@@ -156,11 +169,18 @@ export default function Navbar() {
                 placeholder="Search products, brands and more"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') submitSearch();
+                }}
                 className="tech-nav-search w-full rounded-lg py-2.5 pl-10 pr-4"
               />
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             </div>
             <div className="flex flex-col gap-1">
+              <NavLink href="/products" className="rounded-lg px-2 py-2.5">
+                <Package className="h-5 w-5" />
+                <span>Products</span>
+              </NavLink>
               <NavLink href="/services" className="rounded-lg px-2 py-2.5">
                 <Wrench className="h-5 w-5" />
                 <span>Services</span>

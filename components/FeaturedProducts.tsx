@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { collection, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
-import { Package } from 'lucide-react';
+import { ArrowRight, Package } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import EmptyState from '@/components/EmptyState';
 import ProductCard from '@/components/ProductCard';
@@ -41,9 +42,18 @@ export default function FeaturedProducts() {
     <section className="tech-section">
       <div className="tech-section-backdrop" aria-hidden />
       <div className="tech-section-inner mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="tech-heading-gradient text-2xl font-bold">Featured Products</h2>
-          <p className="mt-1 text-sm tech-muted">Live inventory from Firestore</p>
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="tech-heading-gradient text-2xl font-bold">Featured Products</h2>
+            <p className="mt-1 text-sm tech-muted">Live inventory from Firestore</p>
+          </div>
+          <Link
+            href="/products"
+            className="flex shrink-0 items-center gap-1 text-sm font-semibold text-blue-300 transition hover:text-cyan-300"
+          >
+            View All
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         {loading ? (
@@ -55,7 +65,9 @@ export default function FeaturedProducts() {
         ) : products.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {products.map((product, index) => (
-              <ProductCard key={product.id} product={product} priority={index < 2} />
+              <div key={product.id} className="h-full">
+                <ProductCard product={product} priority={index < 2} />
+              </div>
             ))}
           </div>
         ) : (

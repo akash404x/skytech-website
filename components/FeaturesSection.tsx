@@ -152,13 +152,14 @@ export default function FeaturesSection() {
 
         {/* Call to Action */}
         <motion.div variants={itemVariants} className="text-center mt-16">
-          <motion.button
+          <motion.a
+            href="/products"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all"
+            className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all"
           >
             Explore All Products
-          </motion.button>
+          </motion.a>
         </motion.div>
       </motion.div>
     </section>
