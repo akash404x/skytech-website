@@ -111,39 +111,39 @@ export default function AdminUsers() {
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
         <h1 className="tech-heading-gradient text-3xl font-bold">Users</h1>
-        <p className="mt-2 text-gray-600">View registered users and manage role-based access</p>
+        <p className="mt-2 text-slate-300">View registered users and manage role-based access</p>
       </div>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="tech-glass-panel rounded-lg p-5">
-          <p className="text-sm text-gray-500">Registered Users</p>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{users.length}</p>
+        <div className="tech-glass-panel rounded-3xl p-5 border-cyan-500/10 bg-slate-950/90">
+          <p className="text-sm text-cyan-200">Registered Users</p>
+          <p className="mt-2 text-2xl font-bold text-white">{users.length}</p>
         </div>
-        <div className="tech-glass-panel rounded-lg p-5">
-          <p className="text-sm text-gray-500">Active Users</p>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{activeUsers}</p>
+        <div className="tech-glass-panel rounded-3xl p-5 border-cyan-500/10 bg-slate-950/90">
+          <p className="text-sm text-cyan-200">Active Users</p>
+          <p className="mt-2 text-2xl font-bold text-white">{activeUsers}</p>
         </div>
-        <div className="tech-glass-panel rounded-lg p-5">
-          <p className="text-sm text-gray-500">Admins</p>
-          <p className="mt-2 text-2xl font-bold text-gray-900">{adminUsers}</p>
+        <div className="tech-glass-panel rounded-3xl p-5 border-cyan-500/10 bg-slate-950/90">
+          <p className="text-sm text-cyan-200">Admins</p>
+          <p className="mt-2 text-2xl font-bold text-white">{adminUsers}</p>
         </div>
       </div>
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-cyan-300" />
           <input
             type="search"
             placeholder="Search users..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 pl-10 pr-4 text-white"
           />
         </div>
         <select
           value={roleFilter}
           onChange={(event) => setRoleFilter(event.target.value as 'all' | UserRole)}
-          className="rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-4 py-2 text-white"
         >
           <option value="all">All roles</option>
           {ROLES.map((role) => (
@@ -163,27 +163,27 @@ export default function AdminUsers() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[960px] text-left">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50 text-sm text-gray-600">
-                  <th className="px-6 py-4 font-semibold">User</th>
-                  <th className="px-6 py-4 font-semibold">Role</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                  <th className="px-6 py-4 font-semibold">Orders</th>
-                  <th className="px-6 py-4 font-semibold">Spent</th>
-                  <th className="px-6 py-4 font-semibold">Last Login</th>
+                <tr className="border-b border-white/10 bg-slate-950/90 text-sm text-slate-300">
+                  <th className="px-6 py-4 font-semibold text-white">User</th>
+                  <th className="px-6 py-4 font-semibold text-white">Role</th>
+                  <th className="px-6 py-4 font-semibold text-white">Status</th>
+                  <th className="px-6 py-4 font-semibold text-white">Orders</th>
+                  <th className="px-6 py-4 font-semibold text-white">Spent</th>
+                  <th className="px-6 py-4 font-semibold text-white">Last Login</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((profile) => (
-                  <tr key={profile.uid} className="border-b border-gray-100 text-sm hover:bg-gray-50">
+                  <tr key={profile.uid} className="border-b border-white/10 text-sm hover:bg-slate-900/80">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/10 font-bold text-cyan-200">
                           {profile.displayName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{profile.displayName}</p>
-                          <p className="flex items-center gap-1 text-gray-500">
-                            <Mail className="h-3 w-3" />
+                          <p className="font-semibold text-white">{profile.displayName}</p>
+                          <p className="flex items-center gap-1 text-slate-400">
+                            <Mail className="h-3 w-3 text-cyan-300" />
                             {profile.email}
                           </p>
                         </div>
@@ -196,7 +196,7 @@ export default function AdminUsers() {
                           value={profile.role}
                           disabled={savingUid === profile.uid}
                           onChange={(event) => updateUser(profile, { role: event.target.value as UserRole })}
-                          className="rounded-lg border border-gray-300 px-3 py-2 capitalize focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-3 py-2 capitalize text-white disabled:opacity-50"
                         >
                           {ROLES.map((role) => (
                             <option key={role} value={role}>
@@ -213,7 +213,7 @@ export default function AdminUsers() {
                           value={profile.status}
                           disabled={savingUid === profile.uid}
                           onChange={(event) => updateUser(profile, { status: event.target.value as AccountStatus })}
-                          className="rounded-lg border border-gray-300 px-3 py-2 capitalize focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-3 py-2 capitalize text-white disabled:opacity-50"
                         >
                           {STATUSES.map((status) => (
                             <option key={status} value={status}>
@@ -223,9 +223,9 @@ export default function AdminUsers() {
                         </select>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{profile.orderCount}</td>
-                    <td className="px-6 py-4 font-semibold text-gray-900">{formatCurrency(profile.totalSpent)}</td>
-                    <td className="px-6 py-4 text-gray-600">{formatDate(profile.lastLogin)}</td>
+                    <td className="px-6 py-4 text-slate-300">{profile.orderCount}</td>
+                    <td className="px-6 py-4 font-semibold text-white">{formatCurrency(profile.totalSpent)}</td>
+                    <td className="px-6 py-4 text-slate-300">{formatDate(profile.lastLogin)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -193,18 +193,18 @@ export default function AdminProducts() {
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
         <h1 className="tech-heading-gradient text-3xl font-bold">Products</h1>
-        <p className="mt-2 text-gray-600">Manage Firestore inventory in real time</p>
+        <p className="mt-2 text-slate-300">Manage Firestore inventory in real time</p>
       </div>
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-cyan-300" />
           <input
             type="search"
             placeholder="Search products..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 pl-10 pr-4 text-white"
           />
         </div>
         <button
@@ -222,52 +222,52 @@ export default function AdminProducts() {
       ) : filteredProducts.length === 0 ? (
         <EmptyState icon={Package} title="No products found" description="Create products here to publish them to the storefront." />
       ) : (
-        <div className="tech-glass-panel overflow-hidden rounded-lg">
+        <div className="tech-glass-panel overflow-hidden rounded-3xl">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50 text-sm text-gray-600">
-                  <th className="px-6 py-4 font-semibold">Product</th>
-                  <th className="px-6 py-4 font-semibold">Category</th>
-                  <th className="px-6 py-4 font-semibold">Price</th>
-                  <th className="px-6 py-4 font-semibold">Stock</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                  <th className="px-6 py-4 font-semibold">Actions</th>
+                <tr className="border-b border-white/10 bg-slate-950/90 text-sm text-slate-300">
+                  <th className="px-6 py-4 font-semibold text-white">Product</th>
+                  <th className="px-6 py-4 font-semibold text-white">Category</th>
+                  <th className="px-6 py-4 font-semibold text-white">Price</th>
+                  <th className="px-6 py-4 font-semibold text-white">Stock</th>
+                  <th className="px-6 py-4 font-semibold text-white">Status</th>
+                  <th className="px-6 py-4 font-semibold text-white">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="border-b border-gray-100 text-sm hover:bg-gray-50">
+                  <tr key={product.id} className="border-b border-white/10 text-sm hover:bg-slate-900/80">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative h-14 w-14 overflow-hidden rounded-lg bg-gray-100">
+                        <div className="relative h-14 w-14 overflow-hidden rounded-2xl bg-slate-900/70">
                           <ProductImage src={product.images[0]} alt={product.name} />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{product.name}</p>
-                          <p className="line-clamp-1 text-gray-500">{product.description}</p>
+                          <p className="font-semibold text-white">{product.name}</p>
+                          <p className="line-clamp-1 text-slate-400">{product.description}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{product.category}</td>
+                    <td className="px-6 py-4 text-slate-300">{product.category}</td>
                     <td className="px-6 py-4">
-                      <p className="font-semibold text-gray-900">{formatCurrency(product.discountPrice ?? product.price)}</p>
+                      <p className="font-semibold text-white">{formatCurrency(product.discountPrice ?? product.price)}</p>
                       {product.discountPrice && product.discountPrice < product.price && (
-                        <p className="text-xs text-gray-500 line-through">{formatCurrency(product.price)}</p>
+                        <p className="text-xs text-slate-500 line-through">{formatCurrency(product.price)}</p>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{product.stock}</td>
+                    <td className="px-6 py-4 text-slate-300">{product.stock}</td>
                     <td className="px-6 py-4">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.status === 'active' ? 'bg-emerald-500/15 text-emerald-200' : 'bg-slate-700/80 text-slate-200'}`}>
                         {product.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => openEditModal(product)} className="rounded-lg p-2 text-blue-600 hover:bg-blue-50" aria-label="Edit product">
+                        <button type="button" onClick={() => openEditModal(product)} className="rounded-2xl p-2 text-cyan-300 hover:bg-slate-900/70" aria-label="Edit product">
                           <Edit className="h-5 w-5" />
                         </button>
-                        <button type="button" onClick={() => handleDeleteProduct(product)} className="rounded-lg p-2 text-red-600 hover:bg-red-50" aria-label="Delete product">
+                        <button type="button" onClick={() => handleDeleteProduct(product)} className="rounded-2xl p-2 text-rose-400 hover:bg-slate-900/70" aria-label="Delete product">
                           <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
@@ -281,47 +281,182 @@ export default function AdminProducts() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="tech-glass-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg">
-            <div className="flex items-center justify-between border-b border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900">{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
-              <button type="button" onClick={closeModal} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100" aria-label="Close modal">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="tech-glass-panel max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-cyan-500/20 px-8 py-6">
+              <h2 className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-2xl font-bold text-transparent">{editingProduct ? 'Edit Product' : 'Add Product'}</h2>
+              <button type="button" onClick={closeModal} className="rounded-lg p-2 text-gray-400 transition hover:bg-slate-700 hover:text-white" aria-label="Close modal">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5 p-6">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <input value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} placeholder="Product name" className="rounded-lg border border-gray-300 px-4 py-3" />
-                <select value={formData.category} onChange={(event) => setFormData({ ...formData, category: event.target.value })} className="rounded-lg border border-gray-300 px-4 py-3">
-                  {CATEGORIES.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
+            <form onSubmit={handleSubmit} className="space-y-6 p-8">
+              {/* Product Name */}
+              <div>
+                <label className="block text-sm font-semibold text-cyan-300 mb-3">Product Name</label>
+                <input
+                  value={formData.name}
+                  onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+                  placeholder="Enter product name"
+                  className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:ring-offset-0"
+                />
+              </div>
+
+              {/* Category and Status Row */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-semibold text-cyan-300 mb-3">Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(event) => setFormData({ ...formData, category: event.target.value })}
+                    className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                  >
+                    {CATEGORIES.map((category) => (
+                      <option key={category} value={category} className="bg-slate-900 text-white">
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-cyan-300 mb-3">Product Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(event) => setFormData({ ...formData, status: event.target.value as ProductStatus })}
+                    className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                  >
+                    <option value="active" className="bg-slate-900 text-white">
+                      Active
                     </option>
-                  ))}
-                </select>
-                <input type="number" min="0" step="0.01" value={formData.price} onChange={(event) => setFormData({ ...formData, price: event.target.value })} placeholder="Price" className="rounded-lg border border-gray-300 px-4 py-3" />
-                <input type="number" min="0" step="0.01" value={formData.discountPrice} onChange={(event) => setFormData({ ...formData, discountPrice: event.target.value })} placeholder="Discount price" className="rounded-lg border border-gray-300 px-4 py-3" />
-                <input type="number" min="0" step="1" value={formData.stock} onChange={(event) => setFormData({ ...formData, stock: event.target.value })} placeholder="Stock" className="rounded-lg border border-gray-300 px-4 py-3" />
-                <input type="number" min="0" max="5" step="0.1" value={formData.rating} onChange={(event) => setFormData({ ...formData, rating: event.target.value })} placeholder="Rating" className="rounded-lg border border-gray-300 px-4 py-3" />
-                <select value={formData.status} onChange={(event) => setFormData({ ...formData, status: event.target.value as ProductStatus })} className="rounded-lg border border-gray-300 px-4 py-3">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-                <label className="flex items-center gap-3 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-700">
-                  <input type="checkbox" checked={formData.featured} onChange={(event) => setFormData({ ...formData, featured: event.target.checked })} className="h-4 w-4 rounded border-gray-300" />
-                  Featured product
+                    <option value="inactive" className="bg-slate-900 text-white">
+                      Inactive
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Price Fields */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-semibold text-cyan-300 mb-3">Original Price</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(event) => setFormData({ ...formData, price: event.target.value })}
+                      placeholder="0.00"
+                      className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 pl-8 pr-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-cyan-300 mb-3">Selling Price</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">₹</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.discountPrice}
+                      onChange={(event) => setFormData({ ...formData, discountPrice: event.target.value })}
+                      placeholder="0.00 (optional)"
+                      className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 pl-8 pr-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Stock and Rating */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-semibold text-cyan-300 mb-3">Stock Quantity</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={formData.stock}
+                    onChange={(event) => setFormData({ ...formData, stock: event.target.value })}
+                    placeholder="Enter stock quantity"
+                    className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-cyan-300 mb-3">Product Rating</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="5"
+                      step="0.1"
+                      value={formData.rating}
+                      onChange={(event) => setFormData({ ...formData, rating: event.target.value })}
+                      placeholder="0.0 - 5.0"
+                      className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">/ 5.0</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Featured Product Checkbox */}
+              <div className="rounded-lg border border-cyan-500/30 bg-slate-700/30 p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(event) => setFormData({ ...formData, featured: event.target.checked })}
+                    className="h-5 w-5 rounded border-cyan-500/50 bg-slate-700 text-cyan-500 accent-cyan-500 cursor-pointer"
+                  />
+                  <span className="text-sm font-semibold text-cyan-300">Featured Product</span>
+                  <span className="text-xs text-gray-400">(Displays on home page)</span>
                 </label>
               </div>
-              <textarea value={formData.description} onChange={(event) => setFormData({ ...formData, description: event.target.value })} placeholder="Description" rows={4} className="w-full rounded-lg border border-gray-300 px-4 py-3" />
-              <input value={formData.imageUrl} onChange={(event) => setFormData({ ...formData, imageUrl: event.target.value })} placeholder="Image URL" className="w-full rounded-lg border border-gray-300 px-4 py-3" />
 
-              <div className="flex justify-end gap-3 border-t border-gray-200 pt-5">
-                <button type="button" onClick={closeModal} className="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50">
+              {/* Product Description */}
+              <div>
+                <label className="block text-sm font-semibold text-cyan-300 mb-3">Product Description</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(event) => setFormData({ ...formData, description: event.target.value })}
+                  placeholder="Enter detailed product description"
+                  rows={6}
+                  className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 resize-none"
+                />
+              </div>
+
+              {/* Product Image URL */}
+              <div>
+                <label className="block text-sm font-semibold text-cyan-300 mb-3">Product Image URL</label>
+                <input
+                  value={formData.imageUrl}
+                  onChange={(event) => setFormData({ ...formData, imageUrl: event.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                />
+                <p className="mt-2 text-xs text-gray-400">💡 Paste image URL or Firebase storage link</p>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex justify-end gap-3 border-t border-cyan-500/20 pt-6">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-lg border border-cyan-500/30 px-6 py-2.5 font-semibold text-cyan-300 transition hover:bg-slate-700/50 hover:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                >
                   Cancel
                 </button>
-                <button type="submit" disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-                  {saving ? 'Saving...' : 'Save Product'}
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-2.5 font-semibold text-white shadow-lg transition hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                >
+                  {saving ? 'Saving...' : editingProduct ? 'Update Product' : 'Add Product'}
                 </button>
               </div>
             </form>

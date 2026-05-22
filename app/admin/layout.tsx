@@ -59,22 +59,22 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="relative flex min-h-screen">
+    <div className="relative flex min-h-screen admin-background text-slate-100">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 lg:hidden"
+          className="fixed inset-0 bg-slate-950/70 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-gray-900 to-gray-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-950/95 border-r border-cyan-500/10 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between h-16 px-6 bg-gray-900 border-b border-gray-700">
+        <div className="flex items-center justify-between h-16 px-6 bg-slate-950/90 border-b border-cyan-500/10">
           <div className="text-2xl font-bold italic text-white">
             Sky<span className="text-yellow-400">Tech</span>
           </div>
@@ -109,14 +109,14 @@ export default function AdminLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-colors ${
                     isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      ? 'bg-cyan-500/15 text-white ring-1 ring-cyan-400/20'
+                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                   }`}
                 >
                   <item.icon
-                    className={`h-5 w-5 mr-3 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}
+                    className={`h-5 w-5 mr-3 ${isActive ? 'text-cyan-200' : 'text-slate-400 group-hover:text-cyan-200'}`}
                   />
                   {item.name}
                 </Link>
@@ -125,13 +125,13 @@ export default function AdminLayout({
           </nav>
         </div>
 
-        <div className="flex-shrink-0 space-y-3 bg-gray-900 p-4 border-t border-gray-700">
-          <Link href="/" className="flex items-center text-gray-300 hover:text-white transition-colors">
-            <LayoutDashboard className="h-5 w-5 mr-3" />
+        <div className="flex-shrink-0 space-y-3 bg-slate-950/90 p-4 border-t border-cyan-500/10">
+          <Link href="/" className="flex items-center text-slate-300 hover:text-white transition-colors">
+            <LayoutDashboard className="h-5 w-5 mr-3 text-cyan-300" />
             Back to Store
           </Link>
-          <button type="button" onClick={handleLogout} className="flex items-center text-gray-300 hover:text-white transition-colors">
-            <LogOut className="h-5 w-5 mr-3" />
+          <button type="button" onClick={handleLogout} className="flex items-center text-slate-300 hover:text-white transition-colors">
+            <LogOut className="h-5 w-5 mr-3 text-cyan-300" />
             Logout
           </button>
         </div>

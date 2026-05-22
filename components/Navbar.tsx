@@ -84,21 +84,23 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <div className="mx-6 hidden max-w-2xl flex-1 md:flex lg:mx-8">
-            <div className="relative w-full">
-              <input
-                type="search"
-                placeholder="Search products, brands and more"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') submitSearch();
-                }}
-                className="tech-nav-search w-full rounded-lg py-2.5 pl-10 pr-4"
-              />
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          {pathname === '/products' && (
+            <div className="mx-6 hidden max-w-2xl flex-1 md:flex lg:mx-8">
+              <div className="relative w-full">
+                <input
+                  type="search"
+                  placeholder="Search products, brands and more"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') submitSearch();
+                  }}
+                  className="tech-nav-search w-full rounded-lg py-2.5 pl-10 pr-4"
+                />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="hidden items-center gap-2 md:flex md:gap-3">
             <NavLink href="/" isActive={isActiveRoute('/')}>

@@ -241,20 +241,20 @@ export default function AdminServices() {
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
         <h1 className="tech-heading-gradient text-3xl font-bold">Services</h1>
-        <p className="mt-2 text-gray-600">
-          Manage Firestore <code className="text-sm">services</code> collection — changes sync to the website instantly.
+        <p className="mt-2 text-slate-300">
+          Manage Firestore <code className="text-sm text-cyan-200">services</code> collection — changes sync to the website instantly.
         </p>
       </div>
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-cyan-300" />
           <input
             type="search"
             placeholder="Search services..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="tech-input w-full py-2 pl-10 pr-4"
+            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 py-2 pl-10 pr-4 text-white"
           />
         </div>
         <button
@@ -282,22 +282,22 @@ export default function AdminServices() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[880px] text-left">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50/80 text-sm text-gray-600">
-                  <th className="px-4 py-3 font-semibold">Service</th>
-                  <th className="px-4 py-3 font-semibold">Category</th>
-                  <th className="px-4 py-3 font-semibold">Icon</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                <tr className="border-b border-white/10 bg-slate-950/90 text-sm text-slate-300">
+                  <th className="px-4 py-3 font-semibold text-white">Service</th>
+                  <th className="px-4 py-3 font-semibold text-white">Category</th>
+                  <th className="px-4 py-3 font-semibold text-white">Icon</th>
+                  <th className="px-4 py-3 font-semibold text-white">Status</th>
+                  <th className="px-4 py-3 font-semibold text-white text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredServices.map((service) => {
                   const Icon = SERVICE_ICON_OPTIONS.find((o) => o.key === service.icon)?.icon ?? Wrench;
                   return (
-                    <tr key={service.id} className="border-b border-gray-100 text-sm hover:bg-gray-50/60">
+                    <tr key={service.id} className="border-b border-white/10 text-sm hover:bg-slate-900/80">
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-slate-900/80">
                             {service.image ? (
                               <Image src={service.image} alt="" fill className="object-cover" sizes="48px" />
                             ) : (
@@ -307,21 +307,21 @@ export default function AdminServices() {
                             )}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">{service.title}</p>
-                            <p className="line-clamp-1 max-w-xs text-gray-500">{service.description}</p>
+                            <p className="font-semibold text-white">{service.title}</p>
+                            <p className="line-clamp-1 max-w-xs text-slate-400">{service.description}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-gray-700">{service.category}</td>
-                      <td className="px-4 py-4 capitalize text-gray-600">{service.icon}</td>
+                      <td className="px-4 py-4 text-slate-300">{service.category}</td>
+                      <td className="px-4 py-4 capitalize text-slate-400">{service.icon}</td>
                       <td className="px-4 py-4">
                         <button
                           type="button"
                           onClick={() => toggleStatus(service)}
                           className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                             service.status === 'active'
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                              ? 'bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25'
+                              : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700/80'
                           }`}
                         >
                           {service.status === 'active' ? 'Active' : 'Inactive'}
@@ -332,7 +332,7 @@ export default function AdminServices() {
                           <button
                             type="button"
                             onClick={() => openEditModal(service)}
-                            className="rounded-lg border border-gray-200 p-2 text-blue-600 hover:bg-blue-50"
+                            className="rounded-2xl border border-cyan-500/20 bg-slate-900/80 p-2 text-cyan-200 transition hover:bg-slate-900"
                             aria-label="Edit service"
                           >
                             <Edit className="h-4 w-4" />
@@ -340,7 +340,7 @@ export default function AdminServices() {
                           <button
                             type="button"
                             onClick={() => handleDeleteService(service)}
-                            className="rounded-lg border border-gray-200 p-2 text-red-600 hover:bg-red-50"
+                            className="rounded-2xl border border-cyan-500/20 bg-slate-900/80 p-2 text-rose-400 transition hover:bg-slate-900"
                             aria-label="Delete service"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -357,11 +357,11 @@ export default function AdminServices() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="tech-glass-panel max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-xl">
-            <div className="flex items-center justify-between border-b border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900">{editingService ? 'Edit Service' : 'Add Service'}</h2>
-              <button type="button" onClick={closeModal} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100" aria-label="Close">
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="tech-glass-panel max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-cyan-500/10">
+            <div className="flex items-center justify-between border-b border-white/10 p-6">
+              <h2 className="text-xl font-bold text-white">{editingService ? 'Edit Service' : 'Add Service'}</h2>
+              <button type="button" onClick={closeModal} className="rounded-2xl p-2 text-cyan-200 hover:bg-slate-900" aria-label="Close">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -421,7 +421,7 @@ export default function AdminServices() {
               </div>
 
               <div>
-                <p className="mb-3 text-sm font-semibold text-gray-700">Service icon</p>
+                <p className="mb-3 text-sm font-semibold text-slate-300">Service icon</p>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
                   {SERVICE_ICON_OPTIONS.map((option) => {
                     const Icon = option.icon;
@@ -431,10 +431,10 @@ export default function AdminServices() {
                         key={option.key}
                         type="button"
                         onClick={() => setFormData({ ...formData, icon: option.key })}
-                        className={`flex flex-col items-center gap-1 rounded-lg border p-2 text-xs transition ${
+                        className={`flex flex-col items-center gap-1 rounded-2xl border p-2 text-xs transition ${
                           selected
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                            ? 'border-cyan-400 bg-cyan-500/10 text-cyan-200 shadow-sm shadow-cyan-500/10'
+                            : 'border-white/10 bg-slate-950/80 text-slate-200 hover:border-cyan-300 hover:bg-slate-900/80'
                         }`}
                       >
                         <Icon className="h-5 w-5" />
@@ -444,18 +444,18 @@ export default function AdminServices() {
                   })}
                 </div>
                 {selectedIcon && (
-                  <p className="mt-2 text-xs text-gray-500">Selected: {selectedIcon.label}</p>
+                  <p className="mt-2 text-xs text-slate-400">Selected: {selectedIcon.label}</p>
                 )}
               </div>
 
               <div>
-                <p className="mb-2 text-sm font-semibold text-gray-700">Service image (optional)</p>
+                <p className="mb-2 text-sm font-semibold text-cyan-200">Service image (optional)</p>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                  <div className="relative flex h-28 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-gray-300 bg-gray-50 sm:h-28 sm:w-40">
+                  <div className="relative flex h-28 w-full shrink-0 items-center justify-center overflow-hidden rounded-3xl border border-cyan-500/20 bg-slate-900/80 sm:h-28 sm:w-40">
                     {imagePreview ? (
                       <Image src={imagePreview} alt="Preview" fill className="object-cover" unoptimized={imagePreview.startsWith('blob:')} />
                     ) : (
-                      <ImagePlus className="h-8 w-8 text-gray-400" />
+                      <ImagePlus className="h-8 w-8 text-cyan-300" />
                     )}
                   </div>
                   <div className="flex flex-1 flex-col gap-2">
@@ -469,7 +469,7 @@ export default function AdminServices() {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/20 bg-slate-900/80 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900"
                     >
                       <Upload className="h-4 w-4" />
                       Upload image
@@ -487,8 +487,8 @@ export default function AdminServices() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 border-t border-gray-200 pt-5">
-                <button type="button" onClick={closeModal} className="rounded-lg border border-gray-300 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-50">
+              <div className="flex justify-end gap-3 border-t border-white/10 pt-5">
+                <button type="button" onClick={closeModal} className="rounded-2xl border border-cyan-500/20 bg-slate-900/80 px-4 py-2 font-semibold text-white transition hover:bg-slate-900">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving} className="tech-btn-primary px-4 py-2 disabled:opacity-50">

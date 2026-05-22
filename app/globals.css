@@ -39,12 +39,13 @@ body {
 }
 
 .tech-glass-panel {
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-  color: #111827;
+  border-radius: 1rem;
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  background: rgba(10, 15, 35, 0.85);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36), 0 0 40px rgba(34, 211, 238, 0.08);
+  color: #e5e7eb;
 }
 
 .tech-btn-primary:disabled {
@@ -54,15 +55,15 @@ body {
 }
 
 .tech-input {
-  border-radius: 0.75rem;
-  border: 1px solid rgba(255,255,255,0.06);
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
   padding-right: 1rem;
-  /* allow utility classes like pl-10 to control left padding */
+  background: rgba(255, 255, 255, 0.05);
   color: #ffffff !important;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   -webkit-font-smoothing: antialiased;
   font-weight: 600;
   caret-color: #ffffff;
@@ -70,14 +71,14 @@ body {
 }
 
 .tech-input::placeholder {
-  color: rgba(156,163,175,0.7);
+  color: rgba(255, 255, 255, 0.45);
   font-weight: 500;
 }
 
 .tech-input:focus {
   outline: none;
-  border-color: rgba(96,165,250,0.7);
-  box-shadow: 0 6px 30px rgba(59,130,246,0.12), 0 0 18px rgba(34,211,238,0.06);
+  border-color: rgba(34, 211, 238, 0.7);
+  box-shadow: 0 0 0 0.2rem rgba(34, 211, 238, 0.18);
   transform: translateY(-1px);
 }
 
@@ -324,12 +325,12 @@ body {
 .tech-btn-primary {
   position: relative;
   overflow: hidden;
-  border-radius: 0.75rem;
-  background: linear-gradient(90deg, #1e40af, #2563eb 65%);
-  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  background: linear-gradient(90deg, #22d3ee, #6366f1 75%);
+  padding: 0.85rem 1.15rem;
   font-weight: 700;
   color: #ffffff;
-  box-shadow: 0 10px 30px rgba(37,99,235,0.18), 0 2px 8px rgba(59,130,246,0.06);
+  box-shadow: 0 14px 35px rgba(34, 211, 238, 0.25), 0 4px 14px rgba(79, 70, 229, 0.18);
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
@@ -340,16 +341,16 @@ body {
   left: -30%;
   width: 40%;
   height: 200%;
-  background: linear-gradient(120deg, rgba(255,255,255,0.18), rgba(255,255,255,0.03));
+  background: linear-gradient(120deg, rgba(255,255,255,0.24), rgba(255,255,255,0.08));
   transform: rotate(20deg) translateX(-120%);
   transition: transform 600ms ease;
-  filter: blur(8px);
+  filter: blur(10px);
   pointer-events: none;
 }
 
 .tech-btn-primary:hover {
   transform: scale(1.02);
-  box-shadow: 0 18px 48px rgba(37,99,235,0.22), 0 6px 20px rgba(96,165,250,0.06);
+  box-shadow: 0 18px 50px rgba(34, 211, 238, 0.28), 0 5px 18px rgba(79, 70, 229, 0.22);
 }
 
 .tech-btn-primary:hover::after {
@@ -357,7 +358,7 @@ body {
 }
 
 .tech-btn-primary:active {
-  transform: scale(0.99);
+  transform: scale(0.98);
 }
 
 .tech-nav-search::placeholder {
@@ -797,20 +798,25 @@ body {
 }
 
 .tech-admin-bar {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(34, 211, 238, 0.12);
+  background: rgba(5, 10, 28, 0.9);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
 }
 
 .tech-admin-bar .tech-admin-bar-text {
-  color: #cbd5e1;
+  color: #e5e7eb;
+}
+
+.admin-background {
+  background: radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 25%), radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.12), transparent 18%), linear-gradient(180deg, #020617 0%, #050a16 50%, #04070f 100%);
 }
 
 .tech-inner-row {
-  border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.95rem;
 }
 
 .tech-table-head {

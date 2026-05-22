@@ -120,8 +120,8 @@ export default function AdminDashboard() {
             <div key={stat.name} className="tech-glass-panel p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                  <p className="mt-2 text-2xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm font-medium text-cyan-200">{stat.name}</p>
+                  <p className="mt-2 text-2xl font-bold text-white">{stat.value}</p>
                 </div>
                 <div className={`rounded-lg p-3 ${stat.tone}`}>
                   <Icon className="h-6 w-6" />
@@ -135,13 +135,13 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <section className="tech-glass-panel p-6">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Recent Orders</h2>
-            <TrendingUp className="h-5 w-5 text-blue-600" />
+            <h2 className="text-xl font-bold text-white">Recent Orders</h2>
+            <TrendingUp className="h-5 w-5 text-cyan-300" />
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-left">
               <thead>
-                <tr className="border-b border-gray-200 text-sm text-gray-600">
+                <tr className="border-b border-white/10 text-sm text-slate-300">
                   <th className="py-3 pr-4 font-semibold">Order</th>
                   <th className="py-3 pr-4 font-semibold">Customer</th>
                   <th className="py-3 pr-4 font-semibold">Amount</th>
@@ -150,10 +150,10 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {recentOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-gray-100 text-sm">
-                    <td className="py-3 pr-4 font-medium text-gray-900">{order.orderNumber}</td>
-                    <td className="py-3 pr-4 text-gray-600">{order.customerName}</td>
-                    <td className="py-3 pr-4 font-semibold text-gray-900">{formatCurrency(order.total, order.currency)}</td>
+                  <tr key={order.id} className="border-b border-white/10 text-sm">
+                    <td className="py-3 pr-4 font-medium text-white">{order.orderNumber}</td>
+                    <td className="py-3 pr-4 text-slate-300">{order.customerName}</td>
+                    <td className="py-3 pr-4 font-semibold text-white">{formatCurrency(order.total, order.currency)}</td>
                     <td className="py-3 pr-4">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClass(order.status)}`}>
                         {orderStatusLabel(order.status)}
@@ -163,31 +163,31 @@ export default function AdminDashboard() {
                 ))}
               </tbody>
             </table>
-            {recentOrders.length === 0 && <p className="py-8 text-center text-sm text-gray-500">No orders yet.</p>}
+            {recentOrders.length === 0 && <p className="py-8 text-center text-sm text-slate-400">No orders yet.</p>}
           </div>
         </section>
 
         <section className="tech-glass-panel p-6">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Top Products</h2>
-            <Package className="h-5 w-5 text-blue-600" />
+            <h2 className="text-xl font-bold text-white">Top Products</h2>
+            <Package className="h-5 w-5 text-cyan-300" />
           </div>
           <div className="space-y-4">
             {topProducts.map((product, index) => (
-              <div key={product.name} className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
+              <div key={product.name} className="flex items-center justify-between rounded-xl bg-slate-900/80 p-4">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 font-bold text-blue-700">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 font-bold text-cyan-200">
                     {index + 1}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{product.name}</p>
-                    <p className="text-sm text-gray-500">{product.quantity} sold</p>
+                    <p className="font-medium text-white">{product.name}</p>
+                    <p className="text-sm text-slate-400">{product.quantity} sold</p>
                   </div>
                 </div>
-                <p className="font-semibold text-gray-900">{formatCurrency(product.revenue)}</p>
+                <p className="font-semibold text-white">{formatCurrency(product.revenue)}</p>
               </div>
             ))}
-            {topProducts.length === 0 && <p className="py-8 text-center text-sm text-gray-500">Top products appear after orders are paid.</p>}
+            {topProducts.length === 0 && <p className="py-8 text-center text-sm text-slate-400">Top products appear after orders are paid.</p>}
           </div>
         </section>
       </div>

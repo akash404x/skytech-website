@@ -145,7 +145,7 @@ export default function AdminSupportChats() {
                     type="button"
                     onClick={() => setSelectedChatId(chatItem.id)}
                     className={`w-full px-4 py-4 text-left transition ${
-                      selectedChatId === chatItem.id ? 'bg-cyan-500/10' : 'hover:bg-white/5'
+                      selectedChatId === chatItem.id ? 'bg-cyan-500/10' : 'hover:bg-slate-900/70'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">

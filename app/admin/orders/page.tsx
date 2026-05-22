@@ -84,29 +84,29 @@ export default function AdminOrders() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="tech-heading-gradient text-3xl font-bold">Orders</h1>
-          <p className="mt-2 text-gray-600">Update order statuses live from Firestore</p>
+          <p className="mt-2 text-slate-300">Update order statuses live from Firestore</p>
         </div>
-        <div className="tech-glass-panel rounded-lg p-4">
-          <p className="text-sm text-gray-500">Revenue</p>
-          <p className="text-2xl font-bold text-gray-900">{formatCurrency(revenue)}</p>
+        <div className="tech-glass-panel rounded-3xl p-4 border-cyan-500/10 bg-slate-950/90 shadow-[0_24px_60px_rgba(0,0,0,0.22)]">
+          <p className="text-sm text-cyan-200">Revenue</p>
+          <p className="text-2xl font-bold text-white">{formatCurrency(revenue)}</p>
         </div>
       </div>
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-cyan-300" />
           <input
             type="search"
             placeholder="Search orders..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 py-2 pl-10 pr-4 text-white"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(event) => setStatusFilter(event.target.value as 'all' | OrderStatus)}
-          className="rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="tech-input w-full max-w-xs rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-4 py-2 text-white"
         >
           <option value="all">All statuses</option>
           {ORDER_STATUSES.map((status) => (
@@ -132,27 +132,27 @@ export default function AdminOrders() {
       ) : (
         <div className="space-y-5">
           {filteredOrders.map((order) => (
-            <article key={order.id} className="tech-glass-panel rounded-lg p-6">
-              <div className="flex flex-col gap-4 border-b border-gray-200 pb-5 lg:flex-row lg:items-start lg:justify-between">
+            <article key={order.id} className="tech-glass-panel rounded-3xl p-6 border border-cyan-500/10 bg-slate-950/90 shadow-[0_24px_60px_rgba(0,0,0,0.22)]">
+              <div className="flex flex-col gap-4 border-b border-white/10 pb-5 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="text-xl font-bold text-gray-900">{order.orderNumber}</h2>
+                    <h2 className="text-xl font-bold text-white">{order.orderNumber}</h2>
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClass(order.status)}`}>
                       {orderStatusLabel(order.status)}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-gray-600">{formatDate(order.createdAt)}</p>
-                  <p className="mt-1 text-sm text-gray-600">
+                  <p className="mt-1 text-sm text-slate-400">{formatDate(order.createdAt)}</p>
+                  <p className="mt-1 text-sm text-slate-400">
                     {order.customerName} - {order.userEmail}
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(order.total, order.currency)}</p>
+                  <p className="text-2xl font-bold text-white">{formatCurrency(order.total, order.currency)}</p>
                   <select
                     value={order.status}
                     disabled={updatingOrderId === order.id}
                     onChange={(event) => updateOrderStatus(order, event.target.value as OrderStatus)}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                    className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-3 py-2 text-sm text-white disabled:opacity-50"
                   >
                     {ORDER_STATUSES.map((status) => (
                       <option key={status} value={status}>
@@ -165,15 +165,15 @@ export default function AdminOrders() {
 
               <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_280px]">
                 <div>
-                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                    <PackageCheck className="h-4 w-4 text-blue-600" />
+                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-cyan-200">
+                    <PackageCheck className="h-4 w-4 text-cyan-300" />
                     Items
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {order.items.map((item) => (
-                      <div key={item.productId} className="rounded-lg bg-gray-50 p-3">
-                        <p className="font-medium text-gray-900">{item.name}</p>
-                        <p className="text-sm text-gray-600">
+                      <div key={item.productId} className="rounded-2xl bg-slate-900/80 p-4 text-slate-300">
+                        <p className="font-medium text-white">{item.name}</p>
+                        <p className="text-sm text-slate-400">
                           {item.quantity} x {formatCurrency(item.unitPrice, order.currency)}
                         </p>
                       </div>
@@ -181,15 +181,15 @@ export default function AdminOrders() {
                   </div>
                 </div>
 
-                <div className="rounded-lg bg-gray-50 p-4">
-                  <p className="font-semibold text-gray-900">Shipping</p>
-                  <p className="mt-2 text-sm text-gray-600">{order.shippingAddress.line1}</p>
-                  {order.shippingAddress.line2 && <p className="text-sm text-gray-600">{order.shippingAddress.line2}</p>}
-                  <p className="text-sm text-gray-600">
+                <div className="rounded-2xl border border-cyan-500/10 bg-slate-900/80 p-4">
+                  <p className="font-semibold text-white">Shipping</p>
+                  <p className="mt-2 text-sm text-slate-300">{order.shippingAddress.line1}</p>
+                  {order.shippingAddress.line2 && <p className="text-sm text-slate-300">{order.shippingAddress.line2}</p>}
+                  <p className="text-sm text-slate-300">
                     {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
                   </p>
-                  <p className="text-sm text-gray-600">{order.shippingAddress.country}</p>
-                  <p className="mt-3 text-sm font-medium text-gray-900">{order.shippingAddress.phone}</p>
+                  <p className="text-sm text-slate-300">{order.shippingAddress.country}</p>
+                  <p className="mt-3 text-sm font-medium text-white">{order.shippingAddress.phone}</p>
                 </div>
               </div>
             </article>
