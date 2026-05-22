@@ -1,5 +1,7 @@
 import type {
   AccountStatus,
+  Chat,
+  ChatMessage,
   Order,
   PaymentTransaction,
   Product,
@@ -117,6 +119,38 @@ export function mapPayment(id: string, data: DataRecord): PaymentTransaction {
     currency: asString(data.currency, 'INR'),
     status: data.status === 'failed' ? 'failed' : 'captured',
     createdAt: data.createdAt as PaymentTransaction['createdAt'],
+  };
+}
+
+export function mapChat(id: string, data: DataRecord): Chat {
+  return {
+    id,
+    orderId: asString(data.orderId),
+    orderNumber: asString(data.orderNumber, id),
+    userId: asString(data.userId),
+    userEmail: asString(data.userEmail),
+    userName: asString(data.userName, 'Customer'),
+    lastMessage: asString(data.lastMessage, ''),
+    lastSender: data.lastSender === 'admin' ? 'admin' : 'user',
+    lastMessageAt: data.lastMessageAt as Chat['lastMessageAt'],
+    updatedAt: data.updatedAt as Chat['updatedAt'],
+    status: data.status === 'resolved' ? 'resolved' : data.status === 'closed' ? 'closed' : 'open',
+    unreadCount: asNumber(data.unreadCount),
+    unreadForUser: asNumber(data.unreadForUser),
+    createdAt: data.createdAt as Chat['createdAt'],
+  };
+}
+
+export function mapChatMessage(id: string, data: DataRecord): ChatMessage {
+  const attachmentUrl = asString(data.attachmentUrl);
+
+  return {
+    id,
+    sender: data.sender === 'admin' ? 'admin' : 'user',
+    text: asString(data.text, ''),
+    attachmentUrl: attachmentUrl || undefined,
+    timestamp: data.timestamp as ChatMessage['timestamp'],
+    seen: data.seen === true,
   };
 }
 

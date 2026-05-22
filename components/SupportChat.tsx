@@ -44,8 +44,16 @@ export default function SupportChat({ orderId, orderNumber, userName, userEmail,
 
   const formatTimestamp = (timestamp: unknown) => {
     if (!timestamp) return '…';
-    if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
-      return timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (
+      typeof timestamp === 'object' &&
+      timestamp !== null &&
+      'toDate' in timestamp &&
+      typeof (timestamp as { toDate?: unknown }).toDate === 'function'
+    ) {
+      return (timestamp as { toDate: () => Date }).toDate().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
     }
 
     if (typeof timestamp === 'string' || typeof timestamp === 'number') {

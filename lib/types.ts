@@ -122,6 +122,34 @@ export interface PaymentTransaction {
   createdAt?: DateValue;
 }
 
+export type ChatStatus = 'open' | 'resolved' | 'closed';
+
+export interface Chat {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  lastMessage: string;
+  lastSender: 'admin' | 'user';
+  lastMessageAt?: DateValue;
+  updatedAt?: DateValue;
+  status: ChatStatus;
+  unreadCount: number;
+  unreadForUser: number;
+  createdAt?: DateValue;
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: 'admin' | 'user';
+  text: string;
+  attachmentUrl?: string;
+  timestamp?: DateValue;
+  seen: boolean;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
