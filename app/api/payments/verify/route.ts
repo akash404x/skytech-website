@@ -19,6 +19,12 @@ export async function POST(request: Request) {
     const { profile } = await getAuthenticatedUser(request);
     const body = (await request.json()) as VerifyPaymentBody;
 
+    console.log('Verify-payment request received:', {
+      userId: profile.uid,
+      razorpayOrderId: body.razorpayOrderId,
+      razorpayPaymentId: body.razorpayPaymentId,
+    });
+
     if (!body.razorpayOrderId || !body.razorpayPaymentId || !body.razorpaySignature) {
       return NextResponse.json({ error: 'Missing Razorpay verification data' }, { status: 400 });
     }
@@ -54,6 +60,8 @@ export async function POST(request: Request) {
       razorpayPaymentId: body.razorpayPaymentId,
     });
 
+    console.log('Payment verified and order created:', { orderId: order.id, orderNumber: order.orderNumber });
+
     return NextResponse.json({
       success: true,
       order,
@@ -61,6 +69,6 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('Verify Razorpay payment failed:', error);
-    return NextResponse.json({ error: 'Unable to verify payment' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unable to verify payment' }, { status: 500 });
   }
 }

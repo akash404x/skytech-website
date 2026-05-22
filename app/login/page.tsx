@@ -1,5 +1,6 @@
-'use client';
+"use client";
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Lock, Mail } from 'lucide-react';
@@ -51,10 +52,28 @@ export default function LoginPage() {
     }
   };
 
+  const [logoError, setLogoError] = useState(false);
+
   return (
     <div className="tech-auth-page">
       <div className="tech-auth-card">
         <div className="text-center">
+          <div className="tech-auth-logo">
+            {!logoError ? (
+              <Image
+                src="/assets/logo/logo.png"
+                alt="SkyTech logo"
+                width={72}
+                height={72}
+                sizes="(max-width: 640px) 56px, (min-width: 1024px) 88px, 72px"
+                className="glow rounded"
+                onError={() => setLogoError(true)}
+                priority
+              />
+            ) : (
+              <img src="/file.svg" alt="SkyTech logo" className="glow" />
+            )}
+          </div>
           <Link href="/" className="text-4xl font-bold italic text-white">
             Sky<span className="text-blue-400">Tech</span>
           </Link>
@@ -77,7 +96,7 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={(event) => setFormData({ ...formData, email: event.target.value })}
-                  className="tech-input block w-full py-3 pl-10 pr-3"
+                  className="tech-input block w-full py-3 pl-10 pr-3 text-white caret-white placeholder:text-gray-400 font-semibold"
                   placeholder="you@example.com"
                 />
               </div>
@@ -96,7 +115,7 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-                  className="tech-input block w-full py-3 pl-10 pr-3"
+                  className="tech-input block w-full py-3 pl-10 pr-3 text-white caret-white placeholder:text-gray-400 font-semibold"
                   placeholder="Enter your password"
                 />
               </div>

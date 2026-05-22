@@ -6,11 +6,20 @@ function getCredentials() {
   const keyId = process.env.RAZORPAY_KEY_ID ?? process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
-  if (!keyId || !keySecret) {
-    throw new Error('Razorpay credentials are not configured');
+  const missing: string[] = [];
+  if (!keyId) missing.push('RAZORPAY_KEY_ID');
+  if (!keySecret) missing.push('RAZORPAY_KEY_SECRET');
+
+  console.log('Razorpay credential check:', {
+    keyId: Boolean(keyId),
+    keySecret: Boolean(keySecret),
+  });
+
+  if (missing.length > 0) {
+    throw new Error(`Razorpay credentials are not configured: missing ${missing.join(', ')}`);
   }
 
-  return { keyId, keySecret };
+  return { keyId: keyId as string, keySecret: keySecret as string };
 }
 
 function authHeader(keyId: string, keySecret: string) {

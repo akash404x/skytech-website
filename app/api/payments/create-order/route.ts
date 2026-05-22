@@ -14,6 +14,13 @@ export async function POST(request: Request) {
   try {
     const { profile } = await getAuthenticatedUser(request);
     const body = (await request.json()) as CreatePaymentOrderBody;
+
+    console.log('Create-order request received:', {
+      userId: profile.uid,
+      userEmail: profile.email,
+      itemsCount: body.items?.length ?? 0,
+    });
+
     const checkout = await validateCheckoutItems(body.items);
     const receipt = `skytech_${Date.now()}_${profile.uid.slice(0, 8)}`;
     const razorpayOrder = await createRazorpayOrder({
@@ -26,7 +33,14 @@ export async function POST(request: Request) {
       },
     });
 
+    console.log('Razorpay order created successfully:', {
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+    });
+
     return NextResponse.json({
+      success: true,
       keyId: razorpayOrder.keyId,
       razorpayOrderId: razorpayOrder.id,
       amount: razorpayOrder.amount,
@@ -38,6 +52,6 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof Response) return error;
     console.error('Create Razorpay order failed:', error);
-    return NextResponse.json({ error: 'Unable to create payment order' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unable to create payment order' }, { status: 500 });
   }
 }

@@ -110,6 +110,7 @@ export default function CheckoutPage() {
 
     try {
       const loaded = await loadRazorpayScript();
+      console.log('Razorpay script loaded:', loaded);
       if (!loaded) throw new Error('Razorpay checkout failed to load');
 
       const token = await getIdToken();
@@ -124,9 +125,21 @@ export default function CheckoutPage() {
         body: JSON.stringify({ items: checkoutItems }),
       });
 
-      const createData = await createResponse.json();
-      if (!createResponse.ok) throw new Error(createData.error || 'Unable to start payment');
+      let createData: any;
+      const contentType = createResponse.headers.get('content-type') ?? '';
+      if (contentType.includes('application/json')) {
+        createData = await createResponse.json();
+      } else {
+        const text = await createResponse.text();
+        throw new Error(`Create order response invalid: ${text}`);
+      }
 
+      if (!createResponse.ok) {
+        console.error('Create order failed response:', { status: createResponse.status, data: createData });
+        throw new Error(createData?.error || 'Unable to start payment');
+      }
+
+      console.log('Create order response data:', createData);
       if (!window.Razorpay) throw new Error('Razorpay checkout is unavailable');
 
       const razorpay = new window.Razorpay({
