@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Info, LogOut, Menu, Package, PackageCheck, Search, Shield, ShoppingCart, User, Wrench, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, Info, LogOut, Menu, Package, PackageCheck, Search, Shield, ShoppingCart, User, Wrench, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -11,13 +11,19 @@ function NavLink({
   href,
   children,
   className = '',
+  isActive = false,
 }: {
   href: string;
   children: React.ReactNode;
   className?: string;
+  isActive?: boolean;
 }) {
   return (
-    <Link href={href} className={`tech-nav-link flex items-center gap-1.5 ${className}`}>
+    <Link
+      href={href}
+      className={`tech-nav-link flex items-center gap-1.5 ${isActive ? 'tech-nav-link-active' : ''} ${className}`}
+      aria-current={isActive ? 'page' : undefined}
+    >
       {children}
     </Link>
   );
@@ -27,9 +33,17 @@ export default function Navbar() {
   const { user, loading, signOut, isAdmin, isEditor } = useAuth();
   const { itemCount } = useCart();
   const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
+
+  const isActiveRoute = (href: string) => {
+    if (href === '/') {
+      return pathname === '/';
+    }
+    return pathname?.startsWith(href);
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
@@ -86,16 +100,20 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="hidden items-center gap-1 md:flex md:gap-2">
-            <NavLink href="/products">
+          <div className="hidden items-center gap-2 md:flex md:gap-3">
+            <NavLink href="/" isActive={isActiveRoute('/')}>
+              <Home className="h-4 w-4 shrink-0 opacity-80" />
+              <span className="font-medium">Home</span>
+            </NavLink>
+            <NavLink href="/products" isActive={isActiveRoute('/products')}>
               <Package className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">Products</span>
             </NavLink>
-            <NavLink href="/services">
+            <NavLink href="/services" isActive={isActiveRoute('/services')}>
               <Wrench className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">Services</span>
             </NavLink>
-            <NavLink href="/about">
+            <NavLink href="/about" isActive={isActiveRoute('/about')}>
               <Info className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">About</span>
             </NavLink>
@@ -142,7 +160,7 @@ export default function Navbar() {
               </NavLink>
             )}
 
-            <NavLink href="/cart" className="relative ml-1">
+            <NavLink href="/cart" className="relative ml-1" isActive={isActiveRoute('/cart')}>
               <ShoppingCart className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">Cart</span>
               {cartBadge}
@@ -176,16 +194,20 @@ export default function Navbar() {
               />
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             </div>
-            <div className="flex flex-col gap-1">
-              <NavLink href="/products" className="rounded-lg px-2 py-2.5">
+            <div className="flex flex-col gap-2">
+              <NavLink href="/" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/')}>
+                <Home className="h-5 w-5" />
+                <span>Home</span>
+              </NavLink>
+              <NavLink href="/products" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/products')}>
                 <Package className="h-5 w-5" />
                 <span>Products</span>
               </NavLink>
-              <NavLink href="/services" className="rounded-lg px-2 py-2.5">
+              <NavLink href="/services" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/services')}>
                 <Wrench className="h-5 w-5" />
                 <span>Services</span>
               </NavLink>
-              <NavLink href="/about" className="rounded-lg px-2 py-2.5">
+              <NavLink href="/about" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/about')}>
                 <Info className="h-5 w-5" />
                 <span>About</span>
               </NavLink>
@@ -229,7 +251,7 @@ export default function Navbar() {
                 </NavLink>
               )}
 
-              <NavLink href="/cart" className="relative rounded-lg px-2 py-2.5">
+              <NavLink href="/cart" className="relative rounded-lg px-2 py-2.5" isActive={isActiveRoute('/cart')}>
                 <ShoppingCart className="h-5 w-5" />
                 <span>Cart</span>
                 {cartBadge}

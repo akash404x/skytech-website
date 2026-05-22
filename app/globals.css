@@ -286,6 +286,7 @@ body {
 }
 
 .tech-nav-link {
+  position: relative;
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
@@ -297,6 +298,12 @@ body {
   color: #f8fafc;
   background: rgba(59, 130, 246, 0.12);
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.08);
+}
+
+.tech-nav-link-active {
+  color: #f8fafc;
+  background: rgba(34, 211, 238, 0.16);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.18);
 }
 
 .tech-nav-search {
