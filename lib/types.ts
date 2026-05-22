@@ -42,6 +42,8 @@ export interface Service {
   icon: string;
   image: string | null;
   category: string;
+  buttonText?: string;
+  buttonLink?: string;
   status: ServiceStatus;
   createdAt?: DateValue;
   updatedAt?: DateValue;

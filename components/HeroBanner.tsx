@@ -14,7 +14,7 @@ const slides = [
     subtitle: 'Build Your Projects',
     description: 'Arduino Boards, Sensors, Modules & Components',
     slideClass: 'hero-slide-theme-1',
-    accent: 'from-blue-400 via-cyan-300 to-blue-500',
+    accent: 'from-amber-300 via-orange-300 to-yellow-400',
   },
   {
     id: 2,

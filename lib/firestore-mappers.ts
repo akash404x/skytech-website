@@ -77,6 +77,8 @@ export function mapService(id: string, data: DataRecord): Service {
     icon: asString(data.icon || data.iconKey, 'wrench'),
     image: imageRaw || legacyImage || null,
     category: asString(data.category, 'General'),
+    buttonText: asString(data.buttonText),
+    buttonLink: asString(data.buttonLink),
     status: normalizeServiceStatus(data.status),
     createdAt: data.createdAt as Service['createdAt'],
     updatedAt: data.updatedAt as Service['updatedAt'],

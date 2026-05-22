@@ -30,6 +30,8 @@ interface ServiceFormState {
   category: string;
   icon: string;
   imageUrl: string;
+  buttonText: string;
+  buttonLink: string;
   status: ServiceStatus;
 }
 
@@ -39,6 +41,8 @@ const emptyForm: ServiceFormState = {
   category: 'General',
   icon: 'wrench',
   imageUrl: '',
+  buttonText: '',
+  buttonLink: '',
   status: 'active',
 };
 
@@ -110,6 +114,8 @@ export default function AdminServices() {
       category: service.category,
       icon: service.icon,
       imageUrl: service.image ?? '',
+      buttonText: service.buttonText ?? '',
+      buttonLink: service.buttonLink ?? '',
       status: service.status,
     });
     resetImageState();
@@ -193,6 +199,8 @@ export default function AdminServices() {
           category: formData.category,
           icon: formData.icon,
           image: imageUrl,
+          buttonText: formData.buttonText.trim() || null,
+          buttonLink: formData.buttonLink.trim() || null,
           status: formData.status,
           updatedAt: serverTimestamp(),
         });
@@ -204,6 +212,8 @@ export default function AdminServices() {
           category: formData.category,
           icon: formData.icon,
           image: imageUrl,
+          buttonText: formData.buttonText.trim() || null,
+          buttonLink: formData.buttonLink.trim() || null,
           status: formData.status,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -394,6 +404,21 @@ export default function AdminServices() {
                 rows={4}
                 className="tech-input w-full"
               />
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <input
+                  value={formData.buttonText}
+                  onChange={(e) => setFormData({ ...formData, buttonText: e.target.value })}
+                  placeholder="Button text (e.g. Get Started)"
+                  className="tech-input"
+                />
+                <input
+                  value={formData.buttonLink}
+                  onChange={(e) => setFormData({ ...formData, buttonLink: e.target.value })}
+                  placeholder="Button link (e.g. /contact or https://wa.me/...)"
+                  className="tech-input"
+                />
+              </div>
 
               <div>
                 <p className="mb-3 text-sm font-semibold text-gray-700">Service icon</p>

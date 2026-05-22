@@ -16,6 +16,10 @@ export default function PremiumServiceCard({ service, index }: PremiumServiceCar
   const isInView = useInView(ref, { once: true, amount: 0.15 });
   const Icon = getServiceIcon(service.icon);
   const gradient = getServiceIconGradient(service.icon);
+  const actionText = service.buttonText?.trim() ?? '';
+  const actionLink = service.buttonLink?.trim() ?? '';
+  const hasAction = Boolean(actionText && actionLink);
+  const isInternalLink = actionLink.startsWith('/');
 
   return (
     <motion.article
@@ -54,6 +58,20 @@ export default function PremiumServiceCard({ service, index }: PremiumServiceCar
           {service.title}
         </h3>
         <p className="flex-1 text-sm leading-relaxed tech-muted md:text-[0.9375rem]">{service.description}</p>
+
+        {hasAction ? (
+          <motion.a
+            href={actionLink}
+            target={isInternalLink ? undefined : '_blank'}
+            rel={isInternalLink ? undefined : 'noreferrer noopener'}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            className="mt-6 inline-flex w-full items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white backdrop-blur-xl shadow-[0_12px_40px_rgba(59,130,246,0.18)] transition duration-300 hover:border-blue-300/40 hover:bg-white/10 hover:shadow-[0_18px_48px_rgba(96,165,250,0.22)]"
+          >
+            {actionText}
+          </motion.a>
+        ) : null}
 
         <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-blue-500/30 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
       </motion.div>
