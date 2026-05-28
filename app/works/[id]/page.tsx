@@ -4,7 +4,50 @@ import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { db } from '@/lib/firebase';
 import { mapWork } from '@/lib/firestore-mappers';
-import type { Work } from '@/lib/types';
+import type { Work, DateValue } from '@/lib/types';
+
+function formatDate(dateValue: DateValue | null): string | null {
+  if (dateValue === null || dateValue === undefined) {
+    return null;
+  }
+
+  let date: Date;
+
+  // Handle Firestore Timestamp with toDate() method
+  if (typeof dateValue === 'object' && 'toDate' in dateValue && typeof dateValue.toDate === 'function') {
+    date = dateValue.toDate();
+  }
+  // Handle Firestore Timestamp with seconds/nanoseconds
+  else if (typeof dateValue === 'object' && 'seconds' in dateValue) {
+    date = new Date(dateValue.seconds * 1000);
+  }
+  // Handle Date object
+  else if (dateValue instanceof Date) {
+    date = dateValue;
+  }
+  // Handle string
+  else if (typeof dateValue === 'string') {
+    date = new Date(dateValue);
+  }
+  // Handle number (timestamp)
+  else if (typeof dateValue === 'number') {
+    date = new Date(dateValue);
+  }
+  else {
+    return null;
+  }
+
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
 
 interface WorkPageProps {
   params: Promise<{ id: string }>;
@@ -155,7 +198,7 @@ function WorkDetailView({ work }: { work: Work }) {
               {work.completionDate && (
                 <div className="mb-4">
                   <p className="text-sm text-slate-400">Completed</p>
-                  <p className="font-medium text-white">{work.completionDate}</p>
+                  <p className="font-medium text-white">{formatDate(work.completionDate)}</p>
                 </div>
               )}
               
