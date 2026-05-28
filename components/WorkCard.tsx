@@ -6,6 +6,7 @@ import { motion, useInView } from 'framer-motion';
 import { ArrowRight, Calendar, ExternalLink, Star } from 'lucide-react';
 import { useRef } from 'react';
 import ProductImage from '@/components/ProductImage';
+import { formatDate } from '@/lib/format';
 import type { Work } from '@/lib/types';
 
 interface WorkCardProps {
@@ -118,7 +119,7 @@ export default function WorkCard({ work, index, priority = false }: WorkCardProp
             {work.completionDate && (
               <div className="flex items-center gap-1.5 text-xs text-slate-400">
                 <Calendar className="h-3.5 w-3.5" />
-                <span>{work.completionDate}</span>
+                <span>{formatDate(work.completionDate)}</span>
               </div>
             )}
             <div className="flex items-center gap-2">
