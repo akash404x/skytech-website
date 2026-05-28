@@ -322,6 +322,13 @@ body {
   background: rgba(59, 130, 246, 0.12);
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.08);
 }
+
+.tech-nav-link-active {
+  color: #ffffff;
+  background: rgba(34, 211, 238, 0.15);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.3), 0 0 12px rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+}
 .tech-btn-primary {
   position: relative;
   overflow: hidden;
