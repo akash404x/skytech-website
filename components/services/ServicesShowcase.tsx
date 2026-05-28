@@ -83,7 +83,8 @@ export default function ServicesShowcase({ variant = 'home' }: ServicesShowcaseP
             Our Services
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base tech-text md:text-lg">
-            Live services from SkyTech — add or update anytime in the admin dashboard and they appear here instantly.
+            Explore futuristic tech services by Sky Tech — from Arduino and IoT to app development, automation, robotics, and creative digital solutions.
+
           </p>
           {!isFull && (
             <Link
