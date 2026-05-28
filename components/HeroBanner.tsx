@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import HeroSlideEffects from '@/components/hero/HeroSlideEffects';
 import AnimatedButton from '@/components/ui/AnimatedButton';
+import Link from 'next/link';
 
 const slides = [
   {
@@ -102,9 +103,14 @@ export default function HeroBanner() {
                 {slide.description}
               </motion.p>
               <motion.div variants={textItem} className="mt-8">
-                <AnimatedButton type="button" className="hero-cta-btn px-10 py-3.5 text-base font-semibold md:text-lg">
-                  Shop Now
-                </AnimatedButton>
+                <Link href="/products">
+  <AnimatedButton
+    type="button"
+    className="hero-cta-btn px-10 py-3.5 text-base font-semibold md:text-lg"
+  >
+    Shop Now
+  </AnimatedButton>
+</Link>
               </motion.div>
             </motion.div>
           </div>
