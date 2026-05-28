@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { motion, useInView } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
 import { useRef } from 'react';
 import { getServiceIcon, getServiceIconGradient } from '@/lib/service-icons';
 import type { Service } from '@/lib/types';
@@ -36,6 +37,15 @@ export default function PremiumServiceCard({ service, index }: PremiumServiceCar
         transition={{ type: 'spring', stiffness: 260, damping: 22 }}
         style={{ transformStyle: 'preserve-3d' }}
       >
+        {service.featured && (
+          <div className="absolute right-4 top-4 z-10">
+            <span className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-yellow-500/40">
+              <Sparkles className="h-3 w-3 fill-white" />
+              Featured
+            </span>
+          </div>
+        )}
+
         {service.image ? (
           <div className="relative mb-5 h-36 w-full overflow-hidden rounded-xl border border-white/10 bg-slate-800/50">
             <Image src={service.image} alt={service.title} fill className="object-cover" sizes="(max-width:768px) 100vw, 25vw" />

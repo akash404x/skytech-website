@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { collection, limit, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, limit, onSnapshot, query, where } from 'firebase/firestore';
 import { ArrowRight, Package } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import EmptyState from '@/components/EmptyState';
@@ -11,31 +11,72 @@ import { db } from '@/lib/firebase';
 import { mapProduct } from '@/lib/firestore-mappers';
 import type { Product } from '@/lib/types';
 
+function toTimestamp(dateValue: Product['updatedAt']): number {
+  if (!dateValue) return 0;
+  if (typeof dateValue === 'number') return dateValue;
+  if (dateValue instanceof Date) return dateValue.getTime();
+  if (typeof dateValue === 'string') return new Date(dateValue).getTime();
+  if (typeof dateValue === 'object' && 'toDate' in dateValue) return dateValue.toDate().getTime();
+  if (typeof dateValue === 'object' && 'seconds' in dateValue) return dateValue.seconds * 1000;
+  return 0;
+}
+
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const productsQuery = query(collection(db, 'products'), orderBy('name'), limit(12));
-    const unsubscribe = onSnapshot(
-      productsQuery,
-      (snapshot) => {
-        const productsData = snapshot.docs
-          .map((document) => mapProduct(document.id, document.data()))
-          .filter((product) => product.status === 'active')
-          .sort((a, b) => Number(b.featured) - Number(a.featured))
-          .slice(0, 8);
-
-        setProducts(productsData);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error loading products:', error);
-        setLoading(false);
-      },
+    const featuredQuery = query(
+      collection(db, 'products'),
+      where('featured', '==', true),
+      limit(12)
     );
 
-    return () => unsubscribe();
+    const unsubscribeFeatured = onSnapshot(
+      featuredQuery,
+      (snapshot) => {
+        const featuredProducts = snapshot.docs
+          .map((document) => mapProduct(document.id, document.data()))
+          .filter((product) => product.status === 'active')
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .slice(0, 4);
+        
+        if (featuredProducts.length > 0) {
+          setProducts(featuredProducts);
+          setLoading(false);
+        } else {
+          const fallbackQuery = query(
+            collection(db, 'products'),
+            where('status', '==', 'active'),
+            limit(12)
+          );
+
+          const unsubscribeFallback = onSnapshot(
+            fallbackQuery,
+            (fallbackSnapshot) => {
+              const fallbackProducts = fallbackSnapshot.docs
+                .map((document) => mapProduct(document.id, document.data()))
+                .sort((a, b) => toTimestamp(b.updatedAt) - toTimestamp(a.updatedAt))
+                .slice(0, 4);
+              setProducts(fallbackProducts);
+              setLoading(false);
+            },
+            (error) => {
+              console.error('Error loading fallback products:', error);
+              setLoading(false);
+            }
+          );
+
+          return () => unsubscribeFallback();
+        }
+      },
+      (error) => {
+        console.error('Error loading featured products:', error);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribeFeatured();
   }, []);
 
   return (
@@ -58,7 +99,7 @@ export default function FeaturedProducts() {
 
         {loading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, index) => (
+            {Array.from({ length: 4 }).map((_, index) => (
               <ProductCardSkeleton key={index} />
             ))}
           </div>

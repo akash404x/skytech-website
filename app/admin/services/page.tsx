@@ -11,7 +11,7 @@ import {
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore';
-import { Edit, ImagePlus, Plus, Search, Trash2, Upload, Wrench, X } from 'lucide-react';
+import { Edit, ImagePlus, Plus, Search, Star, Trash2, Upload, Wrench, X } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -33,6 +33,7 @@ interface ServiceFormState {
   buttonText: string;
   buttonLink: string;
   status: ServiceStatus;
+  featured: boolean;
 }
 
 const emptyForm: ServiceFormState = {
@@ -44,6 +45,7 @@ const emptyForm: ServiceFormState = {
   buttonText: '',
   buttonLink: '',
   status: 'active',
+  featured: false,
 };
 
 export default function AdminServices() {
@@ -117,6 +119,7 @@ export default function AdminServices() {
       buttonText: service.buttonText ?? '',
       buttonLink: service.buttonLink ?? '',
       status: service.status,
+      featured: service.featured,
     });
     resetImageState();
     setImagePreview(service.image);
@@ -175,6 +178,19 @@ export default function AdminServices() {
     }
   };
 
+  const toggleFeatured = async (service: Service) => {
+    try {
+      await updateDoc(doc(db, 'services', service.id), {
+        featured: !service.featured,
+        updatedAt: serverTimestamp(),
+      });
+      toast.success(service.featured ? 'Service removed from featured' : 'Service added to featured');
+    } catch (error) {
+      console.error('Error toggling featured:', error);
+      toast.error('Failed to update featured status');
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -202,6 +218,7 @@ export default function AdminServices() {
           buttonText: formData.buttonText.trim() || null,
           buttonLink: formData.buttonLink.trim() || null,
           status: formData.status,
+          featured: formData.featured,
           updatedAt: serverTimestamp(),
         });
         toast.success('Service updated');
@@ -215,6 +232,7 @@ export default function AdminServices() {
           buttonText: formData.buttonText.trim() || null,
           buttonLink: formData.buttonLink.trim() || null,
           status: formData.status,
+          featured: formData.featured,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
@@ -329,6 +347,14 @@ export default function AdminServices() {
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleFeatured(service)}
+                            className={`rounded-2xl border border-cyan-500/20 bg-slate-900/80 p-2 transition hover:bg-slate-900 ${service.featured ? 'text-yellow-400' : 'text-slate-400'}`}
+                            aria-label={service.featured ? 'Remove from featured' : 'Add to featured'}
+                          >
+                            <Star className={`h-4 w-4 ${service.featured ? 'fill-yellow-400' : ''}`} />
+                          </button>
                           <button
                             type="button"
                             onClick={() => openEditModal(service)}
@@ -485,6 +511,19 @@ export default function AdminServices() {
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="rounded-lg border border-cyan-500/30 bg-slate-700/30 p-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(event) => setFormData({ ...formData, featured: event.target.checked })}
+                    className="h-5 w-5 rounded border-cyan-500/50 bg-slate-700 text-cyan-500 accent-cyan-500 cursor-pointer"
+                  />
+                  <span className="text-sm font-semibold text-cyan-300">Featured Service</span>
+                  <span className="text-xs text-gray-400">(Displays on home page)</span>
+                </label>
               </div>
 
               <div className="flex justify-end gap-3 border-t border-white/10 pt-5">

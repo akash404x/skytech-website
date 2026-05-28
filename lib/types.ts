@@ -44,6 +44,7 @@ export interface Service {
   category: string;
   buttonText?: string;
   buttonLink?: string;
+  featured: boolean;
   status: ServiceStatus;
   createdAt?: DateValue;
   updatedAt?: DateValue;

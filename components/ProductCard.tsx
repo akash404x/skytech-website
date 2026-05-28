@@ -1,6 +1,6 @@
 'use client';
 
-import { ShoppingCart, Star } from 'lucide-react';
+import { ShoppingCart, Sparkles, Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/format';
 import { getProductPrice } from '@/lib/cart';
@@ -23,8 +23,19 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     <article className="tech-glass-card group overflow-hidden transition hover:-translate-y-1 hover:border-blue-400/30 hover:shadow-blue-500/10">
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-800/50">
         <ProductImage src={product.images[0]} alt={product.name} priority={priority} />
-        {hasDiscount && (
+        {product.featured && (
+          <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-yellow-500/40">
+            <Sparkles className="h-3 w-3 fill-white" />
+            Featured
+          </span>
+        )}
+        {hasDiscount && !product.featured && (
           <span className="absolute left-3 top-3 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-blue-500/30">
+            {discount}% off
+          </span>
+        )}
+        {hasDiscount && product.featured && (
+          <span className="absolute right-3 top-3 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-blue-500/30">
             {discount}% off
           </span>
         )}

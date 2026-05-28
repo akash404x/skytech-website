@@ -29,7 +29,7 @@ export default function ServicesShowcase({ variant = 'home' }: ServicesShowcaseP
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, amount: 0.08 });
   const isFull = variant === 'full';
-  const { services, loading, error } = useServices({ activeOnly: true });
+  const { services, loading, error } = useServices({ activeOnly: true, featuredOnly: !isFull, limitCount: !isFull ? 4 : undefined, fallbackToLatest: !isFull });
 
   return (
     <section ref={sectionRef} className="services-showcase relative overflow-hidden py-20 md:py-28">

@@ -1,7 +1,7 @@
 'use client';
 
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { Edit, Package, Plus, Search, Trash2, X } from 'lucide-react';
+import { Edit, Package, Plus, Search, Star, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import EmptyState from '@/components/EmptyState';
@@ -128,6 +128,19 @@ export default function AdminProducts() {
     } catch (error) {
       console.error('Error deleting product:', error);
       toast.error('Failed to delete product');
+    }
+  };
+
+  const toggleFeatured = async (product: Product) => {
+    try {
+      await updateDoc(doc(db, 'products', product.id), {
+        featured: !product.featured,
+        updatedAt: serverTimestamp(),
+      });
+      toast.success(product.featured ? 'Product removed from featured' : 'Product added to featured');
+    } catch (error) {
+      console.error('Error toggling featured:', error);
+      toast.error('Failed to update featured status');
     }
   };
 
@@ -264,6 +277,14 @@ export default function AdminProducts() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleFeatured(product)}
+                          className={`rounded-2xl p-2 transition hover:bg-slate-900/70 ${product.featured ? 'text-yellow-400' : 'text-slate-400'}`}
+                          aria-label={product.featured ? 'Remove from featured' : 'Add to featured'}
+                        >
+                          <Star className={`h-5 w-5 ${product.featured ? 'fill-yellow-400' : ''}`} />
+                        </button>
                         <button type="button" onClick={() => openEditModal(product)} className="rounded-2xl p-2 text-cyan-300 hover:bg-slate-900/70" aria-label="Edit product">
                           <Edit className="h-5 w-5" />
                         </button>

@@ -81,6 +81,7 @@ export function mapService(id: string, data: DataRecord): Service {
     category: asString(data.category, 'General'),
     buttonText: asString(data.buttonText),
     buttonLink: asString(data.buttonLink),
+    featured: asBoolean(data.featured, false),
     status: normalizeServiceStatus(data.status),
     createdAt: data.createdAt as Service['createdAt'],
     updatedAt: data.updatedAt as Service['updatedAt'],
