@@ -1,12 +1,12 @@
 'use client';
 
 import { collection, onSnapshot, query } from 'firebase/firestore';
-import { DollarSign, Package, ShoppingCart, TrendingUp, Users } from 'lucide-react';
+import { Briefcase, DollarSign, Package, ShoppingCart, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
-import { mapOrder, mapProduct, mapUserProfile } from '@/lib/firestore-mappers';
+import { mapOrder, mapProduct, mapUserProfile, mapWork } from '@/lib/firestore-mappers';
 import { formatCurrency, orderStatusLabel, statusBadgeClass, toDate } from '@/lib/format';
-import type { Order, Product, UserProfile } from '@/lib/types';
+import type { Order, Product, UserProfile, Work } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -15,7 +15,8 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState({ orders: true, products: true, users: true });
+  const [works, setWorks] = useState<Work[]>([]);
+  const [loading, setLoading] = useState({ orders: true, products: true, users: true, works: true });
 
   useEffect(() => {
     const unsubscribeOrders = onSnapshot(
@@ -54,14 +55,27 @@ export default function AdminDashboard() {
       },
     );
 
+    const unsubscribeWorks = onSnapshot(
+      query(collection(db, 'works')),
+      (snapshot) => {
+        setWorks(snapshot.docs.map((document) => mapWork(document.id, document.data())));
+        setLoading((current) => ({ ...current, works: false }));
+      },
+      (error) => {
+        console.error('Error loading dashboard works:', error);
+        setLoading((current) => ({ ...current, works: false }));
+      },
+    );
+
     return () => {
       unsubscribeOrders();
       unsubscribeProducts();
       unsubscribeUsers();
+      unsubscribeWorks();
     };
   }, []);
 
-  const isLoading = loading.orders || loading.products || loading.users;
+  const isLoading = loading.orders || loading.products || loading.users || loading.works;
   const paidOrders = orders.filter((order) => order.status !== 'cancelled');
   const revenue = paidOrders.reduce((total, order) => total + order.total, 0);
   const recentOrders = [...orders]
@@ -83,10 +97,14 @@ export default function AdminDashboard() {
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 5);
 
+  const featuredWorks = works.filter((work) => work.featured);
+  const activeWorks = works.filter((work) => work.status === 'active');
+
   const statCards = [
     { name: 'Total Revenue', value: formatCurrency(revenue), icon: DollarSign, tone: 'bg-green-100 text-green-700' },
     { name: 'Orders', value: orders.length.toString(), icon: ShoppingCart, tone: 'bg-blue-100 text-blue-700' },
     { name: 'Products', value: products.length.toString(), icon: Package, tone: 'bg-amber-100 text-amber-700' },
+    { name: 'Works', value: `${activeWorks.length} / ${works.length}`, icon: Briefcase, tone: 'bg-cyan-100 text-cyan-700' },
     { name: 'Registered Users', value: users.length.toString(), icon: Users, tone: 'bg-purple-100 text-purple-700' },
   ];
 
@@ -94,8 +112,8 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-16" />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, index) => (
             <Skeleton key={index} className="h-32" />
           ))}
         </div>
@@ -113,7 +131,7 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (

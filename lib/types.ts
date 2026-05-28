@@ -2,6 +2,7 @@ export type UserRole = 'user' | 'editor' | 'admin';
 export type AccountStatus = 'active' | 'suspended';
 export type ProductStatus = 'active' | 'inactive';
 export type ServiceStatus = 'active' | 'inactive';
+export type WorkStatus = 'active' | 'inactive' | 'draft';
 export type OrderStatus = 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 export type PaymentStatus = 'captured' | 'failed';
 
@@ -161,4 +162,23 @@ export interface UserProfile {
   totalSpent: number;
   createdAt?: DateValue;
   lastLogin?: DateValue;
+}
+
+export interface Work {
+  id: string;
+  title: string;
+  shortDescription: string;
+  fullDescription: string;
+  category: string;
+  technologiesUsed: string[];
+  images: string[];
+  thumbnail: string | null;
+  githubLink: string | null;
+  liveDemoLink: string | null;
+  clientName: string | null;
+  completionDate: DateValue | null;
+  featured: boolean;
+  status: WorkStatus;
+  createdAt?: DateValue;
+  updatedAt?: DateValue;
 }

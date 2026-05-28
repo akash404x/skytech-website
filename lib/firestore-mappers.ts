@@ -10,6 +10,8 @@ import type {
   ServiceStatus,
   UserProfile,
   UserRole,
+  Work,
+  WorkStatus,
 } from './types';
 
 type DataRecord = Record<string, unknown>;
@@ -46,6 +48,11 @@ export function normalizeUserRole(value: unknown): UserRole {
 
 export function normalizeAccountStatus(value: unknown): AccountStatus {
   return value === 'suspended' ? 'suspended' : 'active';
+}
+
+export function normalizeWorkStatus(value: unknown): WorkStatus {
+  const status = asString(value).toLowerCase();
+  return status === 'draft' ? 'draft' : status === 'inactive' ? 'inactive' : 'active';
 }
 
 export function mapProduct(id: string, data: DataRecord): Product {
@@ -166,5 +173,29 @@ export function mapUserProfile(id: string, data: DataRecord): UserProfile {
     totalSpent: asNumber(data.totalSpent),
     createdAt: data.createdAt as UserProfile['createdAt'],
     lastLogin: data.lastLogin as UserProfile['lastLogin'],
+  };
+}
+
+export function mapWork(id: string, data: DataRecord): Work {
+  const thumbnailRaw = asString(data.thumbnail);
+  const legacyThumbnail = asStringArray(data.images)[0] ?? '';
+
+  return {
+    id,
+    title: asString(data.title),
+    shortDescription: asString(data.shortDescription),
+    fullDescription: asString(data.fullDescription),
+    category: asString(data.category, 'General'),
+    technologiesUsed: Array.isArray(data.technologiesUsed) ? data.technologiesUsed.map(String) : [],
+    images: asStringArray(data.images),
+    thumbnail: thumbnailRaw || legacyThumbnail || null,
+    githubLink: asString(data.githubLink) || null,
+    liveDemoLink: asString(data.liveDemoLink) || null,
+    clientName: asString(data.clientName) || null,
+    completionDate: data.completionDate as Work['completionDate'],
+    featured: asBoolean(data.featured, false),
+    status: normalizeWorkStatus(data.status),
+    createdAt: data.createdAt as Work['createdAt'],
+    updatedAt: data.updatedAt as Work['updatedAt'],
   };
 }

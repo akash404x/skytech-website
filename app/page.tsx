@@ -1,5 +1,6 @@
 import DiscountDeals from '@/components/DiscountDeals';
 import FeaturedProducts from '@/components/FeaturedProducts';
+import FeaturedWorks from '@/components/FeaturedWorks';
 import FeaturesSection from '@/components/FeaturesSection';
 import Footer from '@/components/Footer';
 import HeroBanner from '@/components/HeroBanner';
@@ -16,6 +17,7 @@ export default function Home() {
       <ProductCategories />
       <FeaturedProducts />
       <Services />
+      <FeaturedWorks />
       <DiscountDeals />
       <Footer />
     </div>

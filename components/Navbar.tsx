@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Info, LogOut, Menu, Package, PackageCheck, Search, Shield, ShoppingCart, User, Wrench, X } from 'lucide-react';
+import { Briefcase, Home, Info, LogOut, Menu, Package, PackageCheck, Search, Shield, ShoppingCart, User, Wrench, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -115,6 +115,10 @@ export default function Navbar() {
               <Wrench className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">Services</span>
             </NavLink>
+            <NavLink href="/works" isActive={isActiveRoute('/works')}>
+              <Briefcase className="h-4 w-4 shrink-0 opacity-80" />
+              <span className="font-medium">Works</span>
+            </NavLink>
             <NavLink href="/about" isActive={isActiveRoute('/about')}>
               <Info className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">About</span>
@@ -208,6 +212,10 @@ export default function Navbar() {
               <NavLink href="/services" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/services')}>
                 <Wrench className="h-5 w-5" />
                 <span>Services</span>
+              </NavLink>
+              <NavLink href="/works" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/works')}>
+                <Briefcase className="h-5 w-5" />
+                <span>Works</span>
               </NavLink>
               <NavLink href="/about" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/about')}>
                 <Info className="h-5 w-5" />
