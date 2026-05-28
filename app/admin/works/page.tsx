@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
 import { uploadWorkImage } from '@/lib/firebase-storage';
 import { mapWork } from '@/lib/firestore-mappers';
+import { toDate } from '@/lib/format';
 import { WORK_CATEGORIES } from '@/lib/works-content';
 import type { Work, WorkStatus } from '@/lib/types';
 
@@ -145,7 +146,7 @@ export default function AdminWorks() {
       githubLink: work.githubLink ?? '',
       liveDemoLink: work.liveDemoLink ?? '',
       clientName: work.clientName ?? '',
-      completionDate: work.completionDate ? new Date(work.completionDate).toISOString().split('T')[0] : '',
+      completionDate: toDate(work.completionDate)?.toISOString().split('T')[0] ?? '',
       status: work.status,
       featured: work.featured,
     });
