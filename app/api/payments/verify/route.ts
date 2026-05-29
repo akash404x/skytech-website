@@ -15,6 +15,10 @@ interface VerifyPaymentBody {
   razorpayPaymentId: string;
   razorpaySignature: string;
   walletAmount?: number;
+  gstAmount?: number;
+  gstPercentage?: number;
+  shippingFee?: number;
+  deliveryCharge?: number;
 }
 
 export async function POST(request: Request) {
@@ -95,6 +99,11 @@ export async function POST(request: Request) {
       shippingAddress: body.shippingAddress,
       razorpayOrderId: body.razorpayOrderId,
       razorpayPaymentId: body.razorpayPaymentId,
+      gstAmount: body.gstAmount,
+      gstPercentage: body.gstPercentage,
+      shippingFee: body.shippingFee,
+      deliveryCharge: body.deliveryCharge,
+      walletUsed: body.walletAmount,
     });
 
     console.log('Payment verified and order created:', { orderId: order.id, orderNumber: order.orderNumber });

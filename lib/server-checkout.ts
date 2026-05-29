@@ -1,7 +1,9 @@
 import { FieldValue } from 'firebase-admin/firestore';
-import { adminDb } from './firebase-admin';
+import { adminDb, adminStorage } from './firebase-admin';
 import { getProductPrice } from './cart';
 import { mapProduct } from './firestore-mappers';
+import { generateInvoicePDF, generateInvoiceNumber } from './invoice-generator';
+import { sendEmail, getOrderStatusEmailTemplate } from './email-service';
 import type { CartItem, OrderItem, ShippingAddress, UserProfile } from './types';
 
 export interface ValidatedCheckout {
@@ -84,6 +86,11 @@ export async function createVerifiedOrder(input: {
   shippingAddress: ShippingAddress;
   razorpayOrderId: string;
   razorpayPaymentId: string;
+  gstAmount?: number;
+  gstPercentage?: number;
+  shippingFee?: number;
+  deliveryCharge?: number;
+  walletUsed?: number;
 }) {
   const orderRef = adminDb.collection('orders').doc();
   const paymentRef = adminDb.collection('payments').doc(input.razorpayPaymentId);
@@ -114,11 +121,17 @@ export async function createVerifiedOrder(input: {
       userId: input.user.uid,
       userEmail: input.user.email,
       customerName: input.shippingAddress.fullName || input.user.displayName,
+      customerPhone: input.shippingAddress.phone,
       items: input.checkout.items,
       subtotal: input.checkout.subtotal,
+      gstAmount: input.gstAmount,
+      gstPercentage: input.gstPercentage,
+      shippingFee: input.shippingFee,
+      deliveryCharge: input.deliveryCharge,
+      walletUsed: input.walletUsed,
       total: input.checkout.total,
       currency: input.checkout.currency,
-      status: 'paid',
+      status: 'pending',
       shippingAddress: input.shippingAddress,
       payment: {
         razorpayOrderId: input.razorpayOrderId,
@@ -129,8 +142,8 @@ export async function createVerifiedOrder(input: {
       },
       timeline: [
         {
-          status: 'paid',
-          label: 'Payment verified',
+          status: 'pending',
+          label: 'Order Placed',
           description: 'Payment was verified and the order was created.',
           createdAt: timelineDate,
         },
@@ -170,6 +183,127 @@ export async function createVerifiedOrder(input: {
       { merge: true },
     );
   });
+
+  // Generate invoice after transaction completes with retry logic
+  const maxRetries = 3;
+  let invoiceGenerated = false;
+
+  // Print active bucket name for debugging
+  try {
+    const bucket = adminStorage.bucket();
+    console.log('Firebase Storage bucket name:', bucket.name);
+    console.log('Storage bucket config:', process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'Using default format');
+  } catch (error) {
+    console.error('Failed to get Firebase Storage bucket:', error);
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const invoiceNumber = generateInvoiceNumber();
+      const order = {
+        id: orderRef.id,
+        orderNumber,
+        userId: input.user.uid,
+        userEmail: input.user.email,
+        customerName: input.shippingAddress.fullName || input.user.displayName,
+        customerPhone: input.shippingAddress.phone,
+        items: input.checkout.items,
+        subtotal: input.checkout.subtotal,
+        gstAmount: input.gstAmount,
+        gstPercentage: input.gstPercentage,
+        shippingFee: input.shippingFee,
+        deliveryCharge: input.deliveryCharge,
+        walletUsed: input.walletUsed,
+        total: input.checkout.total,
+        currency: input.checkout.currency,
+        status: 'pending' as const,
+        shippingAddress: input.shippingAddress,
+        payment: {
+          razorpayOrderId: input.razorpayOrderId,
+          razorpayPaymentId: input.razorpayPaymentId,
+          amount: input.checkout.total,
+          currency: input.checkout.currency,
+          status: 'captured' as const,
+        },
+        timeline: [
+          {
+            status: 'pending' as const,
+            label: 'Order Placed',
+            description: 'Payment was verified and the order was created.',
+            createdAt: new Date(),
+          },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      console.log('Generating invoice PDF for order:', { orderId: orderRef.id, invoiceNumber, attempt });
+      const pdfBytes = await generateInvoicePDF(order);
+      console.log('Invoice PDF generated successfully, size:', pdfBytes.length, 'bytes');
+
+      // Upload to Firebase Storage
+      const bucket = adminStorage.bucket();
+      const fileName = `invoices/${orderRef.id}/${invoiceNumber}.pdf`;
+      const file = bucket.file(fileName);
+
+      console.log('Uploading invoice to Firebase Storage:', { bucket: bucket.name, fileName });
+      await file.save(Buffer.from(pdfBytes), {
+        contentType: 'application/pdf',
+      });
+      console.log('Invoice uploaded successfully to Firebase Storage');
+
+      // Get download URL
+      const [url] = await file.getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
+      });
+      console.log('Invoice download URL generated:', url.substring(0, 50) + '...');
+
+      // Update order with invoice details
+      await adminDb.collection('orders').doc(orderRef.id).update({
+        invoiceNumber,
+        invoiceUrl: url,
+        invoiceGeneratedAt: new Date(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      console.log('Invoice details saved to Firestore:', { orderId: orderRef.id, invoiceNumber, attempt });
+      invoiceGenerated = true;
+
+      // Send confirmation email with invoice
+      try {
+        const emailHtml = getOrderStatusEmailTemplate(order, 'pending');
+        await sendEmail({
+          to: order.userEmail,
+          subject: `Order Confirmed - ${order.orderNumber}`,
+          html: emailHtml,
+        });
+        console.log('Confirmation email sent:', { orderId: orderRef.id, userEmail: order.userEmail });
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+        // Don't fail the order if email fails
+      }
+
+      break;
+    } catch (error) {
+      console.error(`Invoice generation attempt ${attempt} failed:`, error);
+      console.error('Error details:', {
+        orderId: orderRef.id,
+        attempt,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      if (attempt === maxRetries) {
+        console.error('Failed to generate invoice after maximum retries:', { orderId: orderRef.id, maxRetries });
+        // Don't fail the order creation if invoice generation fails
+      } else {
+        // Wait before retrying (exponential backoff)
+        const delay = Math.pow(2, attempt) * 1000;
+        console.log(`Retrying invoice generation in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
 
   return {
     id: orderRef.id,

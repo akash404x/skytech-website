@@ -1,7 +1,7 @@
 'use client';
 
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw } from 'lucide-react';
+import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw, Download, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -15,7 +15,7 @@ import { mapOrder, mapPayment } from '@/lib/firestore-mappers';
 import { formatCurrency, formatDate, orderStatusLabel, statusBadgeClass, toDate } from '@/lib/format';
 import type { Order, OrderStatus, PaymentTransaction } from '@/lib/types';
 
-const timelineStatuses: OrderStatus[] = ['paid', 'processing', 'shipped', 'delivered'];
+const timelineStatuses: OrderStatus[] = ['pending', 'confirmed', 'packed', 'shipped', 'delivered'];
 
 function CancelOrderModal({ order, onClose }: { order: Order; onClose: () => void }) {
   const [reason, setReason] = useState('');
@@ -194,7 +194,7 @@ function OrderTimeline({ order }: { order: Order }) {
 
 export default function OrdersPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, getIdToken } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [payments, setPayments] = useState<PaymentTransaction[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -254,6 +254,14 @@ export default function OrdersPage() {
 
   const isLoading = authLoading || loadingOrders;
   const totalPaid = useMemo(() => payments.reduce((total, payment) => total + payment.amount, 0), [payments]);
+
+  const handleDownloadInvoice = (invoiceUrl: string) => {
+    window.open(invoiceUrl, '_blank');
+  };
+
+  const handleViewInvoice = (invoiceUrl: string) => {
+    window.open(invoiceUrl, '_blank');
+  };
 
   if (authLoading || !user) {
     return (
@@ -317,9 +325,49 @@ export default function OrdersPage() {
                   <OrderTimeline order={order} />
                 </div>
 
+                {/* Invoice Section */}
+                <div className="mt-5 rounded-2xl border border-cyan-500/10 bg-slate-900/80 p-4">
+                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-cyan-200">
+                    <ReceiptText className="h-4 w-4 text-cyan-300" />
+                    Invoice
+                  </div>
+                  {order.invoiceUrl ? (
+                    <div className="space-y-3">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">{order.invoiceNumber || 'SKY-INV-XXXXXX'}</p>
+                          <p className="text-xs tech-muted">Generated: {formatDate(order.createdAt)}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleViewInvoice(order.invoiceUrl!)}
+                            className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/20"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleDownloadInvoice(order.invoiceUrl!)}
+                            className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/20"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm tech-muted">No invoice generated yet</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="mt-5 flex flex-wrap gap-3">
                   {/* Cancel Order Button - Only before shipment */}
-                  {order.status === 'paid' || order.status === 'processing' ? (
+                  {order.status === 'pending' || order.status === 'confirmed' ? (
                     <button
                       onClick={() => {
                         setSelectedOrder(order);

@@ -1,10 +1,11 @@
 'use client';
 
 import { doc, onSnapshot } from 'firebase/firestore';
-import { ArrowLeft, PackageCheck, ReceiptText, Truck, XCircle } from 'lucide-react';
+import { ArrowLeft, PackageCheck, Truck, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import EmptyState from '@/components/EmptyState';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -137,6 +138,11 @@ export default function OrderDetailsPage() {
                     <p className="font-semibold text-white">Payment</p>
                     <p className="mt-3 text-sm">{order.payment.razorpayPaymentId}</p>
                     <p className="mt-2 text-sm text-slate-400">Status: {order.payment.status}</p>
+                    {order.status === 'cancelled' && order.refundProcessed && (
+                      <p className="mt-2 text-sm text-green-400">
+                        Refunded To Wallet: {formatCurrency(order.refundAmount || order.total)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

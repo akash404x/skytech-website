@@ -33,6 +33,15 @@ export async function createRazorpayOrder(input: {
   notes: Record<string, string>;
 }) {
   const { keyId, keySecret } = getCredentials();
+  
+  // Razorpay minimum amount is ₹1 (100 paise)
+  const amountInPaise = Math.round(input.amount * 100);
+  const MINIMUM_AMOUNT = 100; // 100 paise = ₹1
+  
+  if (amountInPaise < MINIMUM_AMOUNT) {
+    throw new Error(`Order amount (₹${input.amount.toFixed(2)}) is less than minimum allowed amount (₹1.00). Please add more items to your cart.`);
+  }
+
   const response = await fetch(`${RAZORPAY_API}/orders`, {
     method: 'POST',
     headers: {
@@ -40,7 +49,7 @@ export async function createRazorpayOrder(input: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      amount: Math.round(input.amount * 100),
+      amount: amountInPaise,
       currency: input.currency,
       receipt: input.receipt,
       notes: input.notes,

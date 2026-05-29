@@ -11,6 +11,10 @@ interface WalletOnlyBody {
   items: Pick<CartItem, 'productId' | 'quantity'>[];
   shippingAddress: ShippingAddress;
   walletAmount: number;
+  gstAmount?: number;
+  gstPercentage?: number;
+  shippingFee?: number;
+  deliveryCharge?: number;
 }
 
 export async function POST(request: Request) {
@@ -84,11 +88,17 @@ export async function POST(request: Request) {
         userId: profile.uid,
         userEmail: profile.email,
         customerName: body.shippingAddress.fullName || profile.displayName,
+        customerPhone: body.shippingAddress.phone,
         items: checkout.items,
         subtotal: checkout.subtotal,
+        gstAmount: body.gstAmount,
+        gstPercentage: body.gstPercentage,
+        shippingFee: body.shippingFee,
+        deliveryCharge: body.deliveryCharge,
+        walletUsed: body.walletAmount,
         total: checkout.total,
         currency: checkout.currency,
-        status: 'paid',
+        status: 'pending',
         shippingAddress: body.shippingAddress,
         payment: {
           razorpayOrderId: '',
@@ -99,8 +109,8 @@ export async function POST(request: Request) {
         },
         timeline: [
           {
-            status: 'paid',
-            label: 'Payment verified',
+            status: 'pending',
+            label: 'Order Placed',
             description: 'Payment was made using wallet balance.',
             createdAt: timelineDate,
           },

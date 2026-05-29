@@ -12,7 +12,7 @@ import { mapOrder } from '@/lib/firestore-mappers';
 import { formatCurrency, formatDate, orderStatusLabel, statusBadgeClass, toDate } from '@/lib/format';
 import type { Order, OrderStatus } from '@/lib/types';
 
-const ORDER_STATUSES: OrderStatus[] = ['paid', 'processing', 'shipped', 'delivered', 'cancelled', 'cancellation_requested', 'cancellation_rejected'];
+const ORDER_STATUSES: OrderStatus[] = ['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'cancellation_requested', 'cancellation_rejected'];
 
 export default function AdminOrders() {
   const { getIdToken } = useAuth();
@@ -61,20 +61,21 @@ export default function AdminOrders() {
 
     setUpdatingOrderId(order.id);
     try {
-      await updateDoc(doc(db, 'orders', order.id), {
-        status,
-        updatedAt: serverTimestamp(),
-        timeline: arrayUnion({
-          status,
-          label: orderStatusLabel(status),
-          description: `Order status updated to ${orderStatusLabel(status)}.`,
-          createdAt: new Date(),
-        }),
+      const token = await getIdToken();
+      const response = await fetch('/api/admin/orders/update-status', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: order.id, status }),
       });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to update order status');
       toast.success('Order status updated');
     } catch (error) {
       console.error('Error updating order status:', error);
-      toast.error('Failed to update order');
+      toast.error(error instanceof Error ? error.message : 'Failed to update order');
     } finally {
       setUpdatingOrderId(null);
     }

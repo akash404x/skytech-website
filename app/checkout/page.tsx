@@ -78,6 +78,10 @@ export default function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [walletBalance, setWalletBalance] = useState(0);
   const [useWallet, setUseWallet] = useState(false);
+  const [gstSettings, setGstSettings] = useState({ enabled: true, percentage: 18 });
+  const [shippingSettings, setShippingSettings] = useState({ shippingFee: 80, freeShippingAbove: 999 });
+  const [deliverySettings, setDeliverySettings] = useState({ enabled: true, charge: 20 });
+  const [loadingSettings, setLoadingSettings] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,6 +91,22 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!user) return;
+
+    const fetchPricingSettings = async () => {
+      try {
+        const response = await fetch('/api/settings/pricing');
+        const data = await response.json();
+        if (response.ok) {
+          setGstSettings(data.data.gst);
+          setShippingSettings(data.data.shipping);
+          setDeliverySettings(data.data.delivery);
+        }
+      } catch (error) {
+        console.error('Error fetching pricing settings:', error);
+      } finally {
+        setLoadingSettings(false);
+      }
+    };
 
     const fetchWalletBalance = async () => {
       try {
@@ -103,6 +123,7 @@ export default function CheckoutPage() {
       }
     };
 
+    fetchPricingSettings();
     fetchWalletBalance();
   }, [user, getIdToken]);
 
@@ -116,9 +137,28 @@ export default function CheckoutPage() {
     return Math.min(walletBalance, subtotal);
   }, [useWallet, walletBalance, subtotal]);
 
+  const gstAmount = useMemo(() => {
+    if (!gstSettings.enabled) return 0;
+    return (subtotal * gstSettings.percentage) / 100;
+  }, [subtotal, gstSettings]);
+
+  const shippingFee = useMemo(() => {
+    if (subtotal >= shippingSettings.freeShippingAbove) return 0;
+    return shippingSettings.shippingFee;
+  }, [subtotal, shippingSettings]);
+
+  const deliveryCharge = useMemo(() => {
+    if (!deliverySettings.enabled) return 0;
+    return deliverySettings.charge;
+  }, [deliverySettings]);
+
+  const totalBeforeWallet = useMemo(() => {
+    return subtotal + gstAmount + shippingFee + deliveryCharge;
+  }, [subtotal, gstAmount, shippingFee, deliveryCharge]);
+
   const remainingAmount = useMemo(() => {
-    return subtotal - walletDeduction;
-  }, [subtotal, walletDeduction]);
+    return totalBeforeWallet - walletDeduction;
+  }, [totalBeforeWallet, walletDeduction]);
 
   const updateAddress = (field: keyof ShippingAddress, value: string) => {
     setShippingAddress((current) => ({ ...current, [field]: value }));
@@ -159,6 +199,10 @@ export default function CheckoutPage() {
               fullName: shippingAddress.fullName || profile?.displayName || user.displayName || 'Customer',
             },
             walletAmount: walletDeduction,
+            gstAmount,
+            gstPercentage: gstSettings.percentage,
+            shippingFee,
+            deliveryCharge,
           }),
         });
 
@@ -241,6 +285,10 @@ export default function CheckoutPage() {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
                 walletAmount: walletDeduction,
+                gstAmount,
+                gstPercentage: gstSettings.percentage,
+                shippingFee,
+                deliveryCharge,
               }),
             });
 
@@ -324,6 +372,29 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
+
+            <div className="mt-6 space-y-3 border-b border-white/10 pb-6">
+              <div className="flex justify-between text-sm tech-text">
+                <span>Subtotal</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </div>
+              {gstSettings.enabled && (
+                <div className="flex justify-between text-sm tech-text">
+                  <span>GST ({gstSettings.percentage}%)</span>
+                  <span>{formatCurrency(gstAmount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm tech-text">
+                <span>Shipping</span>
+                <span>{shippingFee === 0 ? 'Free' : formatCurrency(shippingFee)}</span>
+              </div>
+              {deliverySettings.enabled && (
+                <div className="flex justify-between text-sm tech-text">
+                  <span>Delivery Charge</span>
+                  <span>{formatCurrency(deliveryCharge)}</span>
+                </div>
+              )}
+            </div>
             
             {/* Wallet Payment Option */}
             {walletBalance > 0 && (
@@ -363,7 +434,7 @@ export default function CheckoutPage() {
 
             <div className="mt-6 flex justify-between text-lg font-bold text-white">
               <span>Total</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatCurrency(totalBeforeWallet)}</span>
             </div>
             {useWallet && walletDeduction > 0 && (
               <div className="mt-2 flex justify-between text-sm tech-text">

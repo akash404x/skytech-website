@@ -71,5 +71,29 @@ service cloud.firestore {
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update: if isAdmin() || isOwner(resource.data.userId);
     }
+    
+    // Settings collection - only admins can read/write (GST, shipping, delivery settings)
+    match /settings/{settingId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Email logs - only admins can read
+    match /emailLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+    }
+    
+    // Notifications - only admins can read
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+    }
+    
+    // Wallet transactions - users can read their own, admins can read all
+    match /walletTransactions/{transactionId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAdmin();
+    }
   }
 }

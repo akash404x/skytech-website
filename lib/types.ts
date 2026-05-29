@@ -3,7 +3,7 @@ export type AccountStatus = 'active' | 'suspended';
 export type ProductStatus = 'active' | 'inactive';
 export type ServiceStatus = 'active' | 'inactive';
 export type WorkStatus = 'active' | 'inactive' | 'draft';
-export type OrderStatus = 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'cancellation_requested' | 'cancellation_rejected';
+export type OrderStatus = 'pending' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled' | 'cancellation_requested' | 'cancellation_rejected';
 export type PaymentStatus = 'captured' | 'failed';
 
 export type CancellationStatus = 'requested' | 'approved' | 'rejected';
@@ -11,6 +11,8 @@ export type ReturnStatus = 'requested' | 'approved' | 'rejected' | 'pickup_sched
 export type ReplacementStatus = 'requested' | 'approved' | 'rejected' | 'pickup_scheduled' | 'completed';
 export type WalletTransactionType = 'credit' | 'debit';
 export type WalletTransactionStatus = 'pending' | 'completed' | 'failed';
+export type EmailStatus = 'pending' | 'sent' | 'failed';
+export type NotificationType = 'order_placed' | 'order_confirmed' | 'order_packed' | 'order_shipped' | 'order_delivered' | 'order_cancelled' | 'return_approved' | 'replacement_approved' | 'wallet_credited';
 
 export type DateValue =
   | Date
@@ -156,8 +158,15 @@ export interface Order {
   userId: string;
   userEmail: string;
   customerName: string;
+  customerPhone?: string;
   items: OrderItem[];
   subtotal: number;
+  gstAmount?: number;
+  gstPercentage?: number;
+  shippingFee?: number;
+  deliveryCharge?: number;
+  discount?: number;
+  walletUsed?: number;
   total: number;
   currency: string;
   status: OrderStatus;
@@ -167,6 +176,9 @@ export interface Order {
   cancellationRequest?: CancellationRequest;
   returnRequest?: ReturnRequest;
   replacementRequest?: ReplacementRequest;
+  refundProcessed?: boolean;
+  refundAmount?: number;
+  refundProcessedAt?: DateValue;
   createdAt?: DateValue;
   updatedAt?: DateValue;
 }
@@ -242,4 +254,47 @@ export interface Work {
   status: WorkStatus;
   createdAt?: DateValue;
   updatedAt?: DateValue;
+}
+
+export interface GSTSettings {
+  enabled: boolean;
+  percentage: number;
+}
+
+export interface ShippingSettings {
+  shippingFee: number;
+  freeShippingAbove: number;
+}
+
+export interface DeliverySettings {
+  enabled: boolean;
+  charge: number;
+}
+
+export interface EmailLog {
+  id: string;
+  orderId?: string;
+  orderNumber?: string;
+  userId?: string;
+  userEmail: string;
+  subject: string;
+  template: string;
+  status: EmailStatus;
+  error?: string;
+  sentAt?: DateValue;
+  createdAt?: DateValue;
+}
+
+export interface NotificationLog {
+  id: string;
+  orderId?: string;
+  orderNumber?: string;
+  userId?: string;
+  userEmail: string;
+  type: NotificationType;
+  status: EmailStatus;
+  data?: Record<string, unknown>;
+  error?: string;
+  sentAt?: DateValue;
+  createdAt?: DateValue;
 }
