@@ -1,24 +1,27 @@
 'use client';
 
 import { arrayUnion, collection, doc, onSnapshot, query, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { PackageCheck, Search, ShoppingCart } from 'lucide-react';
+import { PackageCheck, Search, ShoppingCart, Check, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import EmptyState from '@/components/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { mapOrder } from '@/lib/firestore-mappers';
 import { formatCurrency, formatDate, orderStatusLabel, statusBadgeClass, toDate } from '@/lib/format';
 import type { Order, OrderStatus } from '@/lib/types';
 
-const ORDER_STATUSES: OrderStatus[] = ['paid', 'processing', 'shipped', 'delivered', 'cancelled'];
+const ORDER_STATUSES: OrderStatus[] = ['paid', 'processing', 'shipped', 'delivered', 'cancelled', 'cancellation_requested', 'cancellation_rejected'];
 
 export default function AdminOrders() {
+  const { getIdToken } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+  const [approvingType, setApprovingType] = useState<'cancellation' | 'return' | 'replacement' | null>(null);
 
   useEffect(() => {
     const ordersQuery = query(collection(db, 'orders'));
@@ -72,6 +75,84 @@ export default function AdminOrders() {
     } catch (error) {
       console.error('Error updating order status:', error);
       toast.error('Failed to update order');
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  const handleCancellationApproval = async (order: Order, approved: boolean) => {
+    setUpdatingOrderId(order.id);
+    try {
+      const token = await getIdToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+      const response = await fetch('/api/admin/orders/cancel-approve', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: order.id, approved }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to process cancellation');
+      toast.success(data.message);
+    } catch (error) {
+      console.error('Cancellation approval error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to process cancellation');
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  const handleReturnApproval = async (order: Order, approved: boolean) => {
+    setUpdatingOrderId(order.id);
+    try {
+      const token = await getIdToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+      const response = await fetch('/api/admin/orders/return-approve', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: order.id, approved }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to process return');
+      toast.success(data.message);
+    } catch (error) {
+      console.error('Return approval error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to process return');
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  const handleReplacementApproval = async (order: Order, approved: boolean) => {
+    setUpdatingOrderId(order.id);
+    try {
+      const token = await getIdToken();
+      if (!token) {
+        throw new Error('Unable to get authentication token');
+      }
+      const response = await fetch('/api/admin/orders/replacement-approve', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: order.id, approved }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to process replacement');
+      toast.success(data.message);
+    } catch (error) {
+      console.error('Replacement approval error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to process replacement');
     } finally {
       setUpdatingOrderId(null);
     }
@@ -161,6 +242,84 @@ export default function AdminOrders() {
                     ))}
                   </select>
                 </div>
+
+                {/* Cancellation Approval Actions */}
+                {order.cancellationRequest && order.cancellationRequest.status === 'requested' && (
+                  <div className="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+                    <p className="mb-2 text-sm font-semibold text-yellow-300">Cancellation Request</p>
+                    <p className="mb-3 text-sm text-slate-300">Reason: {order.cancellationRequest.reason}</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleCancellationApproval(order, true)}
+                        disabled={updatingOrderId === order.id}
+                        className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Check className="h-4 w-4" />
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleCancellationApproval(order, false)}
+                        disabled={updatingOrderId === order.id}
+                        className="flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <X className="h-4 w-4" />
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Return Approval Actions */}
+                {order.returnRequest && order.returnRequest.status === 'requested' && (
+                  <div className="mt-4 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+                    <p className="mb-2 text-sm font-semibold text-blue-300">Return Request</p>
+                    <p className="mb-3 text-sm text-slate-300">Reason: {order.returnRequest.reason}</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleReturnApproval(order, true)}
+                        disabled={updatingOrderId === order.id}
+                        className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Check className="h-4 w-4" />
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReturnApproval(order, false)}
+                        disabled={updatingOrderId === order.id}
+                        className="flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <X className="h-4 w-4" />
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Replacement Approval Actions */}
+                {order.replacementRequest && order.replacementRequest.status === 'requested' && (
+                  <div className="mt-4 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-4">
+                    <p className="mb-2 text-sm font-semibold text-cyan-300">Replacement Request</p>
+                    <p className="mb-3 text-sm text-slate-300">Reason: {order.replacementRequest.reason}</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleReplacementApproval(order, true)}
+                        disabled={updatingOrderId === order.id}
+                        className="flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Check className="h-4 w-4" />
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReplacementApproval(order, false)}
+                        disabled={updatingOrderId === order.id}
+                        className="flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <X className="h-4 w-4" />
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_280px]">

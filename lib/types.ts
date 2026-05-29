@@ -3,8 +3,14 @@ export type AccountStatus = 'active' | 'suspended';
 export type ProductStatus = 'active' | 'inactive';
 export type ServiceStatus = 'active' | 'inactive';
 export type WorkStatus = 'active' | 'inactive' | 'draft';
-export type OrderStatus = 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus = 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'cancellation_requested' | 'cancellation_rejected';
 export type PaymentStatus = 'captured' | 'failed';
+
+export type CancellationStatus = 'requested' | 'approved' | 'rejected';
+export type ReturnStatus = 'requested' | 'approved' | 'rejected' | 'pickup_scheduled' | 'completed';
+export type ReplacementStatus = 'requested' | 'approved' | 'rejected' | 'pickup_scheduled' | 'completed';
+export type WalletTransactionType = 'credit' | 'debit';
+export type WalletTransactionStatus = 'pending' | 'completed' | 'failed';
 
 export type DateValue =
   | Date
@@ -93,6 +99,57 @@ export interface OrderPaymentSummary {
   status: PaymentStatus;
 }
 
+export interface CancellationRequest {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  userId: string;
+  userEmail: string;
+  reason: string;
+  status: CancellationStatus;
+  adminNotes?: string;
+  createdAt?: DateValue;
+  updatedAt?: DateValue;
+}
+
+export interface ReturnRequest {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  userId: string;
+  userEmail: string;
+  reason: string;
+  status: ReturnStatus;
+  adminNotes?: string;
+  createdAt?: DateValue;
+  updatedAt?: DateValue;
+}
+
+export interface ReplacementRequest {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  userId: string;
+  userEmail: string;
+  reason: string;
+  status: ReplacementStatus;
+  adminNotes?: string;
+  createdAt?: DateValue;
+  updatedAt?: DateValue;
+}
+
+export interface WalletTransaction {
+  id: string;
+  userId: string;
+  amount: number;
+  type: WalletTransactionType;
+  status: WalletTransactionStatus;
+  orderId?: string;
+  paymentId?: string;
+  description: string;
+  createdAt?: DateValue;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -107,6 +164,9 @@ export interface Order {
   shippingAddress: ShippingAddress;
   payment: OrderPaymentSummary;
   timeline: OrderTimelineEvent[];
+  cancellationRequest?: CancellationRequest;
+  returnRequest?: ReturnRequest;
+  replacementRequest?: ReplacementRequest;
   createdAt?: DateValue;
   updatedAt?: DateValue;
 }
@@ -160,6 +220,7 @@ export interface UserProfile {
   status: AccountStatus;
   orderCount: number;
   totalSpent: number;
+  walletBalance: number;
   createdAt?: DateValue;
   lastLogin?: DateValue;
 }

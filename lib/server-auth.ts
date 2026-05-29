@@ -31,6 +31,7 @@ export async function getAuthenticatedUser(request: Request): Promise<Authentica
     status: normalizeAccountStatus(userData.status),
     orderCount: typeof userData.orderCount === 'number' ? userData.orderCount : 0,
     totalSpent: typeof userData.totalSpent === 'number' ? userData.totalSpent : 0,
+    walletBalance: typeof userData.walletBalance === 'number' ? userData.walletBalance : 0,
     createdAt: userData.createdAt as UserProfile['createdAt'],
     lastLogin: userData.lastLogin as UserProfile['lastLogin'],
   };

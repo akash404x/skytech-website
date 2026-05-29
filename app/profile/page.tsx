@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Calendar, LayoutDashboard, LogOut, Mail, MapPin, PackageCheck, Shield, ShoppingCart, User } from 'lucide-react';
+import { Calendar, LayoutDashboard, LogOut, Mail, MapPin, PackageCheck, Settings, Shield, ShoppingCart, User, Wallet as WalletIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import Footer from '@/components/Footer';
@@ -99,6 +99,30 @@ export default function ProfilePage() {
                   <div>
                     <h2 className="font-semibold text-white">Cart</h2>
                     <p className="text-sm tech-muted">Review saved items before checkout</p>
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/wallet" className="tech-glass-card p-5 transition hover:border-cyan-400/30">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-lg bg-cyan-600/30 p-3 text-cyan-300">
+                    <WalletIcon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-white">Wallet</h2>
+                    <p className="text-sm tech-muted">Manage balance, refunds and transactions</p>
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/settings" className="tech-glass-card p-5 transition hover:border-purple-400/30">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-lg bg-purple-600/30 p-3 text-purple-300">
+                    <Settings className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="font-semibold text-white">Settings</h2>
+                    <p className="text-sm tech-muted">Account preferences and settings</p>
                   </div>
                 </div>
               </Link>

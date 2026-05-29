@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -56,6 +56,8 @@ export default function AdminLayout({
     { name: 'Services', href: '/admin/services', icon: Wrench },
     { name: 'Works', href: '/admin/works', icon: Briefcase },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
+    { name: 'Returns', href: '/admin/returns', icon: RotateCcw },
+    { name: 'Replacements', href: '/admin/replacements', icon: RefreshCw },
     ...(isAdmin ? [{ name: 'Users', href: '/admin/users', icon: Users }] : []),
   ];
 

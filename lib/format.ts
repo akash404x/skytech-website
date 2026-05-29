@@ -44,6 +44,8 @@ export function orderStatusLabel(status: OrderStatus) {
     shipped: 'Shipped',
     delivered: 'Delivered',
     cancelled: 'Cancelled',
+    cancellation_requested: 'Cancellation Requested',
+    cancellation_rejected: 'Cancellation Rejected',
   };
 
   return labels[status];
@@ -56,6 +58,8 @@ export function statusBadgeClass(status: OrderStatus) {
     shipped: 'bg-blue-100 text-blue-700',
     delivered: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
+    cancellation_requested: 'bg-yellow-100 text-yellow-700',
+    cancellation_rejected: 'bg-orange-100 text-orange-700',
   };
 
   return classes[status];

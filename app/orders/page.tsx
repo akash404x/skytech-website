@@ -1,9 +1,10 @@
 'use client';
 
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { CreditCard, PackageCheck, ReceiptText } from 'lucide-react';
+import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import EmptyState from '@/components/EmptyState';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -15,6 +16,149 @@ import { formatCurrency, formatDate, orderStatusLabel, statusBadgeClass, toDate 
 import type { Order, OrderStatus, PaymentTransaction } from '@/lib/types';
 
 const timelineStatuses: OrderStatus[] = ['paid', 'processing', 'shipped', 'delivered'];
+
+function CancelOrderModal({ order, onClose }: { order: Order; onClose: () => void }) {
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { getIdToken } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reason.trim()) {
+      toast.error('Please provide a reason for cancellation');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = await getIdToken();
+      const response = await fetch('/api/orders/cancel', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: order.id, reason }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to cancel order');
+      toast.success('Cancellation request submitted');
+      onClose();
+    } catch (error) {
+      console.error('Cancel order error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel order');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="tech-glass-card w-full max-w-md p-6">
+        <h3 className="mb-4 text-xl font-bold text-white">Cancel Order</h3>
+        <p className="mb-4 text-sm tech-text">Order: {order.orderNumber}</p>
+        <form onSubmit={handleSubmit}>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Reason for cancellation..."
+            className="tech-input mb-4 h-32 w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 p-3 text-white"
+            required
+          />
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2 text-white transition hover:bg-slate-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting ? 'Submitting...' : 'Submit Request'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function ReturnReplacementModal({ order, type, onClose }: { order: Order; type: 'return' | 'replacement'; onClose: () => void }) {
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { getIdToken } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reason.trim()) {
+      toast.error('Please provide a reason');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = await getIdToken();
+      const endpoint = type === 'return' ? '/api/orders/return' : '/api/orders/replacement';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: order.id, reason }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || `Failed to submit ${type} request`);
+      toast.success(`${type === 'return' ? 'Return' : 'Replacement'} request submitted`);
+      onClose();
+    } catch (error) {
+      console.error(`${type} error:`, error);
+      toast.error(error instanceof Error ? error.message : `Failed to submit ${type} request`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="tech-glass-card w-full max-w-md p-6">
+        <h3 className="mb-4 text-xl font-bold text-white">
+          {type === 'return' ? 'Request Return' : 'Request Replacement'}
+        </h3>
+        <p className="mb-4 text-sm tech-text">Order: {order.orderNumber}</p>
+        <form onSubmit={handleSubmit}>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={`Reason for ${type}...`}
+            className="tech-input mb-4 h-32 w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 p-3 text-white"
+            required
+          />
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2 text-white transition hover:bg-slate-800"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting ? 'Submitting...' : 'Submit Request'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 function OrderTimeline({ order }: { order: Order }) {
   if (order.status === 'cancelled') {
@@ -55,6 +199,8 @@ export default function OrdersPage() {
   const [payments, setPayments] = useState<PaymentTransaction[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingPayments, setLoadingPayments] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [modalType, setModalType] = useState<'cancel' | 'return' | 'replacement' | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -171,6 +317,67 @@ export default function OrdersPage() {
                   <OrderTimeline order={order} />
                 </div>
 
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {/* Cancel Order Button - Only before shipment */}
+                  {order.status === 'paid' || order.status === 'processing' ? (
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setModalType('cancel');
+                      }}
+                      className="flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/20"
+                    >
+                      <X className="h-4 w-4" />
+                      Cancel Order
+                    </button>
+                  ) : null}
+
+                  {/* Return Button - Only for delivered orders < ₹500 */}
+                  {order.status === 'delivered' && !order.returnRequest && !order.replacementRequest && order.total < 500 ? (
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setModalType('return');
+                      }}
+                      className="flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-300 transition hover:bg-blue-500/20"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Return Order
+                    </button>
+                  ) : null}
+
+                  {/* Replacement Button - Only for delivered orders >= ₹500 */}
+                  {order.status === 'delivered' && !order.returnRequest && !order.replacementRequest && order.total >= 500 ? (
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order);
+                        setModalType('replacement');
+                      }}
+                      className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/20"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Request Replacement
+                    </button>
+                  ) : null}
+
+                  {/* Show request status if pending */}
+                  {order.cancellationRequest && order.cancellationRequest.status === 'requested' && (
+                    <span className="rounded-full bg-yellow-500/20 px-3 py-1 text-xs font-semibold text-yellow-300">
+                      Cancellation Requested
+                    </span>
+                  )}
+                  {order.returnRequest && order.returnRequest.status === 'requested' && (
+                    <span className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300">
+                      Return Requested
+                    </span>
+                  )}
+                  {order.replacementRequest && order.replacementRequest.status === 'requested' && (
+                    <span className="rounded-full bg-cyan-500/20 px-3 py-1 text-xs font-semibold text-cyan-300">
+                      Replacement Requested
+                    </span>
+                  )}
+                </div>
+
                 <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {order.items.map((item) => (
                     <div key={item.productId} className="tech-inner-row">
@@ -234,6 +441,17 @@ export default function OrdersPage() {
         </section>
       </main>
       <Footer />
+
+      {/* Modals */}
+      {selectedOrder && modalType === 'cancel' && (
+        <CancelOrderModal order={selectedOrder} onClose={() => { setSelectedOrder(null); setModalType(null); }} />
+      )}
+      {selectedOrder && modalType === 'return' && (
+        <ReturnReplacementModal order={selectedOrder} type="return" onClose={() => { setSelectedOrder(null); setModalType(null); }} />
+      )}
+      {selectedOrder && modalType === 'replacement' && (
+        <ReturnReplacementModal order={selectedOrder} type="replacement" onClose={() => { setSelectedOrder(null); setModalType(null); }} />
+      )}
     </div>
   );
 }

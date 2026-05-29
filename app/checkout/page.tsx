@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { CreditCard, LockKeyhole, MapPin } from 'lucide-react';
+import { CreditCard, LockKeyhole, MapPin, Wallet } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import Footer from '@/components/Footer';
@@ -76,6 +76,8 @@ export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(initialAddress);
   const [processing, setProcessing] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWallet, setUseWallet] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -83,10 +85,40 @@ export default function CheckoutPage() {
     }
   }, [authLoading, router, user]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchWalletBalance = async () => {
+      try {
+        const token = await getIdToken();
+        const response = await fetch('/api/wallet/balance', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setWalletBalance(data.walletBalance);
+        }
+      } catch (error) {
+        console.error('Error fetching wallet balance:', error);
+      }
+    };
+
+    fetchWalletBalance();
+  }, [user, getIdToken]);
+
   const checkoutItems = useMemo(
     () => items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
     [items],
   );
+
+  const walletDeduction = useMemo(() => {
+    if (!useWallet) return 0;
+    return Math.min(walletBalance, subtotal);
+  }, [useWallet, walletBalance, subtotal]);
+
+  const remainingAmount = useMemo(() => {
+    return subtotal - walletDeduction;
+  }, [subtotal, walletDeduction]);
 
   const updateAddress = (field: keyof ShippingAddress, value: string) => {
     setShippingAddress((current) => ({ ...current, [field]: value }));
@@ -109,6 +141,37 @@ export default function CheckoutPage() {
     setProcessing(true);
 
     try {
+      // If wallet covers full amount, process wallet payment only
+      if (remainingAmount === 0) {
+        const token = await getIdToken();
+        if (!token) throw new Error('You need to sign in again');
+
+        const response = await fetch('/api/payments/wallet-only', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            items: checkoutItems,
+            shippingAddress: {
+              ...shippingAddress,
+              fullName: shippingAddress.fullName || profile?.displayName || user.displayName || 'Customer',
+            },
+            walletAmount: walletDeduction,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Wallet payment failed');
+
+        await clearCart();
+        toast.success('Payment successful and order created');
+        router.push('/orders');
+        return;
+      }
+
+      // Otherwise, use Razorpay for remaining amount
       const loaded = await loadRazorpayScript();
       console.log('Razorpay script loaded:', loaded);
       if (!loaded) throw new Error('Razorpay checkout failed to load');
@@ -122,7 +185,7 @@ export default function CheckoutPage() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ items: checkoutItems }),
+        body: JSON.stringify({ items: checkoutItems, amount: remainingAmount }),
       });
 
       let createData: any;
@@ -177,6 +240,7 @@ export default function CheckoutPage() {
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
+                walletAmount: walletDeduction,
               }),
             });
 
@@ -260,17 +324,60 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
+            
+            {/* Wallet Payment Option */}
+            {walletBalance > 0 && (
+              <div className="mt-6 rounded-lg border border-cyan-500/20 bg-cyan-500/10 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Wallet className="h-5 w-5 text-cyan-300" />
+                    <div>
+                      <p className="font-medium text-white">Use Wallet Balance</p>
+                      <p className="text-sm tech-text">Available: {formatCurrency(walletBalance)}</p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex cursor-pointer items-center">
+                    <input
+                      type="checkbox"
+                      checked={useWallet}
+                      onChange={(e) => setUseWallet(e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <div className="peer h-6 w-11 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-cyan-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full" />
+                  </label>
+                </div>
+                {useWallet && walletDeduction > 0 && (
+                  <div className="mt-3 text-sm tech-text">
+                    <div className="flex justify-between">
+                      <span>Wallet deduction:</span>
+                      <span className="text-cyan-300">-{formatCurrency(walletDeduction)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Remaining to pay:</span>
+                      <span className="text-white font-semibold">{formatCurrency(remainingAmount)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="mt-6 flex justify-between text-lg font-bold text-white">
               <span>Total</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
+            {useWallet && walletDeduction > 0 && (
+              <div className="mt-2 flex justify-between text-sm tech-text">
+                <span>After wallet:</span>
+                <span className="text-cyan-300 font-semibold">{formatCurrency(remainingAmount)}</span>
+              </div>
+            )}
             <button
               type="submit"
               disabled={processing || items.length === 0}
               className="tech-btn-primary mt-6 flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <CreditCard className="h-5 w-5" />
-              {processing ? 'Processing...' : 'Pay with Razorpay'}
+              {processing ? 'Processing...' : remainingAmount === 0 ? 'Pay with Wallet' : `Pay ${formatCurrency(remainingAmount)} with Razorpay`}
             </button>
           </aside>
         </form>

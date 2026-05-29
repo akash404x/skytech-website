@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { fetchRazorpayOrder, verifyRazorpaySignature } from '@/lib/razorpay';
 import { getAuthenticatedUser } from '@/lib/server-auth';
 import { createVerifiedOrder, validateCheckoutItems, validateShippingAddress } from '@/lib/server-checkout';
+import { FieldValue } from 'firebase-admin/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import type { CartItem, ShippingAddress } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -12,6 +14,7 @@ interface VerifyPaymentBody {
   razorpayOrderId: string;
   razorpayPaymentId: string;
   razorpaySignature: string;
+  walletAmount?: number;
 }
 
 export async function POST(request: Request) {
@@ -23,6 +26,7 @@ export async function POST(request: Request) {
       userId: profile.uid,
       razorpayOrderId: body.razorpayOrderId,
       razorpayPaymentId: body.razorpayPaymentId,
+      walletAmount: body.walletAmount,
     });
 
     if (!body.razorpayOrderId || !body.razorpayPaymentId || !body.razorpaySignature) {
@@ -44,12 +48,45 @@ export async function POST(request: Request) {
     const checkout = await validateCheckoutItems(body.items);
     const razorpayOrder = await fetchRazorpayOrder(body.razorpayOrderId);
 
+    const expectedAmount = Math.round((checkout.total - (body.walletAmount || 0)) * 100);
+
     if (
       razorpayOrder.id !== body.razorpayOrderId ||
-      razorpayOrder.amount !== Math.round(checkout.total * 100) ||
+      razorpayOrder.amount !== expectedAmount ||
       razorpayOrder.currency !== checkout.currency
     ) {
-      return NextResponse.json({ error: 'Payment amount does not match cart total' }, { status: 400 });
+      return NextResponse.json({ error: 'Payment amount does not match expected amount' }, { status: 400 });
+    }
+
+    // If wallet was used, deduct from wallet balance
+    if (body.walletAmount && body.walletAmount > 0) {
+      const now = FieldValue.serverTimestamp();
+      const userRef = adminDb.collection('users').doc(profile.uid);
+
+      await adminDb.runTransaction(async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        const userData = userDoc.data();
+        const currentBalance = userData?.walletBalance || 0;
+
+        if (currentBalance < body.walletAmount!) {
+          throw new Error('Insufficient wallet balance');
+        }
+
+        transaction.update(userRef, {
+          walletBalance: FieldValue.increment(-body.walletAmount!),
+          updatedAt: now,
+        });
+
+        // Create wallet transaction
+        const walletTransactionRef = adminDb.collection('walletTransactions').doc();
+        transaction.set(walletTransactionRef, {
+          userId: profile.uid,
+          amount: body.walletAmount,
+          type: 'debit',
+          description: `Partial payment for order`,
+          createdAt: now,
+        });
+      });
     }
 
     const order = await createVerifiedOrder({

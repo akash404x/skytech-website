@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Briefcase, Home, Info, LogOut, Menu, Package, PackageCheck, Search, Shield, ShoppingCart, User, Wrench, X } from 'lucide-react';
+import { Briefcase, Home, Info, LogOut, Menu, Package, PackageCheck, Shield, ShoppingCart, User, Wrench, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -35,7 +35,6 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
 
   const isActiveRoute = (href: string) => {
@@ -55,12 +54,6 @@ export default function Navbar() {
   const handleLogout = async () => {
     await signOut();
     router.push('/');
-  };
-
-  const submitSearch = () => {
-    const q = searchQuery.trim();
-    if (q) router.push(`/products?q=${encodeURIComponent(q)}`);
-    else router.push('/products');
   };
 
   const cartBadge = (
@@ -84,23 +77,6 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {pathname === '/products' && (
-            <div className="mx-6 hidden max-w-2xl flex-1 md:flex lg:mx-8">
-              <div className="relative w-full">
-                <input
-                  type="search"
-                  placeholder="Search products, brands and more"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') submitSearch();
-                  }}
-                  className="tech-nav-search w-full rounded-lg py-2.5 pl-10 pr-4"
-                />
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              </div>
-            </div>
-          )}
 
           <div className="hidden items-center gap-2 md:flex md:gap-3">
             <NavLink href="/" isActive={isActiveRoute('/')}>
@@ -154,10 +130,6 @@ export default function Navbar() {
                   <PackageCheck className="h-4 w-4 shrink-0 opacity-80" />
                   <span className="font-medium">Orders</span>
                 </NavLink>
-                <button type="button" onClick={handleLogout} className="tech-nav-link flex items-center gap-1.5">
-                  <LogOut className="h-4 w-4 shrink-0 opacity-80" />
-                  <span className="font-medium">Logout</span>
-                </button>
               </>
             ) : (
               <NavLink href="/login">
@@ -187,19 +159,6 @@ export default function Navbar() {
 
         {isMenuOpen && (
           <div className="animate-slideDown border-t border-white/5 pb-4 pt-3 md:hidden">
-            <div className="relative mb-4">
-              <input
-                type="search"
-                placeholder="Search products, brands and more"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') submitSearch();
-                }}
-                className="tech-nav-search w-full rounded-lg py-2.5 pl-10 pr-4"
-              />
-              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-            </div>
             <div className="flex flex-col gap-2">
               <NavLink href="/" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/')}>
                 <Home className="h-5 w-5" />
@@ -245,14 +204,6 @@ export default function Navbar() {
                     <PackageCheck className="h-5 w-5" />
                     <span>Orders</span>
                   </NavLink>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="tech-nav-link flex w-full items-center gap-2 rounded-lg px-2 py-2.5 text-left"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span>Logout</span>
-                  </button>
                 </>
               ) : (
                 <NavLink href="/login" className="rounded-lg px-2 py-2.5">

@@ -1,15 +1,19 @@
 import type {
   AccountStatus,
+  CancellationRequest,
   Chat,
   ChatMessage,
   Order,
   PaymentTransaction,
   Product,
   ProductStatus,
+  ReplacementRequest,
+  ReturnRequest,
   Service,
   ServiceStatus,
   UserProfile,
   UserRole,
+  WalletTransaction,
   Work,
   WorkStatus,
 } from './types';
@@ -110,6 +114,9 @@ export function mapOrder(id: string, data: DataRecord): Order {
     shippingAddress: (data.shippingAddress ?? {}) as Order['shippingAddress'],
     payment: (data.payment ?? {}) as Order['payment'],
     timeline: Array.isArray(data.timeline) ? (data.timeline as Order['timeline']) : [],
+    cancellationRequest: data.cancellationRequest ? (data.cancellationRequest as Order['cancellationRequest']) : undefined,
+    returnRequest: data.returnRequest ? (data.returnRequest as Order['returnRequest']) : undefined,
+    replacementRequest: data.replacementRequest ? (data.replacementRequest as Order['replacementRequest']) : undefined,
     createdAt: data.createdAt as Order['createdAt'],
     updatedAt: data.updatedAt as Order['updatedAt'],
   };
@@ -171,6 +178,7 @@ export function mapUserProfile(id: string, data: DataRecord): UserProfile {
     status: normalizeAccountStatus(data.status),
     orderCount: asNumber(data.orderCount),
     totalSpent: asNumber(data.totalSpent),
+    walletBalance: asNumber(data.walletBalance, 0),
     createdAt: data.createdAt as UserProfile['createdAt'],
     lastLogin: data.lastLogin as UserProfile['lastLogin'],
   };
@@ -197,5 +205,64 @@ export function mapWork(id: string, data: DataRecord): Work {
     status: normalizeWorkStatus(data.status),
     createdAt: data.createdAt as Work['createdAt'],
     updatedAt: data.updatedAt as Work['updatedAt'],
+  };
+}
+
+export function mapCancellationRequest(id: string, data: DataRecord): CancellationRequest {
+  return {
+    id,
+    orderId: asString(data.orderId),
+    orderNumber: asString(data.orderNumber),
+    userId: asString(data.userId),
+    userEmail: asString(data.userEmail),
+    reason: asString(data.reason),
+    status: (asString(data.status, 'requested') as CancellationRequest['status']) || 'requested',
+    adminNotes: asString(data.adminNotes) || undefined,
+    createdAt: data.createdAt as CancellationRequest['createdAt'],
+    updatedAt: data.updatedAt as CancellationRequest['updatedAt'],
+  };
+}
+
+export function mapReturnRequest(id: string, data: DataRecord): ReturnRequest {
+  return {
+    id,
+    orderId: asString(data.orderId),
+    orderNumber: asString(data.orderNumber),
+    userId: asString(data.userId),
+    userEmail: asString(data.userEmail),
+    reason: asString(data.reason),
+    status: (asString(data.status, 'requested') as ReturnRequest['status']) || 'requested',
+    adminNotes: asString(data.adminNotes) || undefined,
+    createdAt: data.createdAt as ReturnRequest['createdAt'],
+    updatedAt: data.updatedAt as ReturnRequest['updatedAt'],
+  };
+}
+
+export function mapReplacementRequest(id: string, data: DataRecord): ReplacementRequest {
+  return {
+    id,
+    orderId: asString(data.orderId),
+    orderNumber: asString(data.orderNumber),
+    userId: asString(data.userId),
+    userEmail: asString(data.userEmail),
+    reason: asString(data.reason),
+    status: (asString(data.status, 'requested') as ReplacementRequest['status']) || 'requested',
+    adminNotes: asString(data.adminNotes) || undefined,
+    createdAt: data.createdAt as ReplacementRequest['createdAt'],
+    updatedAt: data.updatedAt as ReplacementRequest['updatedAt'],
+  };
+}
+
+export function mapWalletTransaction(id: string, data: DataRecord): WalletTransaction {
+  return {
+    id,
+    userId: asString(data.userId),
+    amount: asNumber(data.amount),
+    type: (asString(data.type, 'credit') as WalletTransaction['type']) || 'credit',
+    status: (asString(data.status, 'completed') as WalletTransaction['status']) || 'completed',
+    orderId: asString(data.orderId) || undefined,
+    paymentId: asString(data.paymentId) || undefined,
+    description: asString(data.description),
+    createdAt: data.createdAt as WalletTransaction['createdAt'],
   };
 }
