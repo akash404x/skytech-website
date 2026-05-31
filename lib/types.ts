@@ -179,6 +179,9 @@ export interface Order {
   refundProcessed?: boolean;
   refundAmount?: number;
   refundProcessedAt?: DateValue;
+  invoiceNumber?: string;
+  invoiceUrl?: string;
+  invoiceGeneratedAt?: DateValue;
   createdAt?: DateValue;
   updatedAt?: DateValue;
 }

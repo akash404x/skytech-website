@@ -2,7 +2,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb, adminStorage } from './firebase-admin';
 import { getProductPrice } from './cart';
 import { mapProduct } from './firestore-mappers';
-import { generateInvoicePDF, generateInvoiceNumber } from './invoice-generator';
+import { generateInvoiceNumber } from './invoice-utils';
 import { sendEmail, getOrderStatusEmailTemplate } from './email-service';
 import type { CartItem, OrderItem, ShippingAddress, UserProfile } from './types';
 
@@ -237,32 +237,33 @@ export async function createVerifiedOrder(input: {
         updatedAt: new Date(),
       };
 
-      console.log('Generating invoice PDF for order:', { orderId: orderRef.id, invoiceNumber, attempt });
-      const pdfBytes = await generateInvoicePDF(order);
-      console.log('Invoice PDF generated successfully, size:', pdfBytes.length, 'bytes');
+      // TODO: Implement server-side PDF generation
+      // console.log('Generating invoice PDF for order:', { orderId: orderRef.id, invoiceNumber, attempt });
+      // const pdfBytes = await generateInvoicePDF(order);
+      // console.log('Invoice PDF generated successfully, size:', pdfBytes.length, 'bytes');
 
-      // Upload to Firebase Storage
-      const bucket = adminStorage.bucket();
-      const fileName = `invoices/${orderRef.id}/${invoiceNumber}.pdf`;
-      const file = bucket.file(fileName);
+      // // Upload to Firebase Storage
+      // const bucket = adminStorage.bucket();
+      // const fileName = `invoices/${orderRef.id}/${invoiceNumber}.pdf`;
+      // const file = bucket.file(fileName);
 
-      console.log('Uploading invoice to Firebase Storage:', { bucket: bucket.name, fileName });
-      await file.save(Buffer.from(pdfBytes), {
-        contentType: 'application/pdf',
-      });
-      console.log('Invoice uploaded successfully to Firebase Storage');
+      // console.log('Uploading invoice to Firebase Storage:', { bucket: bucket.name, fileName });
+      // await file.save(Buffer.from(pdfBytes), {
+      //   contentType: 'application/pdf',
+      // });
+      // console.log('Invoice uploaded successfully to Firebase Storage');
 
-      // Get download URL
-      const [url] = await file.getSignedUrl({
-        action: 'read',
-        expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
-      });
-      console.log('Invoice download URL generated:', url.substring(0, 50) + '...');
+      // // Get download URL
+      // const [url] = await file.getSignedUrl({
+      //   action: 'read',
+      //   expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
+      // });
+      // console.log('Invoice download URL generated:', url.substring(0, 50) + '...');
 
       // Update order with invoice details
       await adminDb.collection('orders').doc(orderRef.id).update({
         invoiceNumber,
-        invoiceUrl: url,
+        // invoiceUrl: url,
         invoiceGeneratedAt: new Date(),
         updatedAt: FieldValue.serverTimestamp(),
       });

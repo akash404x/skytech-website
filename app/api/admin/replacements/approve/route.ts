@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from '@/lib/server-auth';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase-admin';
 import { sendEmail, getReplacementApprovedEmailTemplate } from '@/lib/email-service';
+import type { Order } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
     // Fetch updated order for email
     const orderDoc = await orderRef.get();
-    const order = { id: orderDoc.id, ...orderDoc.data() };
+    const order = { id: orderDoc.id, ...orderDoc.data() } as Order;
 
     // Send email notification
     const emailHtml = getReplacementApprovedEmailTemplate(order);
