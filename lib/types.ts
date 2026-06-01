@@ -5,6 +5,7 @@ export type ServiceStatus = 'active' | 'inactive';
 export type WorkStatus = 'active' | 'inactive' | 'draft';
 export type OrderStatus = 'pending' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled' | 'cancellation_requested' | 'cancellation_rejected';
 export type PaymentStatus = 'captured' | 'failed';
+export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
 export type CancellationStatus = 'requested' | 'approved' | 'rejected';
 export type ReturnStatus = 'requested' | 'approved' | 'rejected' | 'pickup_scheduled' | 'completed';
@@ -300,4 +301,19 @@ export interface NotificationLog {
   error?: string;
   sentAt?: DateValue;
   createdAt?: DateValue;
+}
+
+export interface Review {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  orderId?: string;
+  orderNumber?: string;
+  rating: number;
+  content: string;
+  status: ReviewStatus;
+  adminNotes?: string;
+  createdAt?: DateValue;
+  updatedAt?: DateValue;
 }

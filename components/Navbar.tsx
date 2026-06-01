@@ -45,7 +45,7 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -56,11 +56,11 @@ export default function Navbar() {
     router.push('/');
   };
 
-  const cartBadge = (
-    <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-cyan-400 text-xs font-bold text-slate-950 shadow-[0_0_12px_rgba(34,211,238,0.5)]">
+  const cartBadge = itemCount > 0 ? (
+    <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#00bfff] to-[#00e5ff] text-xs font-bold text-slate-950 shadow-[0_0_16px_rgba(0,191,255,0.6)] animate-pulse">
       {itemCount}
     </span>
-  );
+  ) : null;
 
   return (
     <nav
@@ -70,10 +70,10 @@ export default function Navbar() {
     >
       <div className="tech-navbar-glow pointer-events-none absolute inset-x-0 bottom-0 h-px" aria-hidden />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between md:h-[4.25rem]">
-          <Link href="/" className="group flex shrink-0 items-center transition-transform duration-300 hover:scale-[1.02]">
+        <div className={`flex items-center justify-between transition-all duration-500 ${scrolled ? 'h-14 md:h-16' : 'h-16 md:h-20'}`}>
+          <Link href="/" className="group flex shrink-0 items-center transition-transform duration-300 hover:scale-[1.03]">
             <div className="text-2xl font-bold italic tracking-tight text-white">
-              Sky<span className="bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">Tech</span>
+              Sky<span className="bg-gradient-to-r from-[#00bfff] to-[#00e5ff] bg-clip-text text-transparent">Tech</span>
             </div>
           </Link>
 

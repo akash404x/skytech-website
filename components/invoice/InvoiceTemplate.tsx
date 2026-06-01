@@ -1,12 +1,11 @@
 import type { Order } from '@/lib/types';
-import { toDate } from '@/lib/format';
 
 interface InvoiceTemplateProps {
   order: Order;
 }
 
 export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
-  // Calculate totals
+  // Calculate totals (display only)
   const subtotal = order.items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
   const gst = order.gstAmount || 0;
   const shipping = order.shippingFee || 0;
@@ -15,270 +14,536 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
   const discount = order.discount || 0;
   const grandTotal = subtotal + gst + shipping + delivery - wallet - discount;
 
-  // Format invoice date
-  const invoiceDate = order.invoiceGeneratedAt
-    ? toDate(order.invoiceGeneratedAt)?.toLocaleDateString('en-IN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }) || new Date().toLocaleDateString('en-IN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : new Date().toLocaleDateString('en-IN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+  // Format dates (display only)
+  const invoiceDate = new Date().toLocaleDateString('en-IN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-  // Format order date
-  const orderDate = order.createdAt
-    ? toDate(order.createdAt)?.toLocaleDateString('en-IN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }) || invoiceDate
-    : invoiceDate;
+  const dueDate = new Date();
+  dueDate.setDate(dueDate.getDate() + 30);
+  const dueDateStr = dueDate.toLocaleDateString('en-IN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-  // Calculate GST split
   const cgst = gst / 2;
   const sgst = gst / 2;
 
-
   return (
-    <div className="min-h-screen bg-[#0F172A] p-0 m-0 overflow-hidden print:p-0 print:m-0">
-      {/* Invoice Container - A4 Optimized */}
-      <div className="bg-white text-black mx-auto" style={{ width: '210mm', minHeight: '297mm', boxSizing: 'border-box' }}>
-        {/* Header Section */}
-        <div className="px-10 py-8 border-b-2 border-[#0F172A]">
-          <div className="flex justify-between items-start mb-6">
-            {/* Company Info - Left */}
-            <div>
-              <div className="bg-[#0F172A] text-white px-4 py-2 rounded inline-block mb-3">
-                <h1 className="text-2xl font-bold">SKY TECH</h1>
+    <div className="relative overflow-hidden" style={{ 
+      width: '210mm', 
+      minHeight: '297mm', 
+      maxHeight: '297mm',
+      background: 'linear-gradient(180deg, #000000 0%, #020617 30%, #0a0e1a 70%, #020617 100%)',
+      padding: '32px'
+    }}>
+      {/* Radial Glow Behind Header - Stronger */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] pointer-events-none" style={{
+        background: 'radial-gradient(ellipse at center, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.05) 40%, transparent 70%)',
+        opacity: '0.8'
+      }}></div>
+
+      {/* Circuit Line Decorations - Top Left */}
+      <div className="circuit-decoration absolute top-0 left-0 w-64 h-64 pointer-events-none">
+        <svg viewBox="0 0 256 256" className="w-full h-full" style={{ width: '256px', height: '256px' }}>
+          <defs>
+            <filter id="glow-tl">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <radialGradient id="node-glow-tl" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.9"/>
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0"/>
+            </radialGradient>
+          </defs>
+          <g opacity="0.18">
+            {/* Main circuit traces - larger and more detailed */}
+            <path d="M0 0 L128 0 L128 12 L12 12 L12 128 L0 128 Z" fill="#38BDF8" />
+            <path d="M24 24 L104 24 L104 30 L30 30 L30 104 L24 104 Z" fill="#38BDF8" opacity="0.7" />
+            <path d="M48 48 L80 48 L80 54 L54 54 L54 80 L48 80 Z" fill="#38BDF8" opacity="0.5" />
+            
+            {/* Branching traces - more complex */}
+            <path d="M12 64 L48 64 L48 70 L18 70 L18 88" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M64 12 L64 40 L70 40 L70 24" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M88 88 L112 88 L112 94 L92 94 L92 112" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M12 40 L40 40 L40 44 L16 44 L16 56" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            <path d="M88 12 L112 12 L112 16 L92 16 L92 28" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            
+            {/* Glowing nodes - more and larger */}
+            <circle cx="12" cy="12" r="12" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="12" cy="12" r="6" fill="#38BDF8" />
+            <circle cx="116" cy="12" r="8" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="116" cy="12" r="4" fill="#38BDF8" />
+            <circle cx="12" cy="116" r="8" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="12" cy="116" r="4" fill="#38BDF8" />
+            <circle cx="64" cy="64" r="10" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="64" cy="64" r="5" fill="#38BDF8" />
+            <circle cx="40" cy="88" r="7" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="40" cy="88" r="3.5" fill="#38BDF8" />
+            <circle cx="88" cy="40" r="7" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="88" cy="40" r="3.5" fill="#38BDF8" />
+            <circle cx="112" cy="88" r="6" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="112" cy="88" r="3" fill="#38BDF8" />
+            <circle cx="64" cy="24" r="5" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="64" cy="24" r="2.5" fill="#38BDF8" />
+            <circle cx="24" cy="64" r="5" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="24" cy="64" r="2.5" fill="#38BDF8" />
+            <circle cx="88" cy="112" r="4" fill="url(#node-glow-tl)" filter="url(#glow-tl)" />
+            <circle cx="88" cy="112" r="2" fill="#38BDF8" />
+          </g>
+        </svg>
+      </div>
+
+      {/* Circuit Line Decorations - Top Right - Larger and spread */}
+      <div className="circuit-decoration absolute top-0 right-0 w-80 h-80 pointer-events-none">
+        <svg viewBox="0 0 320 320" className="w-full h-full" style={{ width: '320px', height: '320px' }}>
+          <defs>
+            <filter id="glow-tr">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <radialGradient id="node-glow-tr" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.9"/>
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0"/>
+            </radialGradient>
+          </defs>
+          <g opacity="0.18">
+            {/* Main circuit traces - spread across top-right */}
+            <path d="M320 0 L160 0 L160 12 L308 12 L308 160 L320 160 Z" fill="#38BDF8" />
+            <path d="M296 24 L184 24 L184 30 L288 30 L288 136 L296 136 Z" fill="#38BDF8" opacity="0.7" />
+            <path d="M272 48 L208 48 L208 54 L264 54 L264 112 L272 112 Z" fill="#38BDF8" opacity="0.5" />
+            <path d="M248 72 L232 72 L232 78 L240 78 L240 88 L248 88 Z" fill="#38BDF8" opacity="0.4" />
+            
+            {/* Branching traces - multiple branches */}
+            <path d="M308 80 L264 80 L264 86 L296 86 L296 104" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M240 12 L240 48 L248 48 L248 24" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M208 112 L176 112 L176 118 L200 118 L200 136" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M280 48 L256 48 L256 52 L272 52 L272 64" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            <path d="M224 24 L200 24 L200 28 L216 28 L216 40" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            <path d="M192 80 L168 80 L168 84 L184 84 L184 96" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            <path d="M256 136 L232 136 L232 140 L248 140 L248 152" stroke="#38BDF8" strokeWidth="0.8" fill="none" />
+            
+            {/* Glowing nodes - more visible */}
+            <circle cx="308" cy="12" r="12" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="308" cy="12" r="6" fill="#38BDF8" />
+            <circle cx="172" cy="12" r="8" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="172" cy="12" r="4" fill="#38BDF8" />
+            <circle cx="308" cy="148" r="8" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="308" cy="148" r="4" fill="#38BDF8" />
+            <circle cx="240" cy="80" r="10" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="240" cy="80" r="5" fill="#38BDF8" />
+            <circle cx="272" cy="112" r="7" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="272" cy="112" r="3.5" fill="#38BDF8" />
+            <circle cx="208" cy="48" r="7" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="208" cy="48" r="3.5" fill="#38BDF8" />
+            <circle cx="176" cy="112" r="6" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="176" cy="112" r="3" fill="#38BDF8" />
+            <circle cx="240" cy="24" r="5" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="240" cy="24" r="2.5" fill="#38BDF8" />
+            <circle cx="272" cy="64" r="5" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="272" cy="64" r="2.5" fill="#38BDF8" />
+            <circle cx="200" cy="136" r="4" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="200" cy="136" r="2" fill="#38BDF8" />
+            <circle cx="224" cy="96" r="4" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="224" cy="96" r="2" fill="#38BDF8" />
+            <circle cx="256" cy="152" r="3" fill="url(#node-glow-tr)" filter="url(#glow-tr)" />
+            <circle cx="256" cy="152" r="1.5" fill="#38BDF8" />
+          </g>
+        </svg>
+      </div>
+
+      {/* Circuit Line Decorations - Bottom Left */}
+      <div className="circuit-decoration absolute bottom-0 left-0 w-64 h-64 pointer-events-none">
+        <svg viewBox="0 0 256 256" className="w-full h-full" style={{ width: '256px', height: '256px' }}>
+          <defs>
+            <filter id="glow-bl">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <radialGradient id="node-glow-bl" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.9"/>
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0"/>
+            </radialGradient>
+          </defs>
+          <g opacity="0.18">
+            {/* Main circuit traces */}
+            <path d="M0 256 L128 256 L128 244 L12 244 L12 128 L0 128 Z" fill="#38BDF8" />
+            <path d="M24 232 L104 232 L104 226 L30 226 L30 152 L24 152 Z" fill="#38BDF8" opacity="0.7" />
+            <path d="M48 208 L80 208 L80 202 L54 202 L54 176 L48 176 Z" fill="#38BDF8" opacity="0.5" />
+            
+            {/* Branching traces */}
+            <path d="M12 192 L48 192 L48 186 L18 186 L18 168" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M64 244 L64 216 L70 216 L70 232" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M88 168 L112 168 L112 162 L92 162 L92 144" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M12 216 L40 216 L40 212 L16 212 L16 200" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            <path d="M88 244 L112 244 L112 240 L92 240 L92 228" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            
+            {/* Glowing nodes */}
+            <circle cx="12" cy="244" r="12" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="12" cy="244" r="6" fill="#38BDF8" />
+            <circle cx="116" cy="244" r="8" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="116" cy="244" r="4" fill="#38BDF8" />
+            <circle cx="12" cy="140" r="8" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="12" cy="140" r="4" fill="#38BDF8" />
+            <circle cx="64" cy="192" r="10" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="64" cy="192" r="5" fill="#38BDF8" />
+            <circle cx="40" cy="168" r="7" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="40" cy="168" r="3.5" fill="#38BDF8" />
+            <circle cx="88" cy="216" r="7" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="88" cy="216" r="3.5" fill="#38BDF8" />
+            <circle cx="112" cy="168" r="6" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="112" cy="168" r="3" fill="#38BDF8" />
+            <circle cx="64" cy="232" r="5" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="64" cy="232" r="2.5" fill="#38BDF8" />
+            <circle cx="24" cy="192" r="5" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="24" cy="192" r="2.5" fill="#38BDF8" />
+            <circle cx="88" cy="144" r="4" fill="url(#node-glow-bl)" filter="url(#glow-bl)" />
+            <circle cx="88" cy="144" r="2" fill="#38BDF8" />
+          </g>
+        </svg>
+      </div>
+
+      {/* Circuit Line Decorations - Bottom Right */}
+      <div className="circuit-decoration absolute bottom-0 right-0 w-64 h-64 pointer-events-none">
+        <svg viewBox="0 0 256 256" className="w-full h-full" style={{ width: '256px', height: '256px' }}>
+          <defs>
+            <filter id="glow-br">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <radialGradient id="node-glow-br" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.9"/>
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0"/>
+            </radialGradient>
+          </defs>
+          <g opacity="0.18">
+            {/* Main circuit traces */}
+            <path d="M256 256 L128 256 L128 244 L244 244 L244 128 L256 128 Z" fill="#38BDF8" />
+            <path d="M232 232 L152 232 L152 226 L226 226 L226 152 L232 152 Z" fill="#38BDF8" opacity="0.7" />
+            <path d="M208 208 L176 208 L176 202 L202 202 L202 176 L208 176 Z" fill="#38BDF8" opacity="0.5" />
+            
+            {/* Branching traces */}
+            <path d="M244 192 L208 192 L208 186 L238 186 L238 168" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M192 244 L192 216 L186 216 L186 232" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M168 168 L144 168 L144 162 L164 162 L164 144" stroke="#38BDF8" strokeWidth="1.2" fill="none" />
+            <path d="M244 216 L216 216 L216 212 L240 212 L240 200" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            <path d="M168 244 L144 244 L144 240 L164 240 L164 228" stroke="#38BDF8" strokeWidth="1" fill="none" />
+            
+            {/* Glowing nodes */}
+            <circle cx="244" cy="244" r="12" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="244" cy="244" r="6" fill="#38BDF8" />
+            <circle cx="140" cy="244" r="8" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="140" cy="244" r="4" fill="#38BDF8" />
+            <circle cx="244" cy="140" r="8" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="244" cy="140" r="4" fill="#38BDF8" />
+            <circle cx="192" cy="192" r="10" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="192" cy="192" r="5" fill="#38BDF8" />
+            <circle cx="216" cy="168" r="7" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="216" cy="168" r="3.5" fill="#38BDF8" />
+            <circle cx="168" cy="216" r="7" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="168" cy="216" r="3.5" fill="#38BDF8" />
+            <circle cx="144" cy="168" r="6" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="144" cy="168" r="3" fill="#38BDF8" />
+            <circle cx="192" cy="232" r="5" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="192" cy="232" r="2.5" fill="#38BDF8" />
+            <circle cx="232" cy="192" r="5" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="232" cy="192" r="2.5" fill="#38BDF8" />
+            <circle cx="168" cy="144" r="4" fill="url(#node-glow-br)" filter="url(#glow-br)" />
+            <circle cx="168" cy="144" r="2" fill="#38BDF8" />
+          </g>
+        </svg>
+      </div>
+
+      {/* Top Header Section */}
+      <div className="relative z-10 invoice-header p-6 border-b border-[#1e3a5f]" style={{ background: '#0f172a', borderRadius: '8px', marginBottom: '16px' }}>
+          <div className="flex justify-between items-start">
+            {/* Company Branding - Left */}
+            <div className="flex items-start gap-4 relative">
+              {/* Logo Glow Background - Stronger */}
+              <div className="absolute -inset-6 pointer-events-none" style={{
+                background: 'radial-gradient(circle at center, rgba(56, 189, 248, 0.25) 0%, transparent 70%)',
+                filter: 'blur(30px)'
+              }}></div>
+              
+              {/* Logo - Larger */}
+              <div className="flex-shrink-0 relative z-10" style={{ width: '130px' }}>
+                <img 
+                  src="/assets/logo/logo.png" 
+                  alt="SkyTech Logo" 
+                  className="w-full h-auto"
+                  style={{ 
+                    width: '130px',
+                    filter: 'drop-shadow(0 0 20px rgba(56, 189, 248, 0.8))'
+                  }}
+                />
               </div>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p className="font-semibold text-black">Sky Tech Solutions</p>
-                <p>Electronics, Robotics & Software</p>
-                <p>📧 support@theskytechnology.in</p>
-                <p>🌐 theskytechnology.in</p>
+
+              {/* Company Info */}
+              <div>
+                <h1 className="text-2xl font-bold text-white tracking-wide" style={{
+                  textShadow: '0 0 20px rgba(56, 189, 248, 0.3)'
+                }}>SKY TECH</h1>
+                <p className="text-[#38BDF8] text-sm font-medium mt-1" style={{
+                  textShadow: '0 0 10px rgba(56, 189, 248, 0.4)'
+                }}>Innovate. Integrate. Elevate.</p>
+                <div className="mt-2 space-y-1 text-xs text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#38BDF8]" style={{ width: '16px', height: '16px' }}>
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>Prayagraj, Uttar Pradesh, India</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#38BDF8]" style={{ width: '16px', height: '16px' }}>
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    <span>+915334357055</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#38BDF8]" style={{ width: '16px', height: '16px' }}>
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <span>contact@theskytechnology.in</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#38BDF8]" style={{ width: '16px', height: '16px' }}>
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <span>theskytechnology.in</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Invoice Info - Right */}
-            <div className="text-right">
-              <div className="mb-4">
-                <h2 className="text-5xl font-bold text-[#0F172A] mb-2">INVOICE</h2>
-                <div className="inline-block bg-[#38BDF8] text-[#0F172A] px-4 py-2 rounded font-bold">
-                  {order.invoiceNumber || 'N/A'}
+            {/* Invoice Title & Details - Right */}
+            <div className="text-right relative">
+              {/* INVOICE Title Ambient Light - Stronger */}
+              <div className="absolute -inset-12 pointer-events-none" style={{
+                background: 'radial-gradient(circle at center, rgba(56, 189, 248, 0.2) 0%, transparent 60%)',
+                filter: 'blur(35px)'
+              }}></div>
+              
+              <h2 className="text-7xl font-bold text-white tracking-wider mb-3 relative z-10" style={{
+                textShadow: '0 0 40px rgba(56, 189, 248, 0.7), 0 0 80px rgba(56, 189, 248, 0.4)'
+              }}>INVOICE</h2>
+              
+              {/* Invoice Details Card */}
+              <div className="invoice-info bg-[#1e293b] border border-[#38BDF8]/30 rounded-lg p-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-xs">Invoice #</span>
+                  <span className="text-[#38BDF8] font-bold text-sm">{order.invoiceNumber || 'N/A'}</span>
                 </div>
-              </div>
-              <div className="text-sm space-y-1 text-gray-600">
-                <div>
-                  <span className="font-semibold">Invoice Date: </span>
-                  <span>{invoiceDate}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-xs">Invoice Date</span>
+                  <span className="text-white font-medium text-xs">{invoiceDate}</span>
                 </div>
-                <div>
-                  <span className="font-semibold">Order #: </span>
-                  <span>{order.orderNumber}</span>
-                </div>
-                <div>
-                  <span className="font-semibold">Order Date: </span>
-                  <span>{orderDate}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-xs">Due Date</span>
+                  <span className="text-white font-medium text-xs">{dueDateStr}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+      </div>
 
-        {/* Bill To & Ship To Section */}
-        <div className="px-10 py-8 border-b border-gray-200">
-          <div className="grid grid-cols-2 gap-8">
-            {/* Bill To */}
-            <div>
-              <h3 className="font-bold text-black mb-3 pb-2 border-b-2 border-[#0F172A]">BILL TO</h3>
-              <div className="text-sm space-y-1 text-gray-700">
-                <p className="font-semibold text-black">{order.customerName}</p>
-                <p>{order.userEmail}</p>
-                {order.customerPhone && <p>{order.customerPhone}</p>}
+      <div className="billing-shipping-section p-6 border-b border-[#1e3a5f]">
+          <div className="grid grid-cols-2 gap-6">
+            {/* Bill To Card */}
+            <div className="billing-section bg-[#1e293b] border border-[#38BDF8]/20 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#38BDF8]" style={{ width: '20px', height: '20px' }}>
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <h3 className="text-[#38BDF8] font-bold text-base">BILL TO</h3>
+              </div>
+              <div className="space-y-1">
+                <p className="text-white font-semibold text-sm">{order.customerName}</p>
+                <p className="text-gray-400 text-xs">{order.userEmail}</p>
+                {order.customerPhone && <p className="text-gray-400 text-xs">{order.customerPhone}</p>}
               </div>
             </div>
 
-            {/* Ship To */}
-            <div>
-              <h3 className="font-bold text-black mb-3 pb-2 border-b-2 border-[#0F172A]">SHIP TO</h3>
-              <div className="text-sm space-y-1 text-gray-700">
-                <p className="font-semibold text-black">{order.customerName}</p>
-                <p>{order.shippingAddress.line1}</p>
-                {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
-                <p>
+            {/* Ship To Card */}
+            <div className="shipping-section bg-[#1e293b] border border-[#38BDF8]/20 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#38BDF8]" style={{ width: '20px', height: '20px' }}>
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                  <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                <h3 className="text-[#38BDF8] font-bold text-base">SHIP TO</h3>
+              </div>
+              <div className="space-y-1">
+                <p className="text-white font-semibold text-sm">{order.customerName}</p>
+                <p className="text-gray-400 text-xs">{order.shippingAddress.line1}</p>
+                {order.shippingAddress.line2 && <p className="text-gray-400 text-xs">{order.shippingAddress.line2}</p>}
+                <p className="text-gray-400 text-xs">
                   {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
                 </p>
-                <p>{order.shippingAddress.country}</p>
+                <p className="text-gray-400 text-xs">{order.shippingAddress.country}</p>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Order Summary Cards */}
-        <div className="px-10 py-6 border-b border-gray-200">
-          <div className="grid grid-cols-4 gap-4">
-            {/* Order Number */}
-            <div className="bg-gray-50 p-4 rounded border border-gray-200">
-              <p className="text-xs text-gray-500 font-semibold mb-1">ORDER NUMBER</p>
-              <p className="font-bold text-black break-all">{order.orderNumber}</p>
-            </div>
-
-            {/* Payment Method */}
-            <div className="bg-gray-50 p-4 rounded border border-gray-200">
-              <p className="text-xs text-gray-500 font-semibold mb-1">PAYMENT METHOD</p>
-              <p className="font-bold text-black">{order.payment?.razorpayPaymentId ? 'Online Payment' : 'Pending'}</p>
-            </div>
-
-            {/* Status */}
-            <div className="bg-gray-50 p-4 rounded border border-gray-200">
-              <p className="text-xs text-gray-500 font-semibold mb-1">ORDER STATUS</p>
-              <p className="font-bold text-black capitalize">{order.status}</p>
-            </div>
-
-            {/* Grand Total */}
-            <div className="bg-[#0F172A] p-4 rounded text-white">
-              <p className="text-xs text-gray-300 font-semibold mb-1">TOTAL AMOUNT</p>
-              <p className="font-bold text-lg">₹{grandTotal.toFixed(2)}</p>
             </div>
           </div>
         </div>
 
         {/* Items Table */}
-        <div className="px-10 py-8">
-          <h3 className="font-bold text-black mb-4 pb-2 border-b-2 border-[#0F172A]">ORDER ITEMS</h3>
-          
+        <div className="invoice-table p-6 border-b border-[#1e3a5f]">
           {/* Table Header */}
-          <div className="grid grid-cols-[40px_3fr_80px_80px_100px_100px] gap-4 mb-3 pb-3 border-b border-gray-300 bg-gray-50 p-3 -mx-3 px-3">
-            <div className="text-xs font-bold text-gray-700">#</div>
-            <div className="text-xs font-bold text-gray-700">PRODUCT NAME</div>
-            <div className="text-xs font-bold text-gray-700 text-center">QTY</div>
-            <div className="text-xs font-bold text-gray-700 text-right">UNIT PRICE</div>
-            <div className="text-xs font-bold text-gray-700 text-right">DISCOUNT</div>
-            <div className="text-xs font-bold text-gray-700 text-right">TOTAL</div>
+          <div className="grid grid-cols-[40px_1fr_80px_80px_100px_100px] gap-3 mb-3 pb-3 border-b-2 border-[#38BDF8]/30">
+            <div className="text-[#38BDF8] font-bold text-xs">#</div>
+            <div className="text-[#38BDF8] font-bold text-xs">DESCRIPTION</div>
+            <div className="text-[#38BDF8] font-bold text-xs text-center">TYPE</div>
+            <div className="text-[#38BDF8] font-bold text-xs text-center">QTY</div>
+            <div className="text-[#38BDF8] font-bold text-xs text-right">UNIT PRICE</div>
+            <div className="text-[#38BDF8] font-bold text-xs text-right">AMOUNT</div>
           </div>
 
           {/* Table Rows */}
           {order.items.map((item, index) => (
             <div
               key={index}
-              className="grid grid-cols-[40px_3fr_80px_80px_100px_100px] gap-4 py-3 border-b border-gray-100 text-sm"
+              className="grid grid-cols-[40px_1fr_80px_80px_100px_100px] gap-3 py-3 border-b border-[#1e3a5f]/50 text-xs"
             >
-              <div className="text-gray-700">{index + 1}</div>
-              <div className="text-gray-900 font-medium">{item.name}</div>
-              <div className="text-center text-gray-700">{item.quantity}</div>
-              <div className="text-right text-gray-700">₹{item.unitPrice.toFixed(2)}</div>
-              <div className="text-right text-gray-700">₹{((item.unitPrice * item.quantity) - (item.lineTotal || 0)).toFixed(2)}</div>
-              <div className="text-right font-semibold text-black">₹{item.lineTotal.toFixed(2)}</div>
+              <div className="text-gray-400 flex items-center">{index + 1}</div>
+              <div className="text-white">
+                <div className="flex items-start gap-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#38BDF8] flex-shrink-0" style={{ width: '20px', height: '20px' }}>
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                  <div>
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-gray-500 text-xs mt-0.5">{item.category}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="text-gray-400 text-center flex items-center justify-center">Product</div>
+              <div className="text-white text-center flex items-center justify-center">{item.quantity}</div>
+              <div className="text-white text-right flex items-center justify-end">₹{item.unitPrice.toFixed(2)}</div>
+              <div className="text-[#38BDF8] font-bold text-right flex items-center justify-end">₹{(item.unitPrice * item.quantity).toFixed(2)}</div>
             </div>
           ))}
         </div>
 
-        {/* Pricing Summary */}
-        <div className="px-10 py-8 border-t-2 border-[#0F172A]">
-          <div className="flex justify-end mb-6">
-            <div className="w-96 space-y-2">
-              {/* Subtotal */}
-              <div className="flex justify-between text-sm py-2">
-                <span className="text-gray-700">Subtotal:</span>
-                <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
+        {/* Bottom Section: Notes and Summary */}
+        <div className="p-6">
+          <div className="grid grid-cols-2 gap-6">
+            {/* Notes Section - Left */}
+            <div className="invoice-notes bg-[#1e293b] border border-[#38BDF8]/20 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#38BDF8]" style={{ width: '20px', height: '20px' }}>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <h3 className="text-[#38BDF8] font-bold text-base">NOTES</h3>
               </div>
+              <p className="text-gray-400 text-xs leading-relaxed">
+                Thank you for purchasing from Sky Tech. This invoice is generated after payment and order placement and will be printed for your records.
+              </p>
+            </div>
 
-              {/* Discount */}
-              {discount > 0 && (
-                <div className="flex justify-between text-sm py-2 text-red-600">
-                  <span>Discount:</span>
-                  <span className="font-semibold">-₹{discount.toFixed(2)}</span>
+            {/* Summary Total Card - Right */}
+            <div className="invoice-totals bg-[#1e293b] border border-[#38BDF8]/20 rounded-lg p-4">
+              <div className="space-y-2">
+                {/* Subtotal */}
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-400">Subtotal</span>
+                  <span className="text-white font-medium">₹{subtotal.toFixed(2)}</span>
                 </div>
-              )}
 
-              {/* GST */}
-              {gst > 0 && (
-                <>
-                  <div className="flex justify-between text-sm py-2">
-                    <span className="text-gray-700">CGST (9%):</span>
-                    <span className="font-semibold">₹{cgst.toFixed(2)}</span>
+                {/* CGST */}
+                {gst > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-400">CGST (9%)</span>
+                    <span className="text-white font-medium">₹{cgst.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm py-2 border-b border-gray-200">
-                    <span className="text-gray-700">SGST (9%):</span>
-                    <span className="font-semibold">₹{sgst.toFixed(2)}</span>
+                )}
+
+                {/* SGST */}
+                {gst > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-400">SGST (9%)</span>
+                    <span className="text-white font-medium">₹{sgst.toFixed(2)}</span>
                   </div>
-                </>
-              )}
+                )}
 
-              {/* Shipping */}
-              {shipping > 0 && (
-                <div className="flex justify-between text-sm py-2">
-                  <span className="text-gray-700">Shipping:</span>
-                  <span className="font-semibold">₹{shipping.toFixed(2)}</span>
+                {/* Shipping */}
+                {shipping > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-400">Shipping</span>
+                    <span className="text-white font-medium">₹{shipping.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {/* Delivery */}
+                {delivery > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-400">Delivery</span>
+                    <span className="text-white font-medium">₹{delivery.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {/* Wallet Used */}
+                {wallet > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-400">Wallet Used</span>
+                    <span className="text-red-400 font-medium">-₹{wallet.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {/* Discount */}
+                {discount > 0 && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-400">Discount</span>
+                    <span className="text-green-400 font-medium">-₹{discount.toFixed(2)}</span>
+                  </div>
+                )}
+
+                {/* Total */}
+                <div className="flex justify-between items-center pt-3 mt-3 border-t-2 border-[#38BDF8]/30">
+                  <span className="text-[#38BDF8] font-bold text-lg">TOTAL</span>
+                  <span className="text-[#38BDF8] font-bold text-xl">₹{grandTotal.toFixed(2)}</span>
                 </div>
-              )}
-
-              {/* Delivery */}
-              {delivery > 0 && (
-                <div className="flex justify-between text-sm py-2">
-                  <span className="text-gray-700">Delivery Charge:</span>
-                  <span className="font-semibold">₹{delivery.toFixed(2)}</span>
-                </div>
-              )}
-
-              {/* Wallet Used */}
-              {wallet > 0 && (
-                <div className="flex justify-between text-sm py-2">
-                  <span className="text-gray-700">Wallet Used:</span>
-                  <span className="font-semibold text-red-600">-₹{wallet.toFixed(2)}</span>
-                </div>
-              )}
-
-              {/* Grand Total */}
-              <div className="flex justify-between py-3 px-4 bg-[#0F172A] text-white rounded font-bold text-lg mt-4">
-                <span>GRAND TOTAL:</span>
-                <span>₹{grandTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Notes Section */}
-        <div className="px-10 py-6 border-t border-gray-200 bg-gray-50">
-          <h3 className="font-bold text-black mb-3">NOTES</h3>
-          <p className="text-sm text-gray-700 leading-relaxed">
-            Thank you for purchasing from Sky Tech. We appreciate your business and are committed to providing you with excellent products and services. 
-            If you have any questions about this invoice, please contact us at support@theskytechnology.in.
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="px-10 py-8 border-t-2 border-[#0F172A] flex justify-between items-end">
-          {/* Payment Details */}
-          <div className="text-sm text-gray-600">
-            <p className="font-semibold text-black mb-2">Payment Status</p>
-            <p className="capitalize">{order.payment?.status || 'pending'}</p>
-            {order.payment?.razorpayPaymentId && (
-              <p className="text-xs text-gray-500 mt-1">Payment ID: {order.payment.razorpayPaymentId.substring(0, 20)}...</p>
-            )}
-          </div>
-
-          {/* Authorization */}
-          <div className="text-right">
-            <p className="text-xs text-gray-500 mb-8">Authorized By</p>
-            <div className="border-t-2 border-[#0F172A] pt-2 w-40">
-              <p className="font-bold text-black text-sm">Sky Tech</p>
+          {/* Signature Section */}
+          <div className="invoice-signature mt-6 flex justify-end">
+            <div className="text-right">
+              <p className="text-gray-400 text-xs mb-2">Authorized By</p>
+              <div className="inline-block">
+                <img src="/signature.png" alt="Signature" style={{ maxHeight: '70px', maxWidth: '220px' }} />
+                <p className="text-white font-semibold text-sm mt-1">Sky Tech</p>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Timestamp for reference */}
-        <div className="px-10 py-4 bg-gray-100 text-xs text-gray-500 border-t border-gray-200 text-center">
-          <p>This is an automatically generated invoice. Invoice ID: {order.invoiceNumber}</p>
-        </div>
-      </div>
     </div>
   );
 }

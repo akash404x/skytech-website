@@ -211,7 +211,7 @@ export default function CheckoutPage() {
 
         await clearCart();
         toast.success('Payment successful and order created');
-        router.push('/orders');
+        router.push('/write-review');
         return;
       }
 
@@ -297,7 +297,7 @@ export default function CheckoutPage() {
 
             await clearCart();
             toast.success('Payment verified and order created');
-            router.push('/orders');
+            router.push('/write-review');
           } catch (error) {
             console.error('Payment verification error:', error);
             toast.error(error instanceof Error ? error.message : 'Payment verification failed');

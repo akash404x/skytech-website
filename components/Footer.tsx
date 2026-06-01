@@ -1,74 +1,144 @@
 'use client';
 
-import { MessageCircle, Share2, Mail, Phone, MapPin, Globe } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MessageCircle, Share2, Mail, Phone, MapPin, Globe, Zap, Cpu } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 const footerLinks: Record<string, Array<{ name: string; href: string; icon?: LucideIcon }>> = {
-  About: [
-    { name: 'About Us', href: '#' },
+  Company: [
+    { name: 'About Us', href: '/about' },
     { name: 'Careers', href: '#' },
-    { name: 'Press', href: '#' },
     { name: 'Blog', href: '#' },
+    { name: 'Contact', href: '#' },
   ],
-  Help: [
-    { name: 'Payments', href: '#' },
+  Support: [
+    { name: 'Help Center', href: '#' },
     { name: 'Shipping', href: '#' },
     { name: 'Returns', href: '#' },
     { name: 'FAQ', href: '#' },
   ],
-  Policy: [
-    { name: 'Return Policy', href: '#' },
-    { name: 'Terms of Use', href: '#' },
-    { name: 'Security', href: '#' },
-    { name: 'Privacy', href: '#' },
+  Legal: [
+    { name: 'Privacy Policy', href: '#' },
+    { name: 'Terms of Service', href: '#' },
+    { name: 'Cookie Policy', href: '#' },
   ],
   Social: [
-    { name: 'Facebook', href: '#', icon: MessageCircle },
     { name: 'Twitter', href: '#', icon: Share2 },
     { name: 'Instagram', href: '#', icon: Globe },
     { name: 'LinkedIn', href: '#', icon: Share2 },
+    { name: 'Facebook', href: '#', icon: MessageCircle },
   ],
 };
 
 export default function Footer() {
   return (
-    <footer className="tech-footer">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+    <footer className="relative overflow-hidden">
+      {/* Circuit Background */}
+      <div className="absolute inset-0 bg-[#020617]">
+        <div className="absolute inset-0 opacity-5">
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(0, 191, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 191, 255, 0.1) 1px, transparent 1px)
+              `,
+              backgroundSize: '40px 40px',
+            }}
+          />
+        </div>
+        
+        {/* Circuit Pattern */}
+        <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="circuit" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+              <circle cx="50" cy="50" r="2" fill="#00bfff" />
+              <path d="M50 50 L50 0 M50 50 L100 50" stroke="#00bfff" strokeWidth="0.5" fill="none" />
+              <circle cx="0" cy="0" r="1" fill="#00e5ff" />
+              <circle cx="100" cy="100" r="1" fill="#00e5ff" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#circuit)" />
+        </svg>
+
+        {/* Glowing Orbs */}
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-[#00bfff] rounded-full blur-[200px] opacity-10" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#00e5ff] rounded-full blur-[200px] opacity-10" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand Section */}
           <div className="lg:col-span-2">
-            <div className="text-2xl font-bold italic text-white mb-4">
-              Sky<span className="text-yellow-400">Tech</span>
-            </div>
-            <p className="tech-muted mb-6 max-w-sm">
-              Your one-stop destination for all your shopping needs. Quality products, best prices, and exceptional service.
-            </p>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-blue-400" />
-                <span className="text-sm">+91 5334357055</span>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="text-3xl font-bold italic text-white mb-4">
+                Sky<span className="bg-gradient-to-r from-[#00bfff] to-[#00e5ff] bg-clip-text text-transparent">Tech</span>
               </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-blue-400" />
-                <span className="text-sm">contact@theskytechnology.in</span>
+              <p className="text-[#d6e4ff]/70 mb-8 max-w-sm leading-relaxed">
+                Building the future through technology. Advanced electronics, IoT solutions, and innovative digital experiences.
+              </p>
+              
+              {/* Contact Info */}
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-[#00bfff]/10 border border-[#00bfff]/20 flex items-center justify-center">
+                    <Phone className="h-5 w-5 text-[#00bfff]" />
+                  </div>
+                  <span className="text-[#d6e4ff]">+91 5334357055</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-[#00bfff]/10 border border-[#00bfff]/20 flex items-center justify-center">
+                    <Mail className="h-5 w-5 text-[#00bfff]" />
+                  </div>
+                  <span className="text-[#d6e4ff]">contact@theskytechnology.in</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-[#00bfff]/10 border border-[#00bfff]/20 flex items-center justify-center">
+                    <MapPin className="h-5 w-5 text-[#00bfff]" />
+                  </div>
+                  <span className="text-[#d6e4ff]">Prayagraj, Uttar Pradesh, India</span>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-blue-400" />
-                <span className="text-sm">Prayagraj, Uttar Pradesh, India</span>
+
+              {/* Newsletter */}
+              <div className="p-4 rounded-xl bg-[#06122d]/40 border border-[#00bfff]/10">
+                <p className="text-sm font-semibold text-white mb-2">Stay Updated</p>
+                <p className="text-xs text-[#d6e4ff]/60 mb-3">Get the latest news and updates</p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    className="flex-1 px-3 py-2 rounded-lg bg-[#020617]/50 border border-[#00bfff]/20 text-white text-sm focus:outline-none focus:border-[#00bfff]/40"
+                  />
+                  <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#00bfff] to-[#00e5ff] text-[#020617] font-semibold text-sm hover:opacity-90 transition-opacity">
+                    Subscribe
+                  </button>
+                </div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
           {/* Link Sections */}
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
+          {Object.entries(footerLinks).map(([title, links], index) => (
+            <motion.div
+              key={title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+            >
               <h3 className="text-white font-semibold mb-4">{title}</h3>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.name}>
                     <a
                       href={link.href}
-                      className="text-sm hover:text-blue-400 transition-colors flex items-center gap-2"
+                      className="text-sm text-[#d6e4ff]/70 hover:text-[#00e5ff] transition-colors flex items-center gap-2"
                     >
                       {link.icon && <link.icon className="h-4 w-4" />}
                       {link.name}
@@ -76,27 +146,42 @@ export default function Footer() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
         </div>
 
-        {/* Payment Methods */}
-        <div className="border-t border-white/10 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-sm tech-muted">
+        {/* Bottom Bar */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="border-t border-[#00bfff]/10 mt-16 pt-8"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-sm text-[#d6e4ff]/60">
               © 2026 SkyTech. All rights reserved.
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-sm tech-muted">Payment Methods:</span>
+            
+            {/* Slogan */}
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#00bfff]" />
+              <span className="text-sm text-[#d6e4ff]/80 font-medium">Building The Future Through Technology</span>
+              <Cpu className="w-4 h-4 text-[#00e5ff]" />
+            </div>
+
+            {/* Payment Methods */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-[#d6e4ff]/60">Payment:</span>
               <div className="flex gap-2">
-                <div className="bg-white rounded px-3 py-1 text-xs font-bold text-gray-900">VISA</div>
-                <div className="bg-white rounded px-3 py-1 text-xs font-bold text-gray-900">MasterCard</div>
-                <div className="bg-white rounded px-3 py-1 text-xs font-bold text-gray-900">UPI</div>
-                <div className="bg-white rounded px-3 py-1 text-xs font-bold text-gray-900">COD</div>
+                <div className="px-3 py-1 rounded bg-[#06122d]/40 border border-[#00bfff]/10 text-xs font-semibold text-[#00e5ff]">VISA</div>
+                <div className="px-3 py-1 rounded bg-[#06122d]/40 border border-[#00bfff]/10 text-xs font-semibold text-[#00e5ff]">MasterCard</div>
+                <div className="px-3 py-1 rounded bg-[#06122d]/40 border border-[#00bfff]/10 text-xs font-semibold text-[#00e5ff]">UPI</div>
+                <div className="px-3 py-1 rounded bg-[#06122d]/40 border border-[#00bfff]/10 text-xs font-semibold text-[#00e5ff]">COD</div>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );

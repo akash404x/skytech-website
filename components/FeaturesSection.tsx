@@ -3,14 +3,10 @@
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import {
-  Microchip,
-  Wifi,
-  Cpu,
-  Zap,
-  Shield,
-  Truck,
-  Headphones,
-  RefreshCw,
+  Lightbulb,
+  ShieldCheck,
+  HeadsetIcon,
+  Rocket,
 } from 'lucide-react';
 
 export default function FeaturesSection() {
@@ -22,144 +18,106 @@ export default function FeaturesSection() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
+        staggerChildren: 0.15,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 50, scale: 0.9 },
+    hidden: { opacity: 0, y: 60 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.5,
-      },
+      transition: { duration: 0.8 },
     },
   };
 
   const features = [
     {
-      icon: Microchip,
-      title: 'Arduino Boards',
-      description: 'Wide range of Arduino boards from UNO to Mega, perfect for all your projects.',
-      color: 'from-blue-500 to-cyan-500',
+      icon: Lightbulb,
+      title: 'Innovation',
+      description: 'Cutting-edge technology and forward-thinking solutions that push the boundaries of what\'s possible.',
+      gradient: 'from-[#00bfff] to-[#00e5ff]',
     },
     {
-      icon: Wifi,
-      title: 'IoT Solutions',
-      description: 'ESP8266, ESP32, and IoT modules for smart home and automation projects.',
-      color: 'from-purple-500 to-pink-500',
+      icon: ShieldCheck,
+      title: 'Reliability',
+      description: 'Rigorous quality testing and premium components ensure consistent performance you can trust.',
+      gradient: 'from-[#38bdf8] to-[#22d3ee]',
     },
     {
-      icon: Cpu,
-      title: 'Sensors & Modules',
-      description: 'Temperature, humidity, motion sensors and more for data collection.',
-      color: 'from-green-500 to-teal-500',
-    },
-    {
-      icon: Zap,
-      title: 'Motors & Drivers',
-      description: 'Servo, stepper motors and drivers for robotics and automation.',
-      color: 'from-yellow-500 to-orange-500',
-    },
-    {
-      icon: Shield,
-      title: 'Quality Guaranteed',
-      description: 'All products tested and verified for reliability and performance.',
-      color: 'from-red-500 to-pink-500',
-    },
-    {
-      icon: Truck,
-      title: 'Fast Shipping',
-      description: 'Quick delivery across the country to keep your projects on track.',
-      color: 'from-indigo-500 to-blue-500',
-    },
-    {
-      icon: Headphones,
+      icon: HeadsetIcon,
       title: 'Expert Support',
-      description: 'Technical assistance and guidance for your project development.',
-      color: 'from-teal-500 to-green-500',
+      description: 'Dedicated technical assistance from experienced engineers who understand your project needs.',
+      gradient: 'from-[#0ea5e9] to-[#06b6d4]',
     },
     {
-      icon: RefreshCw,
-      title: 'Easy Returns',
-      description: 'Hassle-free return policy if products dont meet your expectations.',
-      color: 'from-orange-500 to-red-500',
+      icon: Rocket,
+      title: 'Future Ready',
+      description: 'Scalable solutions designed to grow with your projects and adapt to emerging technologies.',
+      gradient: 'from-[#0284c7] to-[#0891b2]',
     },
   ];
 
   return (
-    <section ref={ref} className="tech-section relative px-4 py-20 md:py-32">
-      <div className="tech-section-backdrop" aria-hidden />
+    <section ref={ref} className="relative py-24 md:py-32 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#020617] via-[#06122d] to-[#020617]" />
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00bfff] rounded-full blur-[200px]" />
+      </div>
+
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate={isInView ? 'visible' : 'hidden'}
-        className="tech-section-inner relative z-[1] mx-auto max-w-7xl"
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="text-center mb-16">
-          <h2 className="tech-heading-gradient mb-4 text-4xl font-bold md:text-5xl">
-            Why Choose SkyTech?
+        <motion.div variants={itemVariants} className="text-center mb-20">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+            Why Choose <span className="bg-gradient-to-r from-[#00bfff] to-[#00e5ff] bg-clip-text text-transparent">Sky Tech</span>
           </h2>
-          <p className="mx-auto max-w-3xl text-lg tech-text md:text-xl">
-            We provide everything you need to bring your electronic projects to life with quality
-            products and exceptional service.
+          <p className="max-w-3xl mx-auto text-lg md:text-xl text-[#d6e4ff]/80">
+            We deliver excellence through innovation, quality, and unwavering commitment to your success
           </p>
         </motion.div>
 
         {/* Features Grid */}
-        <motion.div variants={containerVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((feature, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
-              whileHover={{ scale: 1.05, y: -10 }}
-              whileTap={{ scale: 0.95 }}
-              className="tech-glass-card group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 md:p-8"
+              whileHover={{ y: -8 }}
+              className="group relative"
             >
-              {/* Animated gradient background on hover */}
-              <motion.div
-                className={`absolute inset-0 bg-gradient-to-r ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-              />
+              <div className="relative h-full p-8 rounded-2xl bg-[#06122d]/40 backdrop-blur-xl border border-[#00bfff]/10 hover:border-[#00bfff]/30 transition-all duration-500 overflow-hidden">
+                {/* Gradient Glow on Hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+                
+                {/* Icon */}
+                <motion.div
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                  className={`relative w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-[0_0_30px_rgba(0,191,255,0.3)]`}
+                >
+                  <feature.icon className="w-8 h-8 text-white" />
+                </motion.div>
 
-              {/* Icon */}
-              <motion.div
-                animate={{ rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 3, repeat: Infinity, delay: index * 0.2 }}
-                className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}
-              >
-                <feature.icon className="w-8 h-8 text-white" />
-              </motion.div>
+                {/* Content */}
+                <h3 className="relative text-2xl font-bold text-white mb-3 group-hover:text-[#00e5ff] transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="relative text-[#d6e4ff]/70 leading-relaxed">
+                  {feature.description}
+                </p>
 
-              {/* Content */}
-              <h3 className="mb-3 text-xl font-bold text-white transition-all group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 group-hover:bg-clip-text group-hover:text-transparent md:text-2xl">
-                {feature.title}
-              </h3>
-              <p className="text-sm leading-relaxed tech-muted md:text-base">
-                {feature.description}
-              </p>
-
-              {/* Decorative element */}
-              <motion.div
-                className={`absolute -bottom-4 -right-4 w-20 h-20 bg-gradient-to-r ${feature.color} opacity-20 rounded-full blur-xl group-hover:opacity-40 transition-opacity`}
-              />
+                {/* Decorative Corner */}
+                <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl ${feature.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-bl-3xl`} />
+              </div>
             </motion.div>
           ))}
-        </motion.div>
-
-        {/* Call to Action */}
-        <motion.div variants={itemVariants} className="text-center mt-16">
-          <motion.a
-            href="/products"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-10 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all"
-          >
-            Explore All Products
-          </motion.a>
         </motion.div>
       </motion.div>
     </section>
