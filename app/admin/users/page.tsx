@@ -137,13 +137,13 @@ export default function AdminUsers() {
             placeholder="Search users..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 pl-10 pr-4 text-white"
+            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 pl-10 pr-4"
           />
         </div>
         <select
           value={roleFilter}
           onChange={(event) => setRoleFilter(event.target.value as 'all' | UserRole)}
-          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-4 py-2 text-white"
+          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-4 py-2"
         >
           <option value="all">All roles</option>
           {ROLES.map((role) => (
@@ -196,7 +196,7 @@ export default function AdminUsers() {
                           value={profile.role}
                           disabled={savingUid === profile.uid}
                           onChange={(event) => updateUser(profile, { role: event.target.value as UserRole })}
-                          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-3 py-2 capitalize text-white disabled:opacity-50"
+                          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-3 py-2 capitalize disabled:opacity-50"
                         >
                           {ROLES.map((role) => (
                             <option key={role} value={role}>
@@ -213,7 +213,7 @@ export default function AdminUsers() {
                           value={profile.status}
                           disabled={savingUid === profile.uid}
                           onChange={(event) => updateUser(profile, { status: event.target.value as AccountStatus })}
-                          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-3 py-2 capitalize text-white disabled:opacity-50"
+                          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-3 py-2 capitalize disabled:opacity-50"
                         >
                           {STATUSES.map((status) => (
                             <option key={status} value={status}>

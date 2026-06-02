@@ -193,7 +193,7 @@ export default function PricingSettingsPage() {
                 <select
                   value={gstSettings.enabled.toString()}
                   onChange={(e) => setGstSettings({ ...gstSettings, enabled: e.target.value === 'true' })}
-                  className="tech-input w-full cursor-pointer bg-slate-800/50 border border-slate-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="tech-input w-full cursor-pointer bg-slate-800/50 border border-slate-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
                   <option value="true">Enabled</option>
                   <option value="false">Disabled</option>
@@ -206,7 +206,7 @@ export default function PricingSettingsPage() {
                   type="number"
                   value={gstSettings.percentage}
                   onChange={(e) => setGstSettings({ ...gstSettings, percentage: parseFloat(e.target.value) || 0 })}
-                  className="tech-input w-full bg-slate-800/50 border border-slate-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="tech-input w-full bg-slate-800/50 border border-slate-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   min="0"
                   max="100"
                   step="1"
@@ -235,7 +235,7 @@ export default function PricingSettingsPage() {
                   type="number"
                   value={shippingSettings.shippingFee}
                   onChange={(e) => setShippingSettings({ ...shippingSettings, shippingFee: parseFloat(e.target.value) || 0 })}
-                  className="tech-input w-full bg-slate-800/50 border border-slate-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="tech-input w-full bg-slate-800/50 border border-slate-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   min="0"
                   step="1"
                 />
@@ -247,7 +247,7 @@ export default function PricingSettingsPage() {
                   type="number"
                   value={shippingSettings.freeShippingAbove}
                   onChange={(e) => setShippingSettings({ ...shippingSettings, freeShippingAbove: parseFloat(e.target.value) || 0 })}
-                  className="tech-input w-full bg-slate-800/50 border border-slate-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="tech-input w-full bg-slate-800/50 border border-slate-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   min="0"
                   step="1"
                 />
@@ -274,7 +274,7 @@ export default function PricingSettingsPage() {
                 <select
                   value={deliverySettings.enabled.toString()}
                   onChange={(e) => setDeliverySettings({ ...deliverySettings, enabled: e.target.value === 'true' })}
-                  className="tech-input w-full cursor-pointer bg-slate-800/50 border border-slate-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="tech-input w-full cursor-pointer bg-slate-800/50 border border-slate-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
                   <option value="true">Enabled</option>
                   <option value="false">Disabled</option>
@@ -287,7 +287,7 @@ export default function PricingSettingsPage() {
                   type="number"
                   value={deliverySettings.charge}
                   onChange={(e) => setDeliverySettings({ ...deliverySettings, charge: parseFloat(e.target.value) || 0 })}
-                  className="tech-input w-full bg-slate-800/50 border border-slate-600 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="tech-input w-full bg-slate-800/50 border border-slate-600 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   min="0"
                   step="1"
                 />

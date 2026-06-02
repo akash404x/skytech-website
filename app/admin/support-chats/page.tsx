@@ -102,7 +102,7 @@ export default function AdminSupportChats() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search orders, users, messages"
-                className="w-full rounded-2xl border border-white/10 bg-slate-900/80 py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                className="w-full rounded-2xl border border-white/10 bg-slate-900/80 py-3 pl-10 pr-4 text-sm outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
               />
             </div>
           </div>

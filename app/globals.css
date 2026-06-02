@@ -87,24 +87,25 @@ body {
   padding-bottom: 0.85rem;
   padding-right: 1rem;
   background: rgba(255, 255, 255, 0.05);
-  color: #ffffff !important;
+  color: #39FF14 !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   -webkit-font-smoothing: antialiased;
   font-weight: 600;
-  caret-color: #ffffff;
+  caret-color: #39FF14;
   transition: border-color 220ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms cubic-bezier(.2,.9,.3,1), transform 220ms;
 }
 
 .tech-input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: #9CCBFF !important;
+  opacity: 0.8 !important;
   font-weight: 500;
 }
 
 .tech-input:focus {
   outline: none;
-  border-color: rgba(34, 211, 238, 0.7);
-  box-shadow: 0 0 0 0.2rem rgba(34, 211, 238, 0.18);
+  border-color: #00E5FF !important;
+  box-shadow: 0 0 15px rgba(0,229,255,0.35) !important;
   transform: translateY(-1px);
 }
 
@@ -978,7 +979,7 @@ body {
   animation: tech-dots-drift 40s linear infinite;
 }
 
-/* Global Form Input Text Styling */
+/* Global Form Input Text Styling - Neon Green for Dark Theme */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -988,8 +989,8 @@ input[type="url"],
 input[type="search"],
 textarea,
 select {
-  color: #000000 !important;
-  caret-color: #000000 !important;
+  color: #39FF14 !important;
+  caret-color: #39FF14 !important;
 }
 
 input[type="text"]::placeholder,
@@ -999,9 +1000,10 @@ input[type="number"]::placeholder,
 input[type="tel"]::placeholder,
 input[type="url"]::placeholder,
 input[type="search"]::placeholder,
-textarea::placeholder {
-  color: #374151 !important;
-  opacity: 1 !important;
+textarea::placeholder,
+select::placeholder {
+  color: #9CCBFF !important;
+  opacity: 0.8 !important;
 }
 
 input[type="text"]:focus,
@@ -1013,7 +1015,9 @@ input[type="url"]:focus,
 input[type="search"]:focus,
 textarea:focus,
 select:focus {
-  color: #000000 !important;
+  color: #39FF14 !important;
+  border-color: #00E5FF !important;
+  box-shadow: 0 0 15px rgba(0,229,255,0.35) !important;
 }
 
 input[type="text"]:disabled,
@@ -1025,7 +1029,8 @@ input[type="url"]:disabled,
 input[type="search"]:disabled,
 textarea:disabled,
 select:disabled {
-  color: #000000 !important;
+  color: #39FF14 !important;
+  opacity: 0.6 !important;
 }
 
 /* Dark mode support for form inputs */
@@ -1039,8 +1044,8 @@ select:disabled {
   input[type="search"],
   textarea,
   select {
-    color: #000000 !important;
-    caret-color: #000000 !important;
+    color: #39FF14 !important;
+    caret-color: #39FF14 !important;
   }
 
   input[type="text"]::placeholder,
@@ -1050,8 +1055,10 @@ select:disabled {
   input[type="tel"]::placeholder,
   input[type="url"]::placeholder,
   input[type="search"]::placeholder,
-  textarea::placeholder {
-    color: #9ca3af !important;
+  textarea::placeholder,
+  select::placeholder {
+    color: #9CCBFF !important;
+    opacity: 0.8 !important;
   }
 
   input[type="text"]:focus,
@@ -1063,7 +1070,9 @@ select:disabled {
   input[type="search"]:focus,
   textarea:focus,
   select:focus {
-    color: #000000 !important;
+    color: #39FF14 !important;
+    border-color: #00E5FF !important;
+    box-shadow: 0 0 15px rgba(0,229,255,0.35) !important;
   }
 
   input[type="text"]:disabled,
@@ -1075,7 +1084,8 @@ select:disabled {
   input[type="search"]:disabled,
   textarea:disabled,
   select:disabled {
-    color: #000000 !important;
+    color: #39FF14 !important;
+    opacity: 0.6 !important;
   }
 }
 

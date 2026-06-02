@@ -272,7 +272,7 @@ export default function AdminServices() {
             placeholder="Search services..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 py-2 pl-10 pr-4 text-white"
+            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 py-2 pl-10 pr-4"
           />
         </div>
         <button

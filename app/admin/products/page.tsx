@@ -217,7 +217,7 @@ export default function AdminProducts() {
             placeholder="Search products..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 pl-10 pr-4 text-white"
+            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 pl-10 pr-4"
           />
         </div>
         <button
@@ -319,7 +319,7 @@ export default function AdminProducts() {
                   value={formData.name}
                   onChange={(event) => setFormData({ ...formData, name: event.target.value })}
                   placeholder="Enter product name"
-                  className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:ring-offset-0"
+                  className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30 focus:ring-offset-0"
                 />
               </div>
 
@@ -330,10 +330,10 @@ export default function AdminProducts() {
                   <select
                     value={formData.category}
                     onChange={(event) => setFormData({ ...formData, category: event.target.value })}
-                    className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                    className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
                   >
                     {CATEGORIES.map((category) => (
-                      <option key={category} value={category} className="bg-slate-900 text-white">
+                      <option key={category} value={category} className="bg-slate-900">
                         {category}
                       </option>
                     ))}
@@ -345,12 +345,12 @@ export default function AdminProducts() {
                   <select
                     value={formData.status}
                     onChange={(event) => setFormData({ ...formData, status: event.target.value as ProductStatus })}
-                    className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
+                    className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
                   >
-                    <option value="active" className="bg-slate-900 text-white">
+                    <option value="active" className="bg-slate-900">
                       Active
                     </option>
-                    <option value="inactive" className="bg-slate-900 text-white">
+                    <option value="inactive" className="bg-slate-900">
                       Inactive
                     </option>
                   </select>

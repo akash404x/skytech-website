@@ -72,7 +72,7 @@ export default function ReviewOrderPage() {
           <h1 className="text-2xl font-bold text-white mb-4">Error</h1>
           <p className="text-cyan-200 mb-6">{error || 'Could not load order'}</p>
           <Link href="/orders">
-            <button className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-600 hover:to-cyan-500 text-black font-bold rounded-lg transition-all">
+            <button className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-600 hover:to-cyan-500 text-[#020617] font-bold rounded-lg transition-all">
               Back to Orders
             </button>
           </Link>
@@ -124,7 +124,7 @@ export default function ReviewOrderPage() {
         {/* Action Buttons */}
         <div className="flex flex-col gap-4 sm:flex-row">
           <Link href={`/write-review?orderId=${orderId}`} className="flex-1">
-            <button className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-600 hover:to-cyan-500 text-black font-bold rounded-lg transition-all">
+            <button className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-600 hover:to-cyan-500 text-[#020617] font-bold rounded-lg transition-all">
               Write Review Now
             </button>
           </Link>

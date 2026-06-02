@@ -105,17 +105,9 @@ export default function FounderSection() {
                   <Award className="w-5 h-5 text-[#020617]" />
                 </div>
                 <div>
-                 <p className="text-[#39FF14] font-extrabold text-lg">
-  Founder
-</p>
-
-<p className="text-[#39FF14]/80 font-medium text-sm">
-  Sky Tech
-</p>
-
-<p className="text-[#39FF14]/80 font-medium text-sm">
-  Akash Singh
-</p>
+                 <p className="text-[#39ff14] font-bold text-xl">Akash Singh</p>
+                <p className="text-white font-semibold">Founder</p>
+                <p className="text-[#d6e4ff]/70 text-sm">Sky Tech</p>
                 </div>
               </div>
             </motion.div>
@@ -158,7 +150,7 @@ export default function FounderSection() {
               <div className="text-[#00bfff] text-2xl font-signature italic">
                 "Innovation is not just about technology—it's about people."
               </div>
-              <p className="text-[#d6e4ff]/60 mt-2">— Founder, Sky Tech</p>
+              <p className="text-[#d6e4ff]/60 mt-2">— Akash Singh, Founder, Sky Tech</p>
             </div>
           </motion.div>
         </div>

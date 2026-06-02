@@ -311,7 +311,7 @@ export default function AdminWorks() {
             placeholder="Search works..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 py-2 pl-10 pr-4 text-white"
+            className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 py-2 pl-10 pr-4"
           />
         </div>
         <button
@@ -439,7 +439,7 @@ export default function AdminWorks() {
                   type="text"
                   value={formData.title}
                   onChange={(event) => setFormData({ ...formData, title: event.target.value })}
-                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                   placeholder="Project title"
                   required
                 />
@@ -451,7 +451,7 @@ export default function AdminWorks() {
                   type="text"
                   value={formData.shortDescription}
                   onChange={(event) => setFormData({ ...formData, shortDescription: event.target.value })}
-                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                   placeholder="Brief description (1-2 sentences)"
                   required
                 />
@@ -462,7 +462,7 @@ export default function AdminWorks() {
                 <textarea
                   value={formData.fullDescription}
                   onChange={(event) => setFormData({ ...formData, fullDescription: event.target.value })}
-                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white resize-y"
+                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 resize-y"
                   rows={4}
                   placeholder="Detailed project description"
                 />
@@ -473,7 +473,7 @@ export default function AdminWorks() {
                 <select
                   value={formData.category}
                   onChange={(event) => setFormData({ ...formData, category: event.target.value })}
-                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                 >
                   {WORK_CATEGORIES.map((category) => (
                     <option key={category} value={category}>
@@ -489,7 +489,7 @@ export default function AdminWorks() {
                   type="text"
                   value={formData.technologiesUsed}
                   onChange={(event) => setFormData({ ...formData, technologiesUsed: event.target.value })}
-                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                   placeholder="React, Node.js, Arduino, etc. (comma-separated)"
                 />
               </div>
@@ -533,7 +533,7 @@ export default function AdminWorks() {
                   type="text"
                   value={formData.images}
                   onChange={(event) => setFormData({ ...formData, images: event.target.value })}
-                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                   placeholder="Image URLs (comma-separated)"
                 />
               </div>
@@ -545,7 +545,7 @@ export default function AdminWorks() {
                     type="url"
                     value={formData.githubLink}
                     onChange={(event) => setFormData({ ...formData, githubLink: event.target.value })}
-                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                     placeholder="https://github.com/..."
                   />
                 </div>
@@ -555,7 +555,7 @@ export default function AdminWorks() {
                     type="url"
                     value={formData.liveDemoLink}
                     onChange={(event) => setFormData({ ...formData, liveDemoLink: event.target.value })}
-                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                     placeholder="https://..."
                   />
                 </div>
@@ -568,7 +568,7 @@ export default function AdminWorks() {
                     type="text"
                     value={formData.clientName}
                     onChange={(event) => setFormData({ ...formData, clientName: event.target.value })}
-                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                     placeholder="Client or organization name"
                   />
                 </div>
@@ -578,7 +578,7 @@ export default function AdminWorks() {
                     type="date"
                     value={formData.completionDate}
                     onChange={(event) => setFormData({ ...formData, completionDate: event.target.value })}
-                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                   />
                 </div>
               </div>
@@ -589,7 +589,7 @@ export default function AdminWorks() {
                   <select
                     value={formData.status}
                     onChange={(event) => setFormData({ ...formData, status: event.target.value as WorkStatus })}
-                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5 text-white"
+                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>

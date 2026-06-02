@@ -23,7 +23,8 @@ const DESIGNATIONS = [
   'Consultant',
   'Manager',
   'Startup Founder',
-  'Other'
+  'Other',
+  'Custom Designation'
 ];
 
 export default function WriteReviewPage() {
@@ -36,6 +37,7 @@ export default function WriteReviewPage() {
   const [hoverRating, setHoverRating] = useState(0);
   const [fullName, setFullName] = useState('');
   const [designation, setDesignation] = useState('');
+  const [customDesignation, setCustomDesignation] = useState('');
   const [content, setContent] = useState('');
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
@@ -151,6 +153,21 @@ export default function WriteReviewPage() {
       return;
     }
 
+    if (designation === 'Custom Designation') {
+      if (!customDesignation.trim()) {
+        toast.error('Please enter your custom designation');
+        return;
+      }
+      if (customDesignation.trim().length < 2) {
+        toast.error('Custom designation must be at least 2 characters');
+        return;
+      }
+      if (customDesignation.trim().length > 50) {
+        toast.error('Custom designation must be less than 50 characters');
+        return;
+      }
+    }
+
     if (rating === 0) {
       toast.error('Please select a rating');
       return;
@@ -206,7 +223,7 @@ export default function WriteReviewPage() {
         userEmail: user.email,
         userName: user.displayName || 'Anonymous',
         name: fullName,
-        designation,
+        designation: designation === 'Custom Designation' ? customDesignation.trim() : designation,
         profileImage: profileImageUrl,
         productId: productId || null,
         productName: productName || null,
@@ -358,7 +375,7 @@ export default function WriteReviewPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Enter your full name"
-                  className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00bfff]/20 text-white placeholder-[#d6e4ff]/40 focus:outline-none focus:border-[#00bfff]/40 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00bfff]/20 focus:outline-none focus:border-[#00bfff]/40 transition-colors"
                 />
               </div>
 
@@ -371,16 +388,43 @@ export default function WriteReviewPage() {
                   id="designation"
                   value={designation}
                   onChange={(e) => setDesignation(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00bfff]/20 text-white focus:outline-none focus:border-[#00bfff]/40 transition-colors appearance-none cursor-pointer"
+                  className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00bfff]/20 focus:outline-none focus:border-[#00bfff]/40 transition-colors appearance-none cursor-pointer"
                 >
                   <option value="">Select your designation</option>
                   {DESIGNATIONS.map((d) => (
-                    <option key={d} value={d} className="bg-[#020617] text-white">
+                    <option key={d} value={d} className="bg-[#020617]">
                       {d}
                     </option>
                   ))}
                 </select>
               </div>
+
+              {/* Custom Designation Input */}
+              {designation === 'Custom Designation' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="p-6 rounded-2xl bg-[#06122d]/40 backdrop-blur-xl border border-[#00bfff]/10"
+                >
+                  <label htmlFor="customDesignation" className="block text-sm font-semibold text-white mb-3">
+                    Enter Your Designation <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    id="customDesignation"
+                    type="text"
+                    value={customDesignation}
+                    onChange={(e) => setCustomDesignation(e.target.value)}
+                    placeholder="e.g. AI Engineer, Content Creator, YouTuber, Investor, Teacher"
+                    className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00e5ff] focus:outline-none focus:border-[#00e5ff] focus:shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all placeholder-[#9ccbff] text-[#39ff14]"
+                    minLength={2}
+                    maxLength={50}
+                  />
+                  <p className="text-xs text-[#d6e4ff]/60 mt-2">
+                    {customDesignation.length}/50 characters (minimum 2)
+                  </p>
+                </motion.div>
+              )}
 
               {/* Product Selection - Only for product reviews */}
               {reviewType === 'product' && (
@@ -410,11 +454,11 @@ export default function WriteReviewPage() {
                       id="product"
                       value={selectedProductId}
                       onChange={(e) => setSelectedProductId(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00bfff]/20 text-white focus:outline-none focus:border-[#00bfff]/40 transition-colors appearance-none cursor-pointer"
+                      className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00bfff]/20 focus:outline-none focus:border-[#00bfff]/40 transition-colors appearance-none cursor-pointer"
                     >
                       <option value="">Select a product you purchased</option>
                       {purchasedProducts.map((product) => (
-                        <option key={product.id} value={product.id} className="bg-[#020617] text-white">
+                        <option key={product.id} value={product.id} className="bg-[#020617]">
                           {product.name}
                         </option>
                       ))}
@@ -466,7 +510,7 @@ export default function WriteReviewPage() {
                   onChange={(e) => setContent(e.target.value)}
                   placeholder={reviewType === 'product' ? 'Share your detailed experience with this product...' : 'Share your general experience with Sky Tech...'}
                   rows={6}
-                  className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00bfff]/20 text-white placeholder-[#d6e4ff]/40 focus:outline-none focus:border-[#00bfff]/40 transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-xl bg-[#020617]/50 border border-[#00bfff]/20 focus:outline-none focus:border-[#00bfff]/40 transition-colors resize-none"
                   maxLength={1000}
                 />
                 <p className="text-xs text-[#d6e4ff]/60 mt-2 text-right">

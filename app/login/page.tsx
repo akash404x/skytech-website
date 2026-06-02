@@ -96,7 +96,7 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={(event) => setFormData({ ...formData, email: event.target.value })}
-                  className="tech-input block w-full py-3 pl-10 pr-3 text-white caret-white placeholder:text-gray-400 font-semibold"
+                  className="tech-input block w-full py-3 pl-10 pr-3 font-semibold"
                   placeholder="you@example.com"
                 />
               </div>
@@ -115,7 +115,7 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-                  className="tech-input block w-full py-3 pl-10 pr-3 text-white caret-white placeholder:text-gray-400 font-semibold"
+                  className="tech-input block w-full py-3 pl-10 pr-3 font-semibold"
                   placeholder="Enter your password"
                 />
               </div>
