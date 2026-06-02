@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Send, ArrowLeft, Upload, X } from 'lucide-react';
 import Link from 'next/link';
@@ -27,7 +27,7 @@ const DESIGNATIONS = [
   'Custom Designation'
 ];
 
-export default function WriteReviewPage() {
+function WriteReviewContent() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -595,5 +595,17 @@ export default function WriteReviewPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function WriteReviewPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00bfff]"></div>
+      </div>
+    }>
+      <WriteReviewContent />
+    </Suspense>
   );
 }
