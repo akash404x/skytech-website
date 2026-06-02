@@ -4,9 +4,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw, Settings } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw, Settings, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function AdminLayout({
   children,
@@ -17,6 +19,7 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
 
   const isAuthenticated = !!user;
   const isLoading = firebaseLoading;
@@ -28,6 +31,24 @@ export default function AdminLayout({
       router.push('/');
     }
   }, [isLoading, isAuthenticated, isEditor, router]);
+
+  // Fetch pending reviews count
+  useEffect(() => {
+    if (!isEditor) return;
+
+    const q = query(collection(db, 'reviews'), where('status', '==', 'pending'));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setPendingReviewsCount(snapshot.size);
+      },
+      (error) => {
+        console.error('Error fetching pending reviews count:', error);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [isEditor]);
 
   if (isLoading) {
     return (
@@ -60,6 +81,7 @@ export default function AdminLayout({
     { name: 'Replacements', href: '/admin/replacements', icon: RefreshCw },
     { name: 'Pricing Settings', href: '/admin/pricing-settings', icon: Settings },
     ...(isAdmin ? [{ name: 'Users', href: '/admin/users', icon: Users }] : []),
+    { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare, badge: pendingReviewsCount },
   ];
 
   return (
@@ -113,16 +135,23 @@ export default function AdminLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-colors ${
+                  className={`group flex items-center justify-between px-3 py-3 text-sm font-medium rounded-xl transition-colors ${
                     isActive
                       ? 'bg-cyan-500/15 text-white ring-1 ring-cyan-400/20'
                       : 'text-slate-300 hover:bg-slate-900 hover:text-white'
                   }`}
                 >
-                  <item.icon
-                    className={`h-5 w-5 mr-3 ${isActive ? 'text-cyan-200' : 'text-slate-400 group-hover:text-cyan-200'}`}
-                  />
-                  {item.name}
+                  <div className="flex items-center">
+                    <item.icon
+                      className={`h-5 w-5 mr-3 ${isActive ? 'text-cyan-200' : 'text-slate-400 group-hover:text-cyan-200'}`}
+                    />
+                    {item.name}
+                  </div>
+                  {(item as any).badge && (item as any).badge > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                      {(item as any).badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
