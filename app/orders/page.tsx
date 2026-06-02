@@ -1,7 +1,7 @@
 'use client';
 
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw, Download, Eye, Star } from 'lucide-react';
+import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw, Download, Eye, Star, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -256,12 +256,23 @@ export default function OrdersPage() {
   const isLoading = authLoading || loadingOrders;
   const totalPaid = useMemo(() => payments.reduce((total, payment) => total + payment.amount, 0), [payments]);
 
-  const handleDownloadInvoice = (invoiceUrl: string) => {
-    window.open(invoiceUrl, '_blank');
+  const handleDownloadInvoice = (orderNumber: string) => {
+    try {
+      // Try to download PDF directly via API
+      window.open(`/api/invoices/download?orderNumber=${orderNumber}`, '_blank');
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error('Invoice not available yet');
+    }
   };
 
-  const handleViewInvoice = (invoiceUrl: string) => {
-    window.open(invoiceUrl, '_blank');
+  const handleViewInvoice = (orderNumber: string) => {
+    try {
+      window.open(`/invoice-preview/${orderNumber}`, '_blank');
+    } catch (error) {
+      console.error('Error viewing invoice:', error);
+      toast.error('Invoice not available yet');
+    }
   };
 
   if (authLoading || !user) {
@@ -327,41 +338,34 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Invoice Section */}
-                <div className="mt-5 rounded-2xl border border-cyan-500/10 bg-slate-900/80 p-4">
-                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-cyan-200">
-                    <ReceiptText className="h-4 w-4 text-cyan-300" />
+                <div className="mt-5 rounded-2xl border border-[#00E5FF] p-4" style={{ background: 'rgba(0,191,255,0.12)' }}>
+                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
+                    <ReceiptText className="h-4 w-4 text-[#00E5FF]" />
                     Invoice
                   </div>
-                  {order.invoiceUrl ? (
-                    <div className="space-y-3">
-                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-white">{order.invoiceNumber || 'SKY-INV-XXXXXX'}</p>
-                          <p className="text-xs tech-muted">Generated: {formatDate(order.createdAt)}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleViewInvoice(order.invoiceUrl!)}
-                            className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/20"
-                          >
-                            <Eye className="h-4 w-4" />
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleDownloadInvoice(order.invoiceUrl!)}
-                            className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/20"
-                          >
-                            <Download className="h-4 w-4" />
-                            Download
-                          </button>
-                        </div>
-                      </div>
+                  {order.status === 'pending' ? (
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <ReceiptText className="h-4 w-4" />
+                      Invoice will be available after order confirmation
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm tech-muted">No invoice generated yet</p>
-                      </div>
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <button
+                        onClick={() => handleViewInvoice(order.orderNumber)}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-[#00E5FF] px-4 py-3 text-sm font-medium text-white transition-all hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:-translate-y-0.5"
+                        style={{ background: 'rgba(0,191,255,0.12)' }}
+                      >
+                        <FileText className="h-4 w-4" />
+                        View Invoice
+                      </button>
+                      <button
+                        onClick={() => handleDownloadInvoice(order.orderNumber)}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-[#00E5FF] px-4 py-3 text-sm font-medium text-white transition-all hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:-translate-y-0.5"
+                        style={{ background: 'rgba(0,191,255,0.12)' }}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Invoice
+                      </button>
                     </div>
                   )}
                 </div>

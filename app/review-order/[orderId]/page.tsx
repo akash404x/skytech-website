@@ -7,6 +7,8 @@ import { collection, doc, getDoc, query, where, getDocs } from 'firebase/firesto
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Order, OrderItem } from '@/lib/types';
+import { FileText } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export default function ReviewOrderPage() {
   const router = useRouter();
@@ -18,6 +20,16 @@ export default function ReviewOrderPage() {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleDownloadInvoice = () => {
+    if (!order) {
+      toast.error('Invoice not available yet.');
+      return;
+    }
+
+    // Open invoice preview page in new tab
+    window.open(`/invoice-preview/${order.orderNumber}`, '_blank');
+  };
 
   useEffect(() => {
     if (!user) {
@@ -128,6 +140,16 @@ export default function ReviewOrderPage() {
               Write Review Now
             </button>
           </Link>
+          <button
+            onClick={handleDownloadInvoice}
+            className="flex-1 px-6 py-3 font-bold rounded-lg transition-all flex items-center justify-center gap-2 border border-[#00E5FF] text-white hover:shadow-[0_0_20px_rgba(0,229,255,0.4)] hover:scale-105"
+            style={{
+              background: 'rgba(0,191,255,0.15)',
+            }}
+          >
+            <FileText className="w-5 h-5" />
+            Download Invoice
+          </button>
           <Link href="/orders" className="flex-1">
             <button className="w-full px-6 py-3 border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500/10 font-bold rounded-lg transition-all">
               Skip for Later
