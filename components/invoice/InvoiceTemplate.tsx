@@ -364,8 +364,6 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
             </div>
           </div>
         </div>
-      </div>
-      </div>
 
       <div className="billing-shipping-section p-6 border-b border-[#1e3a5f]">
           <div className="grid grid-cols-2 gap-6">
