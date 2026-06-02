@@ -105,8 +105,17 @@ export default function FounderSection() {
                   <Award className="w-5 h-5 text-[#020617]" />
                 </div>
                 <div>
-                  <p className="text-white font-semibold">Founder & CEO</p>
-                  <p className="text-[#d6e4ff]/60 text-sm">Sky Tech</p>
+                 <p className="text-[#39FF14] font-extrabold text-lg">
+  Founder
+</p>
+
+<p className="text-[#39FF14]/80 font-medium text-sm">
+  Sky Tech
+</p>
+
+<p className="text-[#39FF14]/80 font-medium text-sm">
+  Akash Singh
+</p>
                 </div>
               </div>
             </motion.div>

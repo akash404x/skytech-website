@@ -211,7 +211,8 @@ export default function CheckoutPage() {
 
         await clearCart();
         toast.success('Payment successful and order created');
-        router.push('/write-review');
+        // Redirect to post-purchase review page
+        router.push(`/review-order/${data.order.id}`);
         return;
       }
 
@@ -297,7 +298,8 @@ export default function CheckoutPage() {
 
             await clearCart();
             toast.success('Payment verified and order created');
-            router.push('/write-review');
+            // Redirect to post-purchase review page
+            router.push(`/review-order/${verifyData.order.id}`);
           } catch (error) {
             console.error('Payment verification error:', error);
             toast.error(error instanceof Error ? error.message : 'Payment verification failed');

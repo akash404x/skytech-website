@@ -1,12 +1,12 @@
 'use client';
 
 import { collection, onSnapshot, query } from 'firebase/firestore';
-import { Briefcase, DollarSign, Package, ShoppingCart, TrendingUp, Users } from 'lucide-react';
+import { Briefcase, DollarSign, Package, ShoppingCart, TrendingUp, Users, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
 import { mapOrder, mapProduct, mapUserProfile, mapWork } from '@/lib/firestore-mappers';
 import { formatCurrency, orderStatusLabel, statusBadgeClass, toDate } from '@/lib/format';
-import type { Order, Product, UserProfile, Work } from '@/lib/types';
+import type { Order, Product, UserProfile, Work, Review } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/Skeleton';
 
@@ -16,7 +16,8 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
-  const [loading, setLoading] = useState({ orders: true, products: true, users: true, works: true });
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState({ orders: true, products: true, users: true, works: true, reviews: true });
 
   useEffect(() => {
     const unsubscribeOrders = onSnapshot(
@@ -67,17 +68,39 @@ export default function AdminDashboard() {
       },
     );
 
+    const unsubscribeReviews = onSnapshot(
+      query(collection(db, 'reviews')),
+      (snapshot) => {
+        setReviews(snapshot.docs.map((document) => ({ id: document.id, ...document.data() } as Review)));
+        setLoading((current) => ({ ...current, reviews: false }));
+      },
+      (error) => {
+        console.error('Error loading dashboard reviews:', error);
+        setLoading((current) => ({ ...current, reviews: false }));
+      },
+    );
+
     return () => {
       unsubscribeOrders();
       unsubscribeProducts();
       unsubscribeUsers();
       unsubscribeWorks();
+      unsubscribeReviews();
     };
   }, []);
 
-  const isLoading = loading.orders || loading.products || loading.users || loading.works;
+  const isLoading = loading.orders || loading.products || loading.users || loading.works || loading.reviews;
   const paidOrders = orders.filter((order) => order.status !== 'cancelled');
   const revenue = paidOrders.reduce((total, order) => total + order.total, 0);
+  
+  // Review stats
+  const totalReviews = reviews.length;
+  const pendingReviews = reviews.filter(r => r.status === 'pending').length;
+  const approvedReviews = reviews.filter(r => r.status === 'approved').length;
+  const averageRating = reviews.length > 0 
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : 0;
+  
   const recentOrders = [...orders]
     .sort((a, b) => (toDate(b.createdAt)?.getTime() ?? 0) - (toDate(a.createdAt)?.getTime() ?? 0))
     .slice(0, 5);
@@ -104,6 +127,10 @@ export default function AdminDashboard() {
     { name: 'Total Revenue', value: formatCurrency(revenue), icon: DollarSign, tone: 'bg-green-100 text-green-700' },
     { name: 'Orders', value: orders.length.toString(), icon: ShoppingCart, tone: 'bg-blue-100 text-blue-700' },
     { name: 'Products', value: products.length.toString(), icon: Package, tone: 'bg-amber-100 text-amber-700' },
+    { name: 'Total Reviews', value: totalReviews.toString(), icon: Star, tone: 'bg-yellow-100 text-yellow-700' },
+    { name: 'Pending Reviews', value: pendingReviews.toString(), icon: Star, tone: 'bg-orange-100 text-orange-700' },
+    { name: 'Approved Reviews', value: approvedReviews.toString(), icon: Star, tone: 'bg-green-100 text-green-700' },
+    { name: 'Avg Rating', value: `${averageRating}⭐`, icon: Star, tone: 'bg-cyan-100 text-cyan-700' },
     { name: 'Works', value: `${activeWorks.length} / ${works.length}`, icon: Briefcase, tone: 'bg-cyan-100 text-cyan-700' },
     { name: 'Registered Users', value: users.length.toString(), icon: Users, tone: 'bg-purple-100 text-purple-700' },
   ];

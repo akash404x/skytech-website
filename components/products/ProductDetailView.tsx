@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle, Minus, Package, Plus, ShoppingCart, Star } from 'lucide-react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, where, orderBy } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import PremiumProductCard from '@/components/products/PremiumProductCard';
@@ -13,23 +13,27 @@ import EmptyState from '@/components/EmptyState';
 import AnimatedButton from '@/components/ui/AnimatedButton';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useProducts } from '@/hooks/useProducts';
 import { db } from '@/lib/firebase';
 import { formatCurrency } from '@/lib/format';
 import { getProductPrice } from '@/lib/cart';
 import { mapProduct } from '@/lib/firestore-mappers';
-import type { Product } from '@/lib/types';
+import type { Product, Review } from '@/lib/types';
 
 export default function ProductDetailView() {
   const params = useParams();
   const router = useRouter();
   const productId = typeof params.id === 'string' ? params.id : '';
   const { addItem } = useCart();
+  const { user } = useAuth();
   const { products: allProducts, loading: catalogLoading } = useProducts({ activeOnly: true });
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
 
   useEffect(() => {
     if (!productId) {
@@ -57,6 +61,35 @@ export default function ProductDetailView() {
         console.error('Error loading product:', error);
         setProduct(null);
         setLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [productId]);
+
+  useEffect(() => {
+    if (!productId) {
+      setLoadingReviews(false);
+      return undefined;
+    }
+
+    const reviewsQuery = query(
+      collection(db, 'reviews'),
+      where('productId', '==', productId),
+      where('status', '==', 'approved'),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(
+      reviewsQuery,
+      (snapshot) => {
+        const reviewsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Review));
+        setReviews(reviewsData);
+        setLoadingReviews(false);
+      },
+      (error) => {
+        console.error('Error loading reviews:', error);
+        setLoadingReviews(false);
       },
     );
 
@@ -240,6 +273,81 @@ export default function ProductDetailView() {
             )}
           </section>
         )}
+
+        {/* Product Reviews Section */}
+        <section className="mt-20 border-t border-white/10 pt-16">
+          <div className="mb-8 flex items-center justify-between">
+            <h2 className="tech-heading-gradient text-2xl font-bold md:text-3xl">Customer Reviews</h2>
+            {user && (
+              <Link href="/write-review">
+                <button className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/20">
+                  <Star className="h-4 w-4" />
+                  Write a Review
+                </button>
+              </Link>
+            )}
+          </div>
+
+          {loadingReviews ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-32" />
+              ))}
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="text-center py-12">
+              <Star className="w-16 h-16 text-[#d6e4ff]/30 mx-auto mb-4" />
+              <p className="text-[#d6e4ff]/70">No reviews yet for this product.</p>
+              <p className="text-[#d6e4ff]/50 text-sm mt-2">Be the first to share your experience!</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {reviews.map((review) => (
+                <div key={review.id} className="tech-glass-card p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      {review.profileImage ? (
+                        <img
+                          src={review.profileImage}
+                          alt={review.name}
+                          className="w-12 h-12 rounded-full object-cover border border-[#00bfff]/20"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00bfff] to-[#00e5ff] flex items-center justify-center">
+                          <span className="text-lg font-bold text-[#020617]">
+                            {review.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-semibold text-white">{review.name}</h4>
+                        <p className="text-sm text-[#d6e4ff]/60">{review.designation || 'Customer'}</p>
+                        {review.verifiedPurchase && (
+                          <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-semibold">
+                            ✓ Verified Purchase
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < review.rating
+                              ? 'fill-[#00bfff] text-[#00bfff]'
+                              : 'text-[#d6e4ff]/30'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-[#d6e4ff]/80 leading-relaxed">{review.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

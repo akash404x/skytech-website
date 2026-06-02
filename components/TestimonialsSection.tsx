@@ -158,14 +158,27 @@ export default function TestimonialsSection() {
 
                       {/* Author */}
                       <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#00bfff] to-[#00e5ff] flex items-center justify-center">
-                          <span className="text-xl font-bold text-[#020617]">
-                            {testimonials[currentIndex].userName.charAt(0)}
-                          </span>
-                        </div>
+                        {testimonials[currentIndex].profileImage ? (
+                          <img
+                            src={testimonials[currentIndex].profileImage}
+                            alt={testimonials[currentIndex].name}
+                            className="w-14 h-14 rounded-full object-cover border border-[#00bfff]/20"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#00bfff] to-[#00e5ff] flex items-center justify-center">
+                            <span className="text-xl font-bold text-[#020617]">
+                              {testimonials[currentIndex].name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
                         <div>
-                          <h4 className="text-lg font-semibold text-white">{testimonials[currentIndex].userName}</h4>
-                          <p className="text-[#d6e4ff]/60">Verified Customer</p>
+                          <h4 className="text-lg font-semibold text-white">{testimonials[currentIndex].name}</h4>
+                          <p className="text-[#d6e4ff]/60">{testimonials[currentIndex].designation || 'Verified Customer'}</p>
+                          {testimonials[currentIndex].verifiedPurchase && (
+                            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-semibold">
+                              ✓ Verified Purchase
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

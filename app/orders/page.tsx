@@ -1,8 +1,9 @@
 'use client';
 
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw, Download, Eye } from 'lucide-react';
+import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw, Download, Eye, Star } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import EmptyState from '@/components/EmptyState';
@@ -366,6 +367,16 @@ export default function OrdersPage() {
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-3">
+                  {/* Write Review Button - Only for delivered orders */}
+                  {order.status === 'delivered' && (
+                    <Link href={`/write-review?orderId=${order.id}`} className="inline-flex">
+                      <button className="flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-300 transition hover:bg-cyan-500/20">
+                        <Star className="h-4 w-4" />
+                        Write Review
+                      </button>
+                    </Link>
+                  )}
+
                   {/* Cancel Order Button - Only before shipment */}
                   {order.status === 'pending' || order.status === 'confirmed' ? (
                     <button
