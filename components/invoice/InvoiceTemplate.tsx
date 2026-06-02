@@ -542,6 +542,7 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
               </div>
             </div>
           </div>
+        </div>
     </div>
   );
 }
