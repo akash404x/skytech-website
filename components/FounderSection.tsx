@@ -81,11 +81,12 @@ export default function FounderSection() {
           <motion.div variants={itemVariants} className="relative">
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-gradient-to-br from-[#06122d] to-[#0b1736] border border-[#00bfff]/20 shadow-[0_0_60px_rgba(0,191,255,0.15)]">
               {/* Founder Image */}
-              <Image 
-                src="/founder.jpg" 
-                alt="Founder" 
-                fill 
+              <Image
+                src="/founder.jpg"
+                alt="Founder"
+                fill
                 className="object-cover"
+                style={{ objectPosition: 'center top' }}
                 priority
               />
               
