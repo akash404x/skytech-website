@@ -31,10 +31,10 @@ export default function InvoiceViewer({
         throw new Error('Invoice template not found');
       }
 
-      // Capture invoice using modern-screenshot
+      // Capture invoice using modern-screenshot with high quality
       const dataUrl = await domToPng(element, {
-        scale: 3,
-        backgroundColor: '#020817',
+        scale: 2,
+        backgroundColor: '#020617',
       });
 
       // Create image to get dimensions
@@ -52,17 +52,26 @@ export default function InvoiceViewer({
         format: 'a4',
       });
 
-      // Calculate dimensions to fit A4
+      // PDF dimensions
       const pdfWidth = 210; // A4 width in mm
       const pdfHeight = 297; // A4 height in mm
-      const imgWidth = img.width;
-      const imgHeight = img.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = (pdfHeight - imgHeight * ratio) / 2;
+
+      // Convert pixels to mm (96 DPI: 1mm = 3.7795px)
+      const pxToMm = 0.264583;
+      const imgWidthMm = img.width * pxToMm;
+      const imgHeightMm = img.height * pxToMm;
+
+      // Calculate scale to match PDF width exactly
+      const scale = pdfWidth / imgWidthMm;
+      const scaledWidth = pdfWidth;
+      const scaledHeight = imgHeightMm * scale;
+
+      // Position at top-left with no margin
+      const imgX = 0;
+      const imgY = 0;
 
       // Add image to PDF
-      pdf.addImage(dataUrl, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+      pdf.addImage(dataUrl, 'PNG', imgX, imgY, scaledWidth, scaledHeight);
 
       // Save PDF
       pdf.save(`Invoice-${order.orderNumber}.pdf`);
@@ -192,7 +201,7 @@ export default function InvoiceViewer({
       )}
 
       {/* Invoice Template */}
-      <div id="invoice-template">
+      <div id="invoice-template" style={{ display: 'inline-block' }}>
         <InvoiceTemplate order={order} />
       </div>
     </div>

@@ -534,12 +534,20 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
 
           {/* Signature Section */}
           <div className="invoice-signature mt-6 flex justify-end">
-            <div className="text-right">
+            <div className="text-center">
               <p className="text-gray-400 text-xs mb-2">Authorized By</p>
-              <div className="inline-block">
-                <img src="/signature.png" alt="Signature" style={{ maxHeight: '70px', maxWidth: '220px' }} />
-                <p className="text-white font-semibold text-sm mt-1">Sky Tech</p>
-              </div>
+              <img
+                src="/signature.png"
+                alt="Authorized Signature"
+                style={{
+                  width: '160px',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  margin: '10px auto',
+                  display: 'block'
+                }}
+              />
+              <p className="text-white font-semibold text-sm mt-1">Sky Tech</p>
             </div>
           </div>
         </div>
