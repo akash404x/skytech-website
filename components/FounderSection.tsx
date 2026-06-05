@@ -17,7 +17,7 @@ export default function FounderSection() {
         staggerChildren: 0.2,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -26,7 +26,7 @@ export default function FounderSection() {
       y: 0,
       transition: { duration: 0.8 },
     },
-  };
+  } as const;
 
   const values = [
     {

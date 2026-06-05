@@ -16,7 +16,7 @@ export default function TrustSection() {
         staggerChildren: 0.1,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 40 },
@@ -25,7 +25,7 @@ export default function TrustSection() {
       y: 0,
       transition: { duration: 0.6 },
     },
-  };
+  } as const;
 
   const badges = [
     {

@@ -48,7 +48,7 @@ export default function PremiumHero() {
         delayChildren: 0.2,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 40 },
@@ -57,7 +57,7 @@ export default function PremiumHero() {
       y: 0,
       transition: { duration: 0.8 },
     },
-  };
+  } as const;
 
   const floatingCards = [
     { icon: Cpu, position: 'top-left', delay: 0.3 },

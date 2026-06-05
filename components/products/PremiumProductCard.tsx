@@ -29,7 +29,7 @@ export default function PremiumProductCard({ product, index }: PremiumProductCar
       ref={ref}
       initial={{ opacity: 0, y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.55, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] as const }}
       style={{ perspective: 1200 }}
       className="product-card-3d group relative rounded-2xl bg-gradient-to-br from-blue-500/30 via-purple-500/20 to-cyan-500/30 p-[1px] transition-shadow duration-500 hover:shadow-[0_0_36px_rgba(59,130,246,0.22)]"
     >

@@ -16,7 +16,7 @@ export default function HeroFounder() {
         staggerChildren: 0.2,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -27,7 +27,7 @@ export default function HeroFounder() {
         duration: 0.6,
       },
     },
-  };
+  } as const;
 
   const stats = [
     { icon: Users, label: 'Happy Customers', value: '5000+' },

@@ -90,7 +90,7 @@ export default function FeaturedProducts() {
         delayChildren: 0.3,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -99,10 +99,10 @@ export default function FeaturedProducts() {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: [0.22, 1, 0.36, 1],
+        ease: [0.22, 1, 0.36, 1] as const,
       },
     },
-  };
+  } as const;
 
   return (
     <section className="tech-section relative overflow-hidden py-16 sm:py-20 lg:py-24">
@@ -130,7 +130,7 @@ export default function FeaturedProducts() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
           className="mb-12 flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:gap-4 sm:text-left lg:mb-16"
         >
           <div className="flex-1">

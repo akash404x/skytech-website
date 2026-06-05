@@ -21,7 +21,7 @@ export default function FeaturesSection() {
         staggerChildren: 0.15,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 60 },
@@ -30,7 +30,7 @@ export default function FeaturesSection() {
       y: 0,
       transition: { duration: 0.8 },
     },
-  };
+  } as const;
 
   const features = [
     {

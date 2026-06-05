@@ -63,7 +63,7 @@ export default function TestimonialsSection() {
         staggerChildren: 0.2,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 40 },
@@ -72,7 +72,7 @@ export default function TestimonialsSection() {
       y: 0,
       transition: { duration: 0.6 },
     },
-  };
+  } as const;
 
   return (
     <section ref={ref} className="relative py-24 md:py-32 overflow-hidden">

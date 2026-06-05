@@ -61,7 +61,7 @@ export default function WorkCard({ work, index, priority = false }: WorkCardProp
         ref={ref}
         initial={{ opacity: 0, y: 40 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.55, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.55, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] as const }}
         style={{ perspective: 1200 }}
         className="work-card-3d group relative rounded-2xl bg-gradient-to-br from-blue-500/35 via-purple-500/25 to-cyan-500/35 p-[1px] transition-shadow duration-500 hover:shadow-[0_0_32px_rgba(59,130,246,0.2)]"
       >

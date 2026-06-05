@@ -89,7 +89,7 @@ export default function ProductCategories() {
         delayChildren: 0.2,
       },
     },
-  };
+  } as const;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -98,10 +98,10 @@ export default function ProductCategories() {
       y: 0,
       transition: {
         duration: 0.5,
-        ease: [0.22, 1, 0.36, 1],
+        ease: [0.22, 1, 0.36, 1] as const,
       },
     },
-  };
+  } as const;
 
   return (
     <section className="tech-section relative overflow-hidden py-16 sm:py-20 lg:py-24">
@@ -129,7 +129,7 @@ export default function ProductCategories() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
           className="mb-12 text-center sm:mb-16"
         >
           {/* Badge */}
@@ -203,7 +203,7 @@ export default function ProductCategories() {
                     whileHover={{ 
                       y: -8,
                       scale: 1.02,
-                      transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
+                      transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }
                     }}
                     className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-xl transition-all duration-300 hover:border-cyan-500/30 hover:shadow-[0_0_40px_rgba(34,211,238,0.15)]"
                   >
