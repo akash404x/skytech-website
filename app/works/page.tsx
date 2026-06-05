@@ -1,9 +1,21 @@
+import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import WorksCatalog from '@/components/works/WorksCatalog';
 import WorksHero from '@/components/works/WorksHero';
 import { Skeleton } from '@/components/ui/Skeleton';
+
+export const metadata: Metadata = {
+  title: 'Our Works - Projects & Portfolio',
+  description: 'Explore our portfolio of successful projects including IoT solutions, robotics prototypes, Arduino projects, and custom electronics. See how we bring ideas to life.',
+  keywords: ['Project Portfolio', 'IoT Projects', 'Robotics Projects', 'Arduino Projects', 'Custom Electronics', 'Tech Case Studies', 'Innovation Projects'],
+  openGraph: {
+    title: 'Our Works - Projects & Portfolio',
+    description: 'Explore our portfolio of successful projects including IoT solutions, robotics prototypes, and custom electronics.',
+    url: '/works',
+  },
+};
 
 function CatalogFallback() {
   return (

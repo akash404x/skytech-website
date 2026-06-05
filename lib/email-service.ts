@@ -12,6 +12,7 @@ interface EmailConfig {
 }
 
 let transporter: nodemailer.Transporter | null = null;
+let transporterVerified = false;
 
 function getTransporter(): nodemailer.Transporter {
   if (transporter) return transporter;
@@ -26,12 +27,93 @@ function getTransporter(): nodemailer.Transporter {
     },
   };
 
+  // Log email service configuration
+  console.log('=== EMAIL SERVICE CONFIGURATION ===');
+  console.log('Provider: Nodemailer with Zoho SMTP');
+  console.log('Environment:', process.env.NODE_ENV || 'development');
+  console.log('SMTP Host:', config.host);
+  console.log('SMTP Port:', config.port);
+  console.log('SMTP Secure:', config.secure);
+  console.log('SMTP User present:', !!config.auth.user);
+  console.log('SMTP User:', config.auth.user ? config.auth.user.substring(0, 3) + '***' : 'NOT SET');
+  console.log('SMTP Pass present:', !!config.auth.pass);
+  console.log('SMTP Pass length:', config.auth.pass ? config.auth.pass.length : 0);
+  console.log('SMTP From:', process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>');
+  console.log('=====================================');
+
   if (!config.auth.user || !config.auth.pass) {
+    console.error('❌ Zoho SMTP credentials are not configured');
     throw new Error('Zoho SMTP credentials are not configured');
   }
 
-  transporter = nodemailer.createTransport(config);
-  return transporter;
+  try {
+    transporter = nodemailer.createTransport(config);
+    console.log('✅ Email transporter created successfully');
+    
+    // Verify transporter connection
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('❌ SMTP transporter verification failed:', error);
+        transporterVerified = false;
+      } else {
+        console.log('✅ SMTP transporter verification successful');
+        transporterVerified = true;
+      }
+    });
+    
+    return transporter;
+  } catch (error) {
+    console.error('❌ Failed to create email transporter:', error);
+    throw error;
+  }
+}
+
+export async function getEmailDebugInfo() {
+  console.log('getEmailDebugInfo: Step 1 - Starting');
+  
+  const config: any = {
+    provider: 'Nodemailer with Zoho SMTP',
+    environment: process.env.NODE_ENV || 'development',
+    smtpHost: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com',
+    smtpPort: process.env.ZOHO_SMTP_PORT || '465',
+    smtpSecure: process.env.ZOHO_SMTP_SECURE === 'true',
+    smtpUserPresent: !!process.env.ZOHO_SMTP_USER,
+    smtpUser: process.env.ZOHO_SMTP_USER ? process.env.ZOHO_SMTP_USER.substring(0, 3) + '***' : 'NOT SET',
+    smtpPassPresent: !!process.env.ZOHO_SMTP_PASS,
+    smtpPassLength: process.env.ZOHO_SMTP_PASS ? process.env.ZOHO_SMTP_PASS.length : 0,
+    smtpFrom: process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>',
+    transporterCreated: !!transporter,
+    transporterVerified,
+  };
+  
+  console.log('getEmailDebugInfo: Step 2 - Config object created');
+
+  // Test connection if transporter exists
+  if (transporter) {
+    console.log('getEmailDebugInfo: Step 3 - Transporter exists, verifying...');
+    try {
+      await new Promise((resolve, reject) => {
+        transporter!.verify((error, success) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(success);
+          }
+        });
+      });
+      config.transporterVerified = true;
+      console.log('getEmailDebugInfo: Step 3 - Transporter verified successfully');
+    } catch (error) {
+      config.transporterVerified = false;
+      config.verificationError = error instanceof Error ? error.message : String(error);
+      console.error('getEmailDebugInfo: Step 3 - Transporter verification failed:', error);
+    }
+  } else {
+    console.log('getEmailDebugInfo: Step 3 - No transporter exists');
+  }
+  
+  console.log('getEmailDebugInfo: Step 4 - Returning config');
+  return config;
 }
 
 export async function sendEmail({
@@ -44,8 +126,13 @@ export async function sendEmail({
   subject: string;
   html: string;
   text?: string;
-}): Promise<{ success: boolean; error?: string }> {
+}): Promise<{ success: boolean; error?: string; details?: any }> {
   try {
+    console.log('=== SENDING EMAIL ===');
+    console.log('To:', to);
+    console.log('Subject:', subject);
+    console.log('From:', process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>');
+    
     const transport = getTransporter();
     
     const info = await transport.sendMail({
@@ -56,11 +143,44 @@ export async function sendEmail({
       text: text || html.replace(/<[^>]*>/g, ''),
     });
 
-    console.log('Email sent successfully:', info.messageId);
+    console.log('✅ Email sent successfully:', info.messageId);
+    console.log('====================');
     return { success: true };
   } catch (error) {
-    console.error('Failed to send email:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    console.error('❌ Failed to send email');
+    console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
+    
+    // Log detailed error information
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error stack:', error.stack);
+      
+      // Try to extract SMTP response details
+      const err: any = error;
+      if (err.response) {
+        console.error('SMTP Response:', err.response);
+        console.error('SMTP Response status:', err.responseStatus);
+        console.error('SMTP Response code:', err.responseCode);
+      }
+      if (err.command) {
+        console.error('SMTP Command:', err.command);
+      }
+    }
+    
+    console.error('====================');
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      details: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        response: (error as any).response,
+        responseStatus: (error as any).responseStatus,
+        responseCode: (error as any).responseCode,
+        command: (error as any).command,
+      } : null
+    };
   }
 }
 
@@ -264,6 +384,15 @@ export function getOrderStatusEmailTemplate(order: Order, status: string): strin
             <p><strong>Order Date:</strong> ${orderDate}</p>
             <p><strong>Customer:</strong> ${order.customerName}</p>
             <p><strong>Email:</strong> ${order.userEmail}</p>
+            ${order.shippingAddress ? `
+            <h3 style="margin-top: 20px; margin-bottom: 10px; color: #020617; font-size: 16px;">Shipping Address</h3>
+            <p style="margin: 5px 0; color: #475569; font-size: 14px;">${order.shippingAddress.fullName}</p>
+            <p style="margin: 5px 0; color: #475569; font-size: 14px;">${order.shippingAddress.line1}</p>
+            ${order.shippingAddress.line2 ? `<p style="margin: 5px 0; color: #475569; font-size: 14px;">${order.shippingAddress.line2}</p>` : ''}
+            <p style="margin: 5px 0; color: #475569; font-size: 14px;">${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}</p>
+            <p style="margin: 5px 0; color: #475569; font-size: 14px;">${order.shippingAddress.country}</p>
+            <p style="margin: 5px 0; color: #475569; font-size: 14px;">Phone: ${order.shippingAddress.phone}</p>
+            ` : ''}
           </div>
 
           <h3 style="color: #020617; font-size: 16px;">Order Items</h3>

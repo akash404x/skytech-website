@@ -1,7 +1,7 @@
 'use client';
 
 import { collection, doc, onSnapshot, query, updateDoc } from 'firebase/firestore';
-import { Mail, Search, Shield, UserCheck, Users, UserX } from 'lucide-react';
+import { Mail, Search, Send, Shield, UserCheck, Users, UserX, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
@@ -24,6 +24,15 @@ export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | UserRole>('all');
   const [savingUid, setSavingUid] = useState<string | null>(null);
+  
+  // Bulk email state
+  const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+  const [sendToAll, setSendToAll] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const mainAdminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase();
 
@@ -96,6 +105,68 @@ export default function AdminUsers() {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      setSelectedUserIds(filteredUsers.map(u => u.uid));
+    } else {
+      setSelectedUserIds([]);
+    }
+  };
+
+  const handleSelectUser = (uid: string, checked: boolean) => {
+    if (checked) {
+      setSelectedUserIds([...selectedUserIds, uid]);
+    } else {
+      setSelectedUserIds(selectedUserIds.filter(id => id !== uid));
+    }
+  };
+
+  const handleSendBulkEmail = async () => {
+    if (!emailSubject.trim() || !emailMessage.trim()) {
+      toast.error('Subject and message are required');
+      return;
+    }
+
+    if (!sendToAll && selectedUserIds.length === 0) {
+      toast.error('Please select at least one user or choose "Send to All Users"');
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      const response = await fetch('/api/admin/users/send-bulk-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: emailSubject,
+          message: emailMessage,
+          sendToAll,
+          selectedUserIds,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || 'Bulk email sent successfully');
+        setShowBulkEmailModal(false);
+        setEmailSubject('');
+        setEmailMessage('');
+        setSelectedUserIds([]);
+        setSelectAll(false);
+        setSendToAll(false);
+      } else {
+        toast.error(data.error || 'Failed to send bulk email');
+      }
+    } catch (error) {
+      console.error('Error sending bulk email:', error);
+      toast.error('Failed to send bulk email');
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   if (authLoading || !isAdmin) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -140,18 +211,27 @@ export default function AdminUsers() {
             className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 pl-10 pr-4"
           />
         </div>
-        <select
-          value={roleFilter}
-          onChange={(event) => setRoleFilter(event.target.value as 'all' | UserRole)}
-          className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-4 py-2"
-        >
-          <option value="all">All roles</option>
-          {ROLES.map((role) => (
-            <option key={role} value={role}>
-              {role}
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowBulkEmailModal(true)}
+            className="tech-button flex items-center gap-2 rounded-3xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-cyan-200 hover:bg-cyan-500/20"
+          >
+            <Send className="h-4 w-4" />
+            Send Bulk Email
+          </button>
+          <select
+            value={roleFilter}
+            onChange={(event) => setRoleFilter(event.target.value as 'all' | UserRole)}
+            className="tech-input rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-4 py-2"
+          >
+            <option value="all">All roles</option>
+            {ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {loading ? (
@@ -164,6 +244,14 @@ export default function AdminUsers() {
             <table className="w-full min-w-[960px] text-left">
               <thead>
                 <tr className="border-b border-white/10 bg-slate-950/90 text-sm text-slate-300">
+                  <th className="px-6 py-4 font-semibold text-white">
+                    <input
+                      type="checkbox"
+                      checked={selectAll}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="h-4 w-4 rounded border-cyan-500/20 bg-slate-900/80 text-cyan-500 focus:ring-cyan-500"
+                    />
+                  </th>
                   <th className="px-6 py-4 font-semibold text-white">User</th>
                   <th className="px-6 py-4 font-semibold text-white">Role</th>
                   <th className="px-6 py-4 font-semibold text-white">Status</th>
@@ -175,6 +263,14 @@ export default function AdminUsers() {
               <tbody>
                 {filteredUsers.map((profile) => (
                   <tr key={profile.uid} className="border-b border-white/10 text-sm hover:bg-slate-900/80">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedUserIds.includes(profile.uid)}
+                        onChange={(e) => handleSelectUser(profile.uid, e.target.checked)}
+                        className="h-4 w-4 rounded border-cyan-500/20 bg-slate-900/80 text-cyan-500 focus:ring-cyan-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/10 font-bold text-cyan-200">
@@ -230,6 +326,105 @@ export default function AdminUsers() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Email Modal */}
+      {showBulkEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="tech-glass-panel max-w-2xl w-full mx-4 rounded-2xl border border-cyan-500/20 bg-slate-950/90 p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">Send Bulk Email</h2>
+              <button
+                onClick={() => setShowBulkEmailModal(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-cyan-200">
+                  Recipients
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={sendToAll}
+                      onChange={(e) => {
+                        setSendToAll(e.target.checked);
+                        if (e.target.checked) {
+                          setSelectedUserIds([]);
+                          setSelectAll(false);
+                        }
+                      }}
+                      className="h-4 w-4 rounded border-cyan-500/20 bg-slate-900/80 text-cyan-500 focus:ring-cyan-500"
+                    />
+                    Send to All Active Users ({activeUsers})
+                  </label>
+                  {!sendToAll && (
+                    <p className="text-xs text-slate-400">
+                      {selectedUserIds.length} user(s) selected
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-cyan-200">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Enter email subject..."
+                  className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-4 py-3"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-cyan-200">
+                  Message
+                </label>
+                <textarea
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  placeholder="Enter your message..."
+                  rows={6}
+                  className="tech-input w-full rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-4 py-3 resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleSendBulkEmail}
+                  disabled={sendingEmail}
+                  className="tech-button flex-1 flex items-center justify-center gap-2 rounded-3xl bg-cyan-500 px-6 py-3 text-white font-semibold hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {sendingEmail ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Send Email
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowBulkEmailModal(false)}
+                  className="tech-button flex-1 rounded-3xl border border-cyan-500/20 bg-slate-900/80 px-6 py-3 text-cyan-200 hover:bg-cyan-500/10"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -76,14 +76,26 @@ export default function ProductDetailView() {
     const reviewsQuery = query(
       collection(db, 'reviews'),
       where('productId', '==', productId),
-      where('status', '==', 'approved'),
-      orderBy('createdAt', 'desc')
+      where('status', '==', 'approved')
     );
 
     const unsubscribe = onSnapshot(
       reviewsQuery,
       (snapshot) => {
-        const reviewsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Review));
+        const reviewsData = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() } as Review))
+          .sort((a, b) => {
+            const toTimestamp = (dateValue: Review['createdAt']): number => {
+              if (!dateValue) return 0;
+              if (typeof dateValue === 'number') return dateValue;
+              if (dateValue instanceof Date) return dateValue.getTime();
+              if (typeof dateValue === 'string') return new Date(dateValue).getTime();
+              if (typeof dateValue === 'object' && 'toDate' in dateValue) return dateValue.toDate().getTime();
+              if (typeof dateValue === 'object' && 'seconds' in dateValue) return dateValue.seconds * 1000;
+              return 0;
+            };
+            return toTimestamp(b.createdAt) - toTimestamp(a.createdAt);
+          });
         setReviews(reviewsData);
         setLoadingReviews(false);
       },

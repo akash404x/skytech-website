@@ -1,9 +1,21 @@
+import { Metadata } from 'next';
 import { Suspense } from 'react';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import ProductsCatalog from '@/components/products/ProductsCatalog';
 import ProductsHero from '@/components/products/ProductsHero';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
+
+export const metadata: Metadata = {
+  title: 'Products - Arduino, Electronics, Robotics & IoT Components',
+  description: 'Browse our extensive collection of Arduino boards, sensors, microcontrollers, robotics components, IoT modules, and electronic components. Quality products for hobbyists and professionals.',
+  keywords: ['Arduino Products', 'Electronic Components', 'Sensors', 'Microcontrollers', 'Robotics Parts', 'IoT Modules', 'DIY Electronics', 'STEM Kits'],
+  openGraph: {
+    title: 'Products - Arduino, Electronics, Robotics & IoT Components',
+    description: 'Browse our extensive collection of Arduino boards, sensors, microcontrollers, robotics components, and IoT modules.',
+    url: '/products',
+  },
+};
 
 function CatalogFallback() {
   return (

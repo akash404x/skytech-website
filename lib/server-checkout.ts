@@ -273,15 +273,27 @@ export async function createVerifiedOrder(input: {
 
       // Send confirmation email with invoice
       try {
+        console.log('=== SENDING ORDER CONFIRMATION EMAIL ===');
+        console.log('Order ID:', orderRef.id);
+        console.log('Order Number:', order.orderNumber);
+        console.log('Customer Email:', order.userEmail);
+        console.log('Customer Name:', order.customerName);
+        
         const emailHtml = getOrderStatusEmailTemplate(order, 'pending');
-        await sendEmail({
+        const emailResult = await sendEmail({
           to: order.userEmail,
-          subject: `Order Confirmed - ${order.orderNumber}`,
+          subject: 'Order Pending Once Confirmed You Will Be Notified and The Order Staus You will Be Able To See In The Website - Sky Tech',
           html: emailHtml,
         });
-        console.log('Confirmation email sent:', { orderId: orderRef.id, userEmail: order.userEmail });
+        
+        if (emailResult.success) {
+          console.log('✅ Confirmation email sent successfully:', { orderId: orderRef.id, userEmail: order.userEmail });
+        } else {
+          console.error('❌ Failed to send confirmation email:', emailResult.error);
+        }
+        console.log('========================================');
       } catch (emailError) {
-        console.error('Failed to send confirmation email:', emailError);
+        console.error('❌ Failed to send confirmation email:', emailError);
         // Don't fail the order if email fails
       }
 

@@ -3,6 +3,8 @@ import { getAuthenticatedUser } from '@/lib/server-auth';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase-admin';
 import { validateCheckoutItems } from '@/lib/server-checkout';
+import { sendEmail, getOrderStatusEmailTemplate } from '@/lib/email-service';
+import { generateInvoiceNumber } from '@/lib/invoice-utils';
 import type { CartItem, ShippingAddress } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -140,6 +142,79 @@ export async function POST(request: Request) {
         { merge: true },
       );
     });
+
+    // Generate invoice number and send confirmation email
+    try {
+      console.log('=== WALLET ORDER: GENERATING INVOICE AND SENDING EMAIL ===');
+      console.log('Order ID:', orderRef.id);
+      console.log('Order Number:', orderNumber);
+      console.log('Customer Email:', profile.email);
+      console.log('Customer Name:', body.shippingAddress.fullName || profile.displayName);
+
+      const invoiceNumber = generateInvoiceNumber();
+      await adminDb.collection('orders').doc(orderRef.id).update({
+        invoiceNumber,
+        invoiceGeneratedAt: new Date(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      // Create order object for email template
+      const order = {
+        id: orderRef.id,
+        orderNumber,
+        userId: profile.uid,
+        userEmail: profile.email,
+        customerName: body.shippingAddress.fullName || profile.displayName,
+        customerPhone: body.shippingAddress.phone,
+        items: checkout.items,
+        subtotal: checkout.subtotal,
+        gstAmount: body.gstAmount,
+        gstPercentage: body.gstPercentage,
+        shippingFee: body.shippingFee,
+        deliveryCharge: body.deliveryCharge,
+        walletUsed: body.walletAmount,
+        total: checkout.total,
+        currency: checkout.currency,
+        status: 'pending' as const,
+        shippingAddress: body.shippingAddress,
+        payment: {
+          razorpayOrderId: '',
+          razorpayPaymentId: `WALLET-${orderRef.id}`,
+          amount: checkout.total,
+          currency: checkout.currency,
+          status: 'captured' as const,
+        },
+        timeline: [
+          {
+            status: 'pending' as const,
+            label: 'Order Placed',
+            description: 'Payment was made using wallet balance.',
+            createdAt: new Date(),
+          },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        invoiceNumber,
+      };
+
+      // Send confirmation email
+      const emailHtml = getOrderStatusEmailTemplate(order, 'pending');
+      const emailResult = await sendEmail({
+        to: order.userEmail,
+        subject: 'Order Pending Once Confirmed You Will Be Notified and The Order Staus You will Be Able To See In The Website - Sky Tech',
+        html: emailHtml,
+      });
+
+      if (emailResult.success) {
+        console.log('✅ Wallet order confirmation email sent successfully:', { orderId: orderRef.id, userEmail: order.userEmail });
+      } else {
+        console.error('❌ Failed to send wallet order confirmation email:', emailResult.error);
+      }
+      console.log('=======================================================');
+    } catch (emailError) {
+      console.error('❌ Failed to send wallet order confirmation email:', emailError);
+      // Don't fail the order if email fails
+    }
 
     return NextResponse.json({
       success: true,
