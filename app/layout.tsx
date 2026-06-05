@@ -15,14 +15,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "SkyTech - Arduino, Electronics, Robotics & IoT Solutions",
-    template: "%s | SkyTech"
+    default: "Sky Tech – Arduino, Electronics, Robotics & IoT Solutions",
+    template: "%s | Sky Tech"
   },
+  applicationName: "Sky Tech",
   description: "Your one-stop shop for Arduino boards, sensors, IoT modules, robotics components, and professional tech services. Quality electronics with expert support.",
   keywords: ["Arduino", "Electronics", "Robotics", "IoT", "Sensors", "Microcontrollers", "Tech Services", "DIY Electronics", "STEM Education", "Smart Home"],
-  authors: [{ name: "SkyTech" }],
-  creator: "SkyTech",
-  publisher: "SkyTech",
+  authors: [{ name: "Sky Tech" }],
+  creator: "Sky Tech",
+  publisher: "Sky Tech",
   formatDetection: {
     email: false,
     address: false,
@@ -36,21 +37,21 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://theskytechnology.in',
-    siteName: 'SkyTech',
-    title: 'SkyTech - Arduino, Electronics, Robotics & IoT Solutions',
+    siteName: 'Sky Tech',
+    title: 'Sky Tech – Arduino, Electronics, Robotics & IoT Solutions',
     description: 'Your one-stop shop for Arduino boards, sensors, IoT modules, robotics components, and professional tech services. Quality electronics with expert support.',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'SkyTech - Electronics & Robotics Solutions',
+        alt: 'Sky Tech – Electronics & Robotics Solutions',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SkyTech - Arduino, Electronics, Robotics & IoT Solutions',
+    title: 'Sky Tech – Arduino, Electronics, Robotics & IoT Solutions',
     description: 'Your one-stop shop for Arduino boards, sensors, IoT modules, robotics components, and professional tech services.',
     images: ['/twitter-image.jpg'],
     creator: '@skytech',
@@ -94,7 +95,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "SkyTech",
+              "name": "Sky Tech",
               "url": "https://theskytechnology.in",
               "logo": "https://theskytechnology.in/logo.png",
               "description": "Your one-stop shop for Arduino boards, sensors, IoT modules, robotics components, and professional tech services.",
@@ -113,6 +114,18 @@ export default function RootLayout({
                 "https://www.instagram.com/skytech",
                 "https://www.linkedin.com/company/skytech"
               ]
+            })
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Sky Tech",
+              "alternateName": "The Sky Technology",
+              "url": "https://www.theskytechnology.in"
             })
           }}
         />
