@@ -24,8 +24,8 @@ export default function ProductImage({ src, alt, priority = false, className = '
       fill
       priority={priority}
       sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-      className={`object-cover ${className}`}
-      unoptimized={src.startsWith('data:')}
+      className={`object-contain ${className}`}
+      unoptimized={true}
     />
   );
 }

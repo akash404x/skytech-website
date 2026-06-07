@@ -1,7 +1,7 @@
 'use client';
 
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { Edit, Package, Plus, Search, Star, Trash2, X } from 'lucide-react';
+import { Edit, Package, Plus, Search, Star, Trash2, Upload, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import EmptyState from '@/components/EmptyState';
@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
 import { mapProduct } from '@/lib/firestore-mappers';
 import { formatCurrency } from '@/lib/format';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 import type { Product, ProductStatus } from '@/lib/types';
 
 const CATEGORIES = [
@@ -38,6 +39,9 @@ interface ProductFormState {
   status: ProductStatus;
   featured: boolean;
   imageUrl: string;
+  imageFile: File | null;
+  uploadProgress: number;
+  isUploading: boolean;
 }
 
 const emptyForm: ProductFormState = {
@@ -51,6 +55,9 @@ const emptyForm: ProductFormState = {
   status: 'active',
   featured: false,
   imageUrl: '',
+  imageFile: null,
+  uploadProgress: 0,
+  isUploading: false,
 };
 
 export default function AdminProducts() {
@@ -109,6 +116,9 @@ export default function AdminProducts() {
       status: product.status,
       featured: product.featured,
       imageUrl: product.images[0] ?? '',
+      imageFile: null,
+      uploadProgress: 0,
+      isUploading: false,
     });
     setIsModalOpen(true);
   };
@@ -117,6 +127,39 @@ export default function AdminProducts() {
     setIsModalOpen(false);
     setEditingProduct(null);
     setSaving(false);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Please select a valid image file (.jpg, .jpeg, .png, .webp)');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      imageFile: file,
+      uploadProgress: 0,
+      isUploading: false,
+    }));
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      imageFile: null,
+      imageUrl: '',
+      uploadProgress: 0,
+      isUploading: false,
+    }));
   };
 
   const handleDeleteProduct = async (product: Product) => {
@@ -184,20 +227,49 @@ export default function AdminProducts() {
     };
 
     try {
+      let productId: string;
+
       if (editingProduct) {
         await updateDoc(doc(db, 'products', editingProduct.id), payload);
+        productId = editingProduct.id;
         toast.success('Product updated');
       } else {
-        await addDoc(collection(db, 'products'), {
+        const docRef = await addDoc(collection(db, 'products'), {
           ...payload,
           createdAt: serverTimestamp(),
         });
+        productId = docRef.id;
         toast.success('Product added');
       }
+
       closeModal();
+
+      // Upload image in background (non-blocking)
+      if (formData.imageFile) {
+        setFormData((prev) => ({ ...prev, isUploading: true, uploadProgress: 10 }));
+        
+        try {
+          const imageUrl = await uploadToCloudinary(formData.imageFile);
+          setFormData((prev) => ({ ...prev, uploadProgress: 80 }));
+          
+          // Update product with image URL
+          await updateDoc(doc(db, 'products', productId), {
+            images: [imageUrl],
+            updatedAt: serverTimestamp(),
+          });
+          
+          setFormData((prev) => ({ ...prev, uploadProgress: 100, isUploading: false }));
+          toast.success('Image uploaded successfully');
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          toast.error('Image upload failed, but product was saved');
+          setFormData((prev) => ({ ...prev, isUploading: false }));
+        }
+      }
     } catch (error) {
       console.error('Error saving product:', error);
       toast.error('Failed to save product');
+    } finally {
       setSaving(false);
     }
   };
@@ -253,7 +325,7 @@ export default function AdminProducts() {
                   <tr key={product.id} className="border-b border-white/10 text-sm hover:bg-slate-900/80">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative h-14 w-14 overflow-hidden rounded-2xl bg-slate-900/70">
+                        <div className="relative h-20 w-20 overflow-hidden rounded-2xl bg-slate-900/70">
                           <ProductImage src={product.images[0]} alt={product.name} />
                         </div>
                         <div>
@@ -451,16 +523,59 @@ export default function AdminProducts() {
                 />
               </div>
 
-              {/* Product Image URL */}
+              {/* Product Image Upload */}
               <div>
-                <label className="block text-sm font-semibold text-cyan-300 mb-3">Product Image URL</label>
-                <input
-                  value={formData.imageUrl}
-                  onChange={(event) => setFormData({ ...formData, imageUrl: event.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-3 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400/30"
-                />
-                <p className="mt-2 text-xs text-gray-400">💡 Paste image URL or Firebase storage link</p>
+                <label className="block text-sm font-semibold text-cyan-300 mb-3">Product Image</label>
+                
+                {(formData.imageUrl || formData.imageFile) ? (
+                  // Image Preview
+                  <div className="relative">
+                    <div className="relative h-64 w-full overflow-hidden rounded-xl border-2 border-cyan-500/30 bg-slate-900/70">
+                      <img
+                        src={formData.imageFile ? URL.createObjectURL(formData.imageFile) : formData.imageUrl}
+                        alt="Product preview"
+                        className="h-full w-full object-cover"
+                      />
+                      {formData.isUploading && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                          <div className="text-center">
+                            <div className="mb-2 h-2 w-48 overflow-hidden rounded-full bg-slate-700">
+                              <div
+                                className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                                style={{ width: `${formData.uploadProgress}%` }}
+                              />
+                            </div>
+                            <p className="text-sm font-semibold text-cyan-300">{Math.round(formData.uploadProgress)}% Uploading...</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute -right-2 -top-2 rounded-full bg-rose-500 p-2 text-white shadow-lg transition hover:bg-rose-600"
+                      aria-label="Remove image"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  // Upload Area
+                  <div className="relative flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-cyan-500/30 bg-slate-900/70 transition hover:border-cyan-400/50 hover:bg-slate-800/50">
+                    <input
+                      type="file"
+                      id="product-image"
+                      accept=".jpg,.jpeg,.png,.webp"
+                      onChange={handleFileSelect}
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                      disabled={saving}
+                    />
+                    <Upload className="mb-3 h-12 w-12 text-cyan-400" />
+                    <p className="mb-2 text-sm font-semibold text-cyan-300">Upload Product Image</p>
+                    <p className="text-xs text-gray-400">Click to browse</p>
+                    <p className="mt-2 text-xs text-gray-500">Accepted formats: .jpg, .jpeg, .png, .webp (max 5MB)</p>
+                  </div>
+                )}
               </div>
 
               {/* Form Actions */}
