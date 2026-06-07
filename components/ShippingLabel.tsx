@@ -127,32 +127,29 @@ export default function ShippingLabel({ order }: ShippingLabelProps) {
               <div className="address-line" style={{ fontWeight: 'bold', fontSize: '18px' }}>
                 {order.shippingAddress.fullName}
               </div>
-              <div className="address-line">{order.shippingAddress.houseNo}</div>
-              <div className="address-line">{order.shippingAddress.street}</div>
-              <div className="address-line">{order.shippingAddress.landmark}</div>
-              <div className="address-line">{order.shippingAddress.city}</div>
-              <div className="address-line">Post Office: {order.shippingAddress.postOffice}</div>
-              <div className="address-line">District: {order.shippingAddress.district}</div>
-              <div className="address-line">{order.shippingAddress.state} - {order.shippingAddress.pinCode}</div>
-              <div className="address-line" style={{ marginTop: '10px' }}>
-                Mobile: {order.shippingAddress.mobile}
-              </div>
-              {order.shippingAddress.alternateMobile && (
-                <div className="address-line">Alt: {order.shippingAddress.alternateMobile}</div>
+              <div className="address-line">{order.shippingAddress.line1}</div>
+              {order.shippingAddress.line2 && (
+                <div className="address-line">{order.shippingAddress.line2}</div>
               )}
+              <div className="address-line">{order.shippingAddress.city}</div>
+              <div className="address-line">{order.shippingAddress.state} - {order.shippingAddress.postalCode}</div>
+              <div className="address-line">{order.shippingAddress.country}</div>
+              <div className="address-line" style={{ marginTop: '10px' }}>
+                Phone: {order.shippingAddress.phone}
+              </div>
             </div>
           </div>
 
-          {order.trackingNumber && (
+          {(order as any).trackingNumber && (
             <div className="tracking-info">
               <div className="section-title">Tracking Information</div>
               <p>
-                <strong>Courier:</strong> {order.courierName}
+                <strong>Courier:</strong> {(order as any).courierName}
               </p>
               <p>
                 <strong>Tracking Number:</strong>
               </p>
-              <p className="tracking-number">{order.trackingNumber}</p>
+              <p className="tracking-number">{(order as any).trackingNumber}</p>
             </div>
           )}
 
@@ -177,48 +174,29 @@ export default function ShippingLabel({ order }: ShippingLabelProps) {
           </div>
           <div>
             <span className="font-semibold text-white">Address:</span>
-            <p className="mt-1">{order.shippingAddress.houseNo}</p>
-            <p>{order.shippingAddress.street}</p>
-            <p>{order.shippingAddress.landmark}</p>
+            <p className="mt-1">{order.shippingAddress.line1}</p>
+            {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
           </div>
           <div>
-            <span className="font-semibold text-white">Post Office:</span>
-            <p className="mt-1">{order.shippingAddress.postOffice}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-white">District:</span>
-            <p className="mt-1">{order.shippingAddress.district}</p>
+            <span className="font-semibold text-white">City:</span>
+            <p className="mt-1">{order.shippingAddress.city}</p>
           </div>
           <div>
             <span className="font-semibold text-white">State:</span>
             <p className="mt-1">{order.shippingAddress.state}</p>
           </div>
           <div>
-            <span className="font-semibold text-white">PIN:</span>
-            <p className="mt-1">{order.shippingAddress.pinCode}</p>
+            <span className="font-semibold text-white">Postal Code:</span>
+            <p className="mt-1">{order.shippingAddress.postalCode}</p>
           </div>
           <div>
-            <span className="font-semibold text-white">Mobile:</span>
-            <p className="mt-1">{order.shippingAddress.mobile}</p>
+            <span className="font-semibold text-white">Country:</span>
+            <p className="mt-1">{order.shippingAddress.country}</p>
           </div>
-          {order.shippingAddress.alternateMobile && (
-            <div>
-              <span className="font-semibold text-white">Alternate Mobile:</span>
-              <p className="mt-1">{order.shippingAddress.alternateMobile}</p>
-            </div>
-          )}
-          {order.trackingNumber && (
-            <div className="mt-3 rounded border border-green-500/30 bg-green-500/10 p-3">
-              <div className="font-semibold text-green-300">Tracking Information</div>
-              <p className="mt-1 text-sm text-slate-300">
-                <span className="font-semibold text-white">Courier:</span> {order.courierName}
-              </p>
-              <p className="mt-1 text-sm text-slate-300">
-                <span className="font-semibold text-white">Tracking Number:</span>{' '}
-                <span className="font-mono font-bold text-green-400">{order.trackingNumber}</span>
-              </p>
-            </div>
-          )}
+          <div>
+            <span className="font-semibold text-white">Phone:</span>
+            <p className="mt-1">{order.shippingAddress.phone}</p>
+          </div>
         </div>
       </div>
     </div>
