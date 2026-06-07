@@ -61,6 +61,9 @@ export function normalizeWorkStatus(value: unknown): WorkStatus {
 
 export function mapProduct(id: string, data: DataRecord): Product {
   const rawDiscountPrice = data.discountPrice === null ? 0 : asNumber(data.discountPrice, 0);
+  const imageUrlRaw = asString(data.imageUrl);
+  const legacyImages = asStringArray(data.images);
+  const images = imageUrlRaw ? [imageUrlRaw] : legacyImages;
 
   return {
     id,
@@ -70,7 +73,7 @@ export function mapProduct(id: string, data: DataRecord): Product {
     price: asNumber(data.price),
     discountPrice: rawDiscountPrice > 0 ? rawDiscountPrice : null,
     stock: asNumber(data.stock),
-    images: asStringArray(data.images),
+    images,
     rating: asNumber(data.rating, 4.5),
     featured: asBoolean(data.featured, false),
     status: normalizeProductStatus(data.status),
