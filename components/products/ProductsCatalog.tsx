@@ -5,6 +5,7 @@ import { Package, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import EmptyState from '@/components/EmptyState';
+import AnimatedBackground from '@/components/products/AnimatedBackground';
 import PremiumProductCard from '@/components/products/PremiumProductCard';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
 import { useProducts } from '@/hooks/useProducts';
@@ -36,6 +37,7 @@ export default function ProductsCatalog() {
 
   return (
     <section className="products-catalog relative pb-20 md:pb-28">
+      <AnimatedBackground />
       <div className="tech-section-backdrop" aria-hidden />
       <div className="relative z-[1] mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div

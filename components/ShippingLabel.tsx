@@ -114,7 +114,7 @@ export default function ShippingLabel({ order }: ShippingLabelProps) {
         </button>
       </div>
 
-      <div id="shipping-label-content" className="hidden">
+      <div id="shipping-label-content" className="mb-6">
         <div className="label">
           <div className="header">
             <h1>SKYTECH</h1>
@@ -160,42 +160,6 @@ export default function ShippingLabel({ order }: ShippingLabelProps) {
               <p style={{ margin: '5px 0' }}>Total: ₹{order.total.toFixed(2)}</p>
               <p style={{ margin: '5px 0' }}>Status: {order.status.toUpperCase()}</p>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Preview */}
-      <div className="rounded-lg border border-cyan-500/30 bg-slate-900/80 p-4">
-        <div className="mb-3 text-sm font-semibold text-cyan-300">Preview</div>
-        <div className="space-y-2 text-sm text-slate-300">
-          <div>
-            <span className="font-semibold text-white">Name:</span>
-            <p className="mt-1">{order.shippingAddress.fullName}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-white">Address:</span>
-            <p className="mt-1">{order.shippingAddress.line1}</p>
-            {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
-          </div>
-          <div>
-            <span className="font-semibold text-white">City:</span>
-            <p className="mt-1">{order.shippingAddress.city}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-white">State:</span>
-            <p className="mt-1">{order.shippingAddress.state}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-white">Postal Code:</span>
-            <p className="mt-1">{order.shippingAddress.postalCode}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-white">Country:</span>
-            <p className="mt-1">{order.shippingAddress.country}</p>
-          </div>
-          <div>
-            <span className="font-semibold text-white">Phone:</span>
-            <p className="mt-1">{order.shippingAddress.phone}</p>
           </div>
         </div>
       </div>
