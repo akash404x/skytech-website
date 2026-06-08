@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Our Works - Projects & Portfolio',
     description: 'Explore our portfolio of successful projects including IoT solutions, robotics prototypes, and custom electronics.',
-    url: '/works',
+    url: 'https://www.theskytechnology.in/works',
   },
 };
 

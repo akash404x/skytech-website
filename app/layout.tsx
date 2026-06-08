@@ -29,20 +29,20 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://theskytechnology.in'),
+  metadataBase: new URL('https://www.theskytechnology.in'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://theskytechnology.in',
+    url: 'https://www.theskytechnology.in',
     siteName: 'Sky Tech',
-    title: 'Sky Tech – Arduino, Electronics, Robotics & IoT Solutions',
-    description: 'Your one-stop shop for Arduino boards, sensors, IoT modules, robotics components, and professional tech services. Quality electronics with expert support.',
+    title: 'Sky Tech',
+    description: 'Arduino, Electronics, Robotics & IoT Solutions',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Sky Tech – Electronics & Robotics Solutions',
@@ -51,9 +51,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Sky Tech – Arduino, Electronics, Robotics & IoT Solutions',
-    description: 'Your one-stop shop for Arduino boards, sensors, IoT modules, robotics components, and professional tech services.',
-    images: ['/twitter-image.jpg'],
+    title: 'Sky Tech',
+    description: 'Arduino, Electronics, Robotics & IoT Solutions',
+    images: ['/og-image.png'],
     creator: '@skytech',
   },
   robots: {
@@ -96,8 +96,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "Sky Tech",
-              "url": "https://theskytechnology.in",
-              "logo": "https://theskytechnology.in/logo.png",
+              "url": "https://www.theskytechnology.in",
+              "logo": "https://www.theskytechnology.in/assets/logo/logo.png",
               "description": "Your one-stop shop for Arduino boards, sensors, IoT modules, robotics components, and professional tech services.",
               "address": {
                 "@type": "PostalAddress",
@@ -106,7 +106,7 @@ export default function RootLayout({
               "contactPoint": {
                 "@type": "ContactPoint",
                 "contactType": "customer service",
-                "url": "https://theskytechnology.in"
+                "url": "https://www.theskytechnology.in"
               },
               "sameAs": [
                 "https://www.facebook.com/skytech",

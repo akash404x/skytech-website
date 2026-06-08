@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Services - Professional Tech Solutions & Consulting',
     description: 'Expert technology services including IoT development, robotics projects, Arduino programming, and custom tech solutions.',
-    url: '/services',
+    url: 'https://www.theskytechnology.in/services',
   },
 };
 

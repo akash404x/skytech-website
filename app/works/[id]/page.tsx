@@ -43,9 +43,30 @@ export async function generateMetadata({ params }: WorkPageProps) {
     };
   }
   
+  const imageUrl = work.thumbnail || '/og-image.png';
+  
   return {
     title: `${work.title} - SkyTech Portfolio`,
     description: work.shortDescription,
+    openGraph: {
+      title: `${work.title} - SkyTech Portfolio`,
+      description: work.shortDescription,
+      url: `https://www.theskytechnology.in/works/${id}`,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: work.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${work.title} - SkyTech Portfolio`,
+      description: work.shortDescription,
+      images: [imageUrl],
+    },
   };
 }
 

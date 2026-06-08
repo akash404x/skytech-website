@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Cpu, Sparkles } from 'lucide-react';
+import { Gift, ArrowRight, Sparkles } from 'lucide-react';
 
 const textContainer = {
   hidden: { opacity: 0 },
@@ -74,9 +74,64 @@ export default function ProductsHero() {
         <motion.p variants={textItem} className="mx-auto mt-4 max-w-2xl text-lg tech-text md:text-xl">
           Arduino, IoT, Robotics & Innovation Products
         </motion.p>
-        <motion.div variants={textItem} className="mt-8 flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30">
-            <Cpu className="h-7 w-7 text-white" />
+        
+        {/* Promotional Notification Section */}
+        <motion.div
+          variants={textItem}
+          className="mt-8 mx-auto max-w-2xl"
+        >
+          <div className="relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-blue-900/40 via-purple-900/30 to-blue-900/40 backdrop-blur-xl p-6 md:p-8 shadow-2xl shadow-cyan-500/10">
+            {/* Animated gradient border effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-cyan-500/10 animate-pulse" />
+            
+            <div className="relative z-10">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="flex-shrink-0 p-2 rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30">
+                  <Gift className="h-5 w-5 text-cyan-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg md:text-xl font-bold text-white mb-2">
+                    Can't find the Arduino & IOT product you're looking for?
+                  </h3>
+                  <p className="text-sm md:text-base text-cyan-200/80 leading-relaxed">
+                    If a product is not listed in our store, let us know and get an additional <span className="text-cyan-400 font-semibold">₹50 OFF</span> on your purchase.
+                  </p>
+                </div>
+              </div>
+              
+              <motion.button
+                onClick={() => {
+                  const message = encodeURIComponent(`Hello SkyTech Team,
+I couldn't find the product I was looking for on your website.
+
+Product Name:
+________________
+
+Please help me source this product. I would also like to claim the additional ₹50 OFF offer.
+
+Thank you.`);
+                  window.open(`https://wa.me/919519322323?text=${message}`, '_blank');
+                }}
+                className="mt-4 w-full sm:w-auto group relative overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/30 transition-all duration-300 hover:shadow-cyan-500/50 hover:scale-105"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {/* Pulse/glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/50 to-blue-600/50 animate-pulse opacity-50" />
+                
+                <div className="relative flex items-center justify-center gap-2">
+                  <span>Request a Product & Get ₹50 OFF</span>
+                  <motion.div
+                    className="flex items-center"
+                    whileHover={{ x: 4 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </motion.div>
+                </div>
+              </motion.button>
+            </div>
           </div>
         </motion.div>
       </motion.div>

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'About Us - Sky Tech Technology Solutions',
     description: 'Learn about Sky Tech - your trusted partner for Arduino, electronics, robotics, and IoT solutions.',
-    url: '/about',
+    url: 'https://www.theskytechnology.in/about',
   },
 };
 

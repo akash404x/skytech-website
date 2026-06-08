@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Products - Arduino, Electronics, Robotics & IoT Components',
     description: 'Browse our extensive collection of Arduino boards, sensors, microcontrollers, robotics components, and IoT modules.',
-    url: '/products',
+    url: 'https://www.theskytechnology.in/products',
   },
 };
 

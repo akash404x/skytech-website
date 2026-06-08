@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sky Tech – Arduino, Electronics, Robotics & IoT Solutions',
     description: 'Your one-stop shop for Arduino boards, sensors, IoT modules, robotics components, and professional tech services.',
-    url: '/',
+    url: 'https://www.theskytechnology.in/',
   },
 };
 
