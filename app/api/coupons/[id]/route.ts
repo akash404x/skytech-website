@@ -16,7 +16,7 @@ interface UpdateCouponBody {
 }
 
 // GET - Get a single coupon by ID (admin only)
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { profile } = await getAuthenticatedUser(request);
 
@@ -24,6 +24,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    const params = await context.params;
     const coupon = await getCouponById(params.id);
 
     if (!coupon) {
@@ -39,7 +40,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 // PUT - Update a coupon (admin only)
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { profile } = await getAuthenticatedUser(request);
 
@@ -66,6 +67,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     if (body.maxUses !== undefined) updates.maxUses = body.maxUses;
     if (body.status !== undefined) updates.status = body.status;
 
+    const params = await context.params;
     await updateCoupon(params.id, updates);
 
     return NextResponse.json({ success: true });
@@ -76,7 +78,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 }
 
 // DELETE - Delete a coupon (admin only)
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { profile } = await getAuthenticatedUser(request);
 
@@ -84,6 +86,7 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    const params = await context.params;
     await deleteCoupon(params.id);
 
     return NextResponse.json({ success: true });
