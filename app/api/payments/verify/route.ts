@@ -15,6 +15,8 @@ interface VerifyPaymentBody {
   razorpayPaymentId: string;
   razorpaySignature: string;
   walletAmount?: number;
+  couponCode?: string;
+  discountAmount?: number;
   gstAmount?: number;
   gstPercentage?: number;
   shippingFee?: number;
@@ -52,7 +54,8 @@ export async function POST(request: Request) {
     const checkout = await validateCheckoutItems(body.items);
     const razorpayOrder = await fetchRazorpayOrder(body.razorpayOrderId);
 
-    const expectedAmount = Math.round((checkout.total - (body.walletAmount || 0)) * 100);
+    // Calculate expected amount: total - wallet deduction - coupon discount
+    const expectedAmount = Math.round((checkout.total - (body.walletAmount || 0) - (body.discountAmount || 0)) * 100);
 
     if (
       razorpayOrder.id !== body.razorpayOrderId ||
@@ -104,6 +107,8 @@ export async function POST(request: Request) {
       shippingFee: body.shippingFee,
       deliveryCharge: body.deliveryCharge,
       walletUsed: body.walletAmount,
+      couponCode: body.couponCode,
+      discountAmount: body.discountAmount,
     });
 
     console.log('Payment verified and order created:', { orderId: order.id, orderNumber: order.orderNumber });

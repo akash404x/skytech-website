@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw, Settings, MessageSquare } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw, Settings, MessageSquare, Ticket } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
@@ -79,6 +79,7 @@ export default function AdminLayout({
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Returns', href: '/admin/returns', icon: RotateCcw },
     { name: 'Replacements', href: '/admin/replacements', icon: RefreshCw },
+    { name: 'Coupon Codes', href: '/admin/coupons', icon: Ticket },
     { name: 'Pricing Settings', href: '/admin/pricing-settings', icon: Settings },
     ...(isAdmin ? [{ name: 'Users', href: '/admin/users', icon: Users }] : []),
     { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare, badge: pendingReviewsCount },

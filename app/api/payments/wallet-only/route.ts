@@ -5,6 +5,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { validateCheckoutItems } from '@/lib/server-checkout';
 import { sendEmail, getOrderStatusEmailTemplate } from '@/lib/email-service';
 import { generateInvoiceNumber } from '@/lib/invoice-utils';
+import { markCouponAsUsed } from '@/lib/coupon-service';
 import type { CartItem, ShippingAddress } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -13,6 +14,8 @@ interface WalletOnlyBody {
   items: Pick<CartItem, 'productId' | 'quantity'>[];
   shippingAddress: ShippingAddress;
   walletAmount: number;
+  couponCode?: string;
+  discountAmount?: number;
   gstAmount?: number;
   gstPercentage?: number;
   shippingFee?: number;
@@ -30,9 +33,28 @@ export async function POST(request: Request) {
 
     const checkout = await validateCheckoutItems(body.items);
 
-    if (checkout.total !== body.walletAmount) {
-      return NextResponse.json({ error: 'Wallet amount does not match order total' }, { status: 400 });
+    // Calculate amount after coupon discount
+    const amountAfterCoupon = checkout.total - (body.discountAmount || 0);
+
+    console.log('=== WALLET-ONLY PAYMENT VALIDATION ===');
+    console.log('Checkout total:', checkout.total);
+    console.log('Discount amount:', body.discountAmount);
+    console.log('Amount after coupon:', amountAfterCoupon);
+    console.log('Wallet deduction requested:', body.walletAmount);
+
+    // The wallet deduction should not exceed the amount after coupon
+    if (body.walletAmount > amountAfterCoupon) {
+      console.log('ERROR: Wallet deduction exceeds amount after coupon');
+      return NextResponse.json({ error: 'Wallet deduction cannot exceed payable amount after coupon' }, { status: 400 });
     }
+
+    // Ensure wallet deduction is not negative
+    if (body.walletAmount < 0) {
+      console.log('ERROR: Wallet deduction is negative');
+      return NextResponse.json({ error: 'Wallet deduction cannot be negative' }, { status: 400 });
+    }
+
+    console.log('Validation passed');
 
     const now = FieldValue.serverTimestamp();
     const timelineDate = new Date();
@@ -98,6 +120,8 @@ export async function POST(request: Request) {
         shippingFee: body.shippingFee,
         deliveryCharge: body.deliveryCharge,
         walletUsed: body.walletAmount,
+        discount: body.discountAmount,
+        couponCode: body.couponCode,
         total: checkout.total,
         currency: checkout.currency,
         status: 'pending',
@@ -142,6 +166,27 @@ export async function POST(request: Request) {
         { merge: true },
       );
     });
+
+    // Mark coupon as used if applicable
+    if (body.couponCode) {
+      try {
+        // Get coupon by code
+        const couponSnapshot = await adminDb
+          .collection('coupons')
+          .where('code', '==', body.couponCode.toUpperCase())
+          .limit(1)
+          .get();
+
+        if (!couponSnapshot.empty) {
+          const couponId = couponSnapshot.docs[0].id;
+          await markCouponAsUsed(couponId, profile.uid, profile.email, orderRef.id);
+          console.log('Coupon marked as used:', { couponCode: body.couponCode, couponId, orderId: orderRef.id });
+        }
+      } catch (error) {
+        console.error('Error marking coupon as used:', error);
+        // Don't fail the order if coupon marking fails
+      }
+    }
 
     // Generate invoice number and send confirmation email
     try {

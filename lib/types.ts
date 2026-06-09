@@ -14,6 +14,8 @@ export type WalletTransactionType = 'credit' | 'debit';
 export type WalletTransactionStatus = 'pending' | 'completed' | 'failed';
 export type EmailStatus = 'pending' | 'sent' | 'failed';
 export type NotificationType = 'order_placed' | 'order_confirmed' | 'order_packed' | 'order_shipped' | 'order_delivered' | 'order_cancelled' | 'return_approved' | 'replacement_approved' | 'wallet_credited';
+export type CouponDiscountType = 'fixed' | 'percentage';
+export type CouponStatus = 'active' | 'used' | 'expired';
 
 export type DateValue =
   | Date
@@ -324,6 +326,23 @@ export interface Review {
   approvedBy?: string;
   approvedAt?: DateValue;
   adminNotes?: string;
+  createdAt?: DateValue;
+  updatedAt?: DateValue;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  minOrderAmount?: number;
+  expiryDate?: DateValue;
+  status: CouponStatus;
+  maxUses?: number;
+  usedCount?: number;
+  usedBy?: string;
+  usedOrderId?: string;
+  usedAt?: DateValue;
   createdAt?: DateValue;
   updatedAt?: DateValue;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { CreditCard, LockKeyhole, MapPin, Wallet } from 'lucide-react';
+import { CreditCard, LockKeyhole, MapPin, Ticket, Wallet, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import Footer from '@/components/Footer';
@@ -82,6 +82,9 @@ export default function CheckoutPage() {
   const [shippingSettings, setShippingSettings] = useState({ shippingFee: 80, freeShippingAbove: 999 });
   const [deliverySettings, setDeliverySettings] = useState({ enabled: true, charge: 20 });
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountAmount: number; discountType: string; discountValue: number } | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -132,11 +135,6 @@ export default function CheckoutPage() {
     [items],
   );
 
-  const walletDeduction = useMemo(() => {
-    if (!useWallet) return 0;
-    return Math.min(walletBalance, subtotal);
-  }, [useWallet, walletBalance, subtotal]);
-
   const gstAmount = useMemo(() => {
     if (!gstSettings.enabled) return 0;
     return (subtotal * gstSettings.percentage) / 100;
@@ -156,12 +154,66 @@ export default function CheckoutPage() {
     return subtotal + gstAmount + shippingFee + deliveryCharge;
   }, [subtotal, gstAmount, shippingFee, deliveryCharge]);
 
+  const amountAfterCoupon = useMemo(() => {
+    return totalBeforeWallet - (appliedCoupon?.discountAmount || 0);
+  }, [totalBeforeWallet, appliedCoupon]);
+
+  const walletDeduction = useMemo(() => {
+    if (!useWallet) return 0;
+    return Math.min(walletBalance, amountAfterCoupon);
+  }, [useWallet, walletBalance, amountAfterCoupon]);
+
   const remainingAmount = useMemo(() => {
-    return totalBeforeWallet - walletDeduction;
-  }, [totalBeforeWallet, walletDeduction]);
+    const amount = amountAfterCoupon - walletDeduction;
+    return Math.max(0, amount);
+  }, [amountAfterCoupon, walletDeduction]);
 
   const updateAddress = (field: keyof ShippingAddress, value: string) => {
     setShippingAddress((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error('Please enter a coupon code');
+      return;
+    }
+
+    setValidatingCoupon(true);
+    try {
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          orderAmount: totalBeforeWallet,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.valid) {
+        toast.error(data.error || 'Invalid coupon code');
+        return;
+      }
+
+      setAppliedCoupon({
+        code: data.coupon.code,
+        discountAmount: data.discountAmount,
+        discountType: data.coupon.discountType,
+        discountValue: data.coupon.discountValue,
+      });
+      setCouponCode('');
+      toast.success('Coupon applied successfully');
+    } catch (error) {
+      console.error('Error validating coupon:', error);
+      toast.error('Failed to validate coupon');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    toast.success('Coupon removed');
   };
 
   const startPayment = async (event: React.FormEvent) => {
@@ -186,6 +238,19 @@ export default function CheckoutPage() {
         const token = await getIdToken();
         if (!token) throw new Error('You need to sign in again');
 
+        console.log('=== WALLET-ONLY PAYMENT START ===');
+        console.log('Subtotal:', subtotal);
+        console.log('GST amount:', gstAmount);
+        console.log('Shipping fee:', shippingFee);
+        console.log('Delivery charge:', deliveryCharge);
+        console.log('Total before wallet:', totalBeforeWallet);
+        console.log('Coupon discount:', appliedCoupon?.discountAmount);
+        console.log('Amount after coupon:', amountAfterCoupon);
+        console.log('Wallet balance:', walletBalance);
+        console.log('Wallet deduction:', walletDeduction);
+        console.log('Remaining amount:', remainingAmount);
+        console.log('Use wallet:', useWallet);
+
         const response = await fetch('/api/payments/wallet-only', {
           method: 'POST',
           headers: {
@@ -199,6 +264,8 @@ export default function CheckoutPage() {
               fullName: shippingAddress.fullName || profile?.displayName || user.displayName || 'Customer',
             },
             walletAmount: walletDeduction,
+            couponCode: appliedCoupon?.code,
+            discountAmount: appliedCoupon?.discountAmount,
             gstAmount,
             gstPercentage: gstSettings.percentage,
             shippingFee,
@@ -286,6 +353,8 @@ export default function CheckoutPage() {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
                 walletAmount: walletDeduction,
+                couponCode: appliedCoupon?.code,
+                discountAmount: appliedCoupon?.discountAmount,
                 gstAmount,
                 gstPercentage: gstSettings.percentage,
                 shippingFee,
@@ -434,16 +503,72 @@ export default function CheckoutPage() {
               </div>
             )}
 
+            {/* Coupon Section */}
+            {!appliedCoupon ? (
+              <div className="mt-6 rounded-lg border border-cyan-500/20 bg-cyan-500/5 p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <Ticket className="h-5 w-5 text-cyan-300" />
+                  <p className="font-medium text-white">Have a Coupon Code?</p>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Enter coupon code"
+                    className="flex-1 rounded-lg border border-cyan-500/30 bg-slate-700/50 px-4 py-2 text-white placeholder-gray-400 transition focus:border-cyan-400 focus:bg-slate-700 focus:outline-none"
+                    disabled={validatingCoupon}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                    className="rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {validatingCoupon ? 'Applying...' : 'Apply'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Ticket className="h-5 w-5 text-emerald-300" />
+                    <div>
+                      <p className="font-medium text-white">Coupon Applied</p>
+                      <p className="text-sm tech-text">
+                        {appliedCoupon.code} - {appliedCoupon.discountType === 'fixed' ? formatCurrency(appliedCoupon.discountValue) : `${appliedCoupon.discountValue}%`} off
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="rounded-lg p-2 text-rose-400 hover:bg-rose-500/10"
+                    aria-label="Remove coupon"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="mt-6 flex justify-between text-lg font-bold text-white">
               <span>Total</span>
               <span>{formatCurrency(totalBeforeWallet)}</span>
             </div>
-            {useWallet && walletDeduction > 0 && (
+            {appliedCoupon && (
               <div className="mt-2 flex justify-between text-sm tech-text">
-                <span>After wallet:</span>
-                <span className="text-cyan-300 font-semibold">{formatCurrency(remainingAmount)}</span>
+                <span>Coupon discount ({appliedCoupon.code}):</span>
+                <span className="text-emerald-300 font-semibold">-{formatCurrency(appliedCoupon.discountAmount)}</span>
               </div>
             )}
+            {(useWallet && walletDeduction > 0) || appliedCoupon ? (
+              <div className="mt-2 flex justify-between text-sm tech-text">
+                <span>Final payable:</span>
+                <span className="text-cyan-300 font-semibold">{formatCurrency(remainingAmount)}</span>
+              </div>
+            ) : null}
             <button
               type="submit"
               disabled={processing || items.length === 0}

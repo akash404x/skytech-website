@@ -86,6 +86,54 @@ export default function ServicesShowcase({ variant = 'home' }: ServicesShowcaseP
             Explore futuristic tech services by Sky Tech — from Arduino and IoT to app development, automation, robotics, and creative digital solutions.
 
           </p>
+          
+          {isFull && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="mt-8 flex flex-col items-center gap-3"
+            >
+              <motion.button
+                onClick={() => {
+                  const message = encodeURIComponent('Hi Sky Tech, I need a custom service/project. Please guide me.');
+                  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                  const whatsappUrl = isMobile 
+                    ? `whatsapp://send?phone=9195334357055&text=${message}`
+                    : `https://wa.me/9195334357055?text=${message}`;
+                  
+                  if (isMobile) {
+                    window.location.href = whatsappUrl;
+                  } else {
+                    window.open(whatsappUrl, '_blank');
+                  }
+                }}
+                className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-8 py-4 text-base font-semibold text-white shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all duration-300 hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] hover:scale-105"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {/* Neon glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/50 to-blue-600/50 animate-pulse opacity-50" />
+                <div className="absolute inset-0 rounded-2xl border border-cyan-400/30 group-hover:border-cyan-300/50 transition-colors duration-300" />
+                
+                <div className="relative flex items-center justify-center gap-2">
+                  <Rocket className="h-5 w-5" />
+                  <span>🚀 Get Custom Service</span>
+                </div>
+              </motion.button>
+              
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={isInView ? { opacity: 1 } : {}}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-sm text-cyan-200/70"
+              >
+                Can't find the service you're looking for? Contact us for custom solutions.
+              </motion.p>
+            </motion.div>
+          )}
+          
           {!isFull && (
             <Link
               href="/services"

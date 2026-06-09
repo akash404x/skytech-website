@@ -107,5 +107,11 @@ service cloud.firestore {
       // Admins can update reviews (approve/reject/delete)
       allow update, delete: if isAdmin();
     }
+    
+    // Coupons collection - admins can read/write all, users can validate coupons via API
+    match /coupons/{couponId} {
+      // Only admins can read/write coupons
+      allow read, write: if isAdmin();
+    }
   }
 }

@@ -8,6 +8,7 @@ export const runtime = 'nodejs';
 
 interface CreatePaymentOrderBody {
   items: Pick<CartItem, 'productId' | 'quantity'>[];
+  amount: number;
 }
 
 export async function POST(request: Request) {
@@ -19,12 +20,17 @@ export async function POST(request: Request) {
       userId: profile.uid,
       userEmail: profile.email,
       itemsCount: body.items?.length ?? 0,
+      amount: body.amount,
     });
 
     const checkout = await validateCheckoutItems(body.items);
     const receipt = `skytech_${Date.now()}_${profile.uid.slice(0, 8)}`;
+    
+    // Use the actual payable amount after coupon and wallet deductions
+    const payableAmount = body.amount || checkout.total;
+    
     const razorpayOrder = await createRazorpayOrder({
-      amount: checkout.total,
+      amount: payableAmount,
       currency: checkout.currency,
       receipt,
       notes: {

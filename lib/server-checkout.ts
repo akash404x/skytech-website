@@ -4,6 +4,7 @@ import { getProductPrice } from './cart';
 import { mapProduct } from './firestore-mappers';
 import { generateInvoiceNumber } from './invoice-utils';
 import { sendEmail, getOrderStatusEmailTemplate } from './email-service';
+import { markCouponAsUsed, validateCoupon } from './coupon-service';
 import type { CartItem, OrderItem, ShippingAddress, UserProfile } from './types';
 
 export interface ValidatedCheckout {
@@ -91,6 +92,8 @@ export async function createVerifiedOrder(input: {
   shippingFee?: number;
   deliveryCharge?: number;
   walletUsed?: number;
+  couponCode?: string;
+  discountAmount?: number;
 }) {
   const orderRef = adminDb.collection('orders').doc();
   const paymentRef = adminDb.collection('payments').doc(input.razorpayPaymentId);
@@ -129,6 +132,8 @@ export async function createVerifiedOrder(input: {
       shippingFee: input.shippingFee,
       deliveryCharge: input.deliveryCharge,
       walletUsed: input.walletUsed,
+      discount: input.discountAmount,
+      couponCode: input.couponCode,
       total: input.checkout.total,
       currency: input.checkout.currency,
       status: 'pending',
@@ -183,6 +188,27 @@ export async function createVerifiedOrder(input: {
       { merge: true },
     );
   });
+
+  // Mark coupon as used if applicable
+  if (input.couponCode) {
+    try {
+      // Get coupon by code
+      const couponSnapshot = await adminDb
+        .collection('coupons')
+        .where('code', '==', input.couponCode.toUpperCase())
+        .limit(1)
+        .get();
+
+      if (!couponSnapshot.empty) {
+        const couponId = couponSnapshot.docs[0].id;
+        await markCouponAsUsed(couponId, input.user.uid, input.user.email, orderRef.id);
+        console.log('Coupon marked as used:', { couponCode: input.couponCode, couponId, orderId: orderRef.id });
+      }
+    } catch (error) {
+      console.error('Error marking coupon as used:', error);
+      // Don't fail the order if coupon marking fails
+    }
+  }
 
   // Generate invoice after transaction completes with retry logic
   const maxRetries = 3;
