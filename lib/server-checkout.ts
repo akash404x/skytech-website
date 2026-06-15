@@ -95,6 +95,34 @@ export async function createVerifiedOrder(input: {
   couponCode?: string;
   discountAmount?: number;
 }) {
+  // Validate required values to prevent undefined Firestore errors
+  if (!input.user?.uid) {
+    throw new Response('User ID is required', { status: 400 });
+  }
+  if (!input.checkout?.subtotal || input.checkout.subtotal < 0) {
+    throw new Response('Invalid subtotal', { status: 400 });
+  }
+  if (!input.checkout?.total || input.checkout.total < 0) {
+    throw new Response('Invalid total', { status: 400 });
+  }
+  if (!input.razorpayOrderId) {
+    throw new Response('Razorpay order ID is required', { status: 400 });
+  }
+  if (!input.razorpayPaymentId) {
+    throw new Response('Razorpay payment ID is required', { status: 400 });
+  }
+
+  // Validate coupon code if provided
+  if (input.couponCode) {
+    try {
+      const couponValidation = await validateCoupon(input.couponCode, input.checkout.total, input.user.uid);
+      if (!couponValidation.valid) {
+        throw new Response('Invalid or expired coupon code', { status: 400 });
+      }
+    } catch (error) {
+      throw new Response('Coupon validation failed', { status: 400 });
+    }
+  }
   const orderRef = adminDb.collection('orders').doc();
   const paymentRef = adminDb.collection('payments').doc(input.razorpayPaymentId);
   const userRef = adminDb.collection('users').doc(input.user.uid);
@@ -127,13 +155,13 @@ export async function createVerifiedOrder(input: {
       customerPhone: input.shippingAddress.phone,
       items: input.checkout.items,
       subtotal: input.checkout.subtotal,
-      gstAmount: input.gstAmount,
-      gstPercentage: input.gstPercentage,
-      shippingFee: input.shippingFee,
-      deliveryCharge: input.deliveryCharge,
-      walletUsed: input.walletUsed,
-      discount: input.discountAmount,
-      couponCode: input.couponCode,
+      gstAmount: input.gstAmount ?? 0,
+      gstPercentage: input.gstPercentage ?? 0,
+      shippingFee: input.shippingFee ?? 0,
+      deliveryCharge: input.deliveryCharge ?? 0,
+      walletUsed: input.walletUsed ?? 0,
+      discount: input.discountAmount ?? 0,
+      couponCode: input.couponCode ?? null,
       total: input.checkout.total,
       currency: input.checkout.currency,
       status: 'pending',
