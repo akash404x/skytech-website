@@ -187,6 +187,10 @@ export interface Order {
   invoiceGeneratedAt?: DateValue;
   createdAt?: DateValue;
   updatedAt?: DateValue;
+  // Coupon-related fields
+  couponCode?: string | null;
+  discountAmount?: number;
+  couponApplied?: boolean;
 }
 
 export interface PaymentTransaction {

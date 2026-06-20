@@ -18,6 +18,11 @@ import type { Order, OrderStatus, PaymentTransaction } from '@/lib/types';
 
 const timelineStatuses: OrderStatus[] = ['pending', 'confirmed', 'packed', 'shipped', 'delivered'];
 
+// Helper function to check if user can cancel order (coupon protection)
+const canUserCancelOrder = (order: Order): boolean => {
+  return !order.couponApplied && !order.couponCode && (order.discountAmount || 0) === 0;
+};
+
 function CancelOrderModal({ order, onClose }: { order: Order; onClose: () => void }) {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -366,8 +371,8 @@ export default function OrdersPage() {
                     </Link>
                   )}
 
-                  {/* Cancel Order Button - Only before shipment */}
-                  {order.status === 'pending' || order.status === 'confirmed' ? (
+                  {/* Cancel Order Button - Only before shipment and without coupon */}
+                  {(order.status === 'pending' || order.status === 'confirmed') && canUserCancelOrder(order) ? (
                     <button
                       onClick={() => {
                         setSelectedOrder(order);
@@ -378,6 +383,11 @@ export default function OrdersPage() {
                       <X className="h-4 w-4" />
                       Cancel Order
                     </button>
+                  ) : (order.status === 'pending' || order.status === 'confirmed') && !canUserCancelOrder(order) ? (
+                    <div className="flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-sm font-medium text-yellow-300">
+                      <X className="h-4 w-4" />
+                      Cannot cancel (coupon used)
+                    </div>
                   ) : null}
 
                   {/* Return Button - Only for delivered orders < ₹500 */}

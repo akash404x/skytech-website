@@ -124,6 +124,10 @@ export function mapOrder(id: string, data: DataRecord): Order {
     replacementRequest: data.replacementRequest ? (data.replacementRequest as Order['replacementRequest']) : undefined,
     createdAt: data.createdAt as Order['createdAt'],
     updatedAt: data.updatedAt as Order['updatedAt'],
+    // Coupon-related fields
+    couponCode: asString(data.couponCode) || null,
+    discountAmount: asNumber(data.discountAmount, 0),
+    couponApplied: data.couponApplied === true,
   };
 }
 

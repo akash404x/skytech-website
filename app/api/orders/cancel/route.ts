@@ -48,6 +48,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Order already has a cancellation request or is cancelled' }, { status: 400 });
     }
 
+    // Business rule: Users cannot cancel orders that used a coupon
+    const hasCouponUsed = orderData.couponApplied || orderData.couponCode || (orderData.discountAmount || 0) > 0;
+    if (hasCouponUsed) {
+      return NextResponse.json({ 
+        error: 'This order cannot be cancelled because a coupon was used. Please contact support for assistance.' 
+      }, { status: 403 });
+    }
+
     const now = FieldValue.serverTimestamp();
 
     // Create cancellation request
