@@ -7,20 +7,19 @@ import type { LucideIcon } from 'lucide-react';
 const footerLinks: Record<string, Array<{ name: string; href: string; icon?: LucideIcon }>> = {
   Company: [
     { name: 'About Us', href: '/about' },
-    { name: 'Careers', href: '#' },
-    { name: 'Blog', href: '#' },
-    { name: 'Contact', href: '#' },
+    { name: 'Careers', href: '/careers' },
+    { name: 'Contact', href: '/contact' },
   ],
   Support: [
-    { name: 'Help Center', href: '#' },
-    { name: 'Shipping', href: '#' },
-    { name: 'Returns', href: '#' },
-    { name: 'FAQ', href: '#' },
+    { name: 'Help Center', href: '/help-center' },
+    { name: 'Shipping Policy', href: '/shipping' },
+    { name: 'Returns & Refunds', href: '/returns' },
+    { name: 'FAQ', href: '/faq' },
   ],
   Legal: [
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Terms of Service', href: '#' },
-    { name: 'Cookie Policy', href: '#' },
+    { name: 'Privacy Policy', href: '/privacy-policy' },
+    { name: 'Terms of Service', href: '/terms-of-service' },
+    { name: 'Cookie Policy', href: '/cookie-policy' },
   ],
   Social: [
     { name: 'Twitter', href: '#', icon: Share2 },
