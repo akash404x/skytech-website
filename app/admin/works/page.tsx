@@ -11,18 +11,27 @@ import {
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore';
-import { Briefcase, Edit, ImagePlus, Plus, Search, Star, Trash2, Upload, X } from 'lucide-react';
+import { Briefcase, Edit, ImagePlus, Plus, Search, Star, Trash2, Upload, X, Video, GripVertical, ChevronUp, ChevronDown, Link as LinkIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import EmptyState from '@/components/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
-import { uploadWorkImage } from '@/lib/firebase-storage';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 import { mapWork } from '@/lib/firestore-mappers';
 import { toDate } from '@/lib/format';
 import { WORK_CATEGORIES } from '@/lib/works-content';
-import type { Work, WorkStatus } from '@/lib/types';
+import type { Work, WorkStatus, WorkMedia, WorkLink } from '@/lib/types';
+
+interface MediaItem {
+  file: File;
+  preview: string;
+  type: 'image' | 'video';
+  uploadProgress: number;
+  isUploading: boolean;
+  url?: string;
+}
 
 interface WorkFormState {
   title: string;
@@ -30,10 +39,10 @@ interface WorkFormState {
   fullDescription: string;
   category: string;
   technologiesUsed: string;
+  media: MediaItem[];
+  existingMedia: WorkMedia[];
   thumbnail: string;
-  images: string;
-  githubLink: string;
-  liveDemoLink: string;
+  links: WorkLink[];
   clientName: string;
   completionDate: string;
   status: WorkStatus;
@@ -46,10 +55,10 @@ const emptyForm: WorkFormState = {
   fullDescription: '',
   category: 'Arduino Projects',
   technologiesUsed: '',
+  media: [],
+  existingMedia: [],
   thumbnail: '',
-  images: '',
-  githubLink: '',
-  liveDemoLink: '',
+  links: [],
   clientName: '',
   completionDate: '',
   status: 'active',
@@ -80,10 +89,9 @@ export default function AdminWorks() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWork, setEditingWork] = useState<Work | null>(null);
   const [formData, setFormData] = useState<WorkFormState>(emptyForm);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const worksQuery = query(collection(db, 'works'), orderBy('title'));
@@ -103,11 +111,6 @@ export default function AdminWorks() {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (imagePreview?.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
-    };
-  }, [imagePreview]);
 
   const filteredWorks = useMemo(() => {
     const search = searchQuery.toLowerCase();
@@ -119,39 +122,49 @@ export default function AdminWorks() {
     );
   }, [searchQuery, works]);
 
-  const resetImageState = () => {
-    setImageFile(null);
-    if (imagePreview?.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
-    setImagePreview(null);
+  const resetMediaState = () => {
+    setFormData((prev) => ({
+      ...prev,
+      media: [],
+      existingMedia: [],
+      thumbnail: '',
+    }));
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const openAddModal = () => {
     setEditingWork(null);
     setFormData(emptyForm);
-    resetImageState();
+    resetMediaState();
     setIsModalOpen(true);
   };
 
   const openEditModal = (work: Work) => {
     setEditingWork(work);
+    
+    // Handle backward compatibility: convert old githubLink and liveDemoLink to links array
+    const links = work.links && work.links.length > 0
+      ? work.links
+      : [
+          ...(work.githubLink ? [{ text: 'GitHub Repository', url: work.githubLink }] : []),
+          ...(work.liveDemoLink ? [{ text: 'Live Demo', url: work.liveDemoLink }] : []),
+        ];
+    
     setFormData({
       title: work.title,
       shortDescription: work.shortDescription,
       fullDescription: work.fullDescription,
       category: work.category,
       technologiesUsed: work.technologiesUsed.join(', '),
+      media: [],
+      existingMedia: work.media || [],
       thumbnail: work.thumbnail ?? '',
-      images: work.images.join(', '),
-      githubLink: work.githubLink ?? '',
-      liveDemoLink: work.liveDemoLink ?? '',
+      links,
       clientName: work.clientName ?? '',
       completionDate: toDate(work.completionDate)?.toISOString().split('T')[0] ?? '',
       status: work.status,
       featured: work.featured,
     });
-    resetImageState();
-    setImagePreview(work.thumbnail);
     setIsModalOpen(true);
   };
 
@@ -159,26 +172,106 @@ export default function AdminWorks() {
     setIsModalOpen(false);
     setEditingWork(null);
     setSaving(false);
-    resetImageState();
+    resetMediaState();
   };
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
+    Array.from(files).forEach((file) => {
+      const isVideo = file.type.startsWith('video/');
+      const isImage = file.type.startsWith('image/');
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
-      return;
-    }
+      if (!isVideo && !isImage) {
+        toast.error(`Invalid file type: ${file.name}`);
+        return;
+      }
 
-    setImageFile(file);
-    if (imagePreview?.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
-    setImagePreview(URL.createObjectURL(file));
+      // Validate file size
+      if (isImage && file.size > 5 * 1024 * 1024) {
+        toast.error(`Image size must be less than 5MB: ${file.name}`);
+        return;
+      }
+
+      if (isVideo && file.size > 100 * 1024 * 1024) {
+        toast.error(`Video size must be less than 100MB: ${file.name}`);
+        return;
+      }
+
+      const mediaItem: MediaItem = {
+        file,
+        preview: URL.createObjectURL(file),
+        type: isVideo ? 'video' : 'image',
+        uploadProgress: 0,
+        isUploading: false,
+      };
+
+      setFormData((prev) => ({
+        ...prev,
+        media: [...prev.media, mediaItem],
+      }));
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleRemoveMedia = (index: number) => {
+    setFormData((prev) => {
+      const newMedia = [...prev.media];
+      const removed = newMedia.splice(index, 1)[0];
+      URL.revokeObjectURL(removed.preview);
+      return { ...prev, media: newMedia };
+    });
+  };
+
+  const handleRemoveExistingMedia = (index: number) => {
+    setFormData((prev) => {
+      const newExistingMedia = [...prev.existingMedia];
+      newExistingMedia.splice(index, 1);
+      return { ...prev, existingMedia: newExistingMedia };
+    });
+  };
+
+  const handleMoveMedia = (fromIndex: number, toIndex: number) => {
+    setFormData((prev) => {
+      const newMedia = [...prev.media];
+      const [movedItem] = newMedia.splice(fromIndex, 1);
+      newMedia.splice(toIndex, 0, movedItem);
+      return { ...prev, media: newMedia };
+    });
+  };
+
+  const handleMoveExistingMedia = (fromIndex: number, toIndex: number) => {
+    setFormData((prev) => {
+      const newExistingMedia = [...prev.existingMedia];
+      const [movedItem] = newExistingMedia.splice(fromIndex, 1);
+      newExistingMedia.splice(toIndex, 0, movedItem);
+      return { ...prev, existingMedia: newExistingMedia };
+    });
+  };
+
+  const handleAddLink = () => {
+    setFormData((prev) => ({
+      ...prev,
+      links: [...prev.links, { text: '', url: '' }],
+    }));
+  };
+
+  const handleRemoveLink = (index: number) => {
+    setFormData((prev) => {
+      const newLinks = [...prev.links];
+      newLinks.splice(index, 1);
+      return { ...prev, links: newLinks };
+    });
+  };
+
+  const handleLinkChange = (index: number, field: 'text' | 'url', value: string) => {
+    setFormData((prev) => {
+      const newLinks = [...prev.links];
+      newLinks[index] = { ...newLinks[index], [field]: value };
+      return { ...prev, links: newLinks };
+    });
   };
 
   const handleDeleteWork = async (work: Work) => {
@@ -230,59 +323,78 @@ export default function AdminWorks() {
 
     setSaving(true);
 
-    try {
-      let thumbnail = formData.thumbnail.trim() || null;
-      const images = formData.images
-        .split(',')
-        .map((url) => url.trim())
-        .filter((url) => url.length > 0);
+    // Combine existing media with new media URLs
+    const allMedia = [...formData.existingMedia];
+    
+    // Upload new media files
+    for (let i = 0; i < formData.media.length; i++) {
+      const mediaItem = formData.media[i];
+      setFormData((prev) => {
+        const newMedia = [...prev.media];
+        newMedia[i] = { ...newMedia[i], isUploading: true, uploadProgress: 10 };
+        return { ...prev, media: newMedia };
+      });
 
-      if (editingWork) {
-        if (imageFile) {
-          thumbnail = await uploadWorkImage(imageFile, editingWork.id);
-        }
-
-        await updateDoc(doc(db, 'works', editingWork.id), {
-          title: formData.title.trim(),
-          shortDescription: formData.shortDescription.trim(),
-          fullDescription: formData.fullDescription.trim(),
-          category: formData.category,
-          technologiesUsed: formData.technologiesUsed.split(',').map((t) => t.trim()).filter((t) => t.length > 0),
-          images,
-          thumbnail,
-          githubLink: formData.githubLink.trim() || null,
-          liveDemoLink: formData.liveDemoLink.trim() || null,
-          clientName: formData.clientName.trim() || null,
-          completionDate: formData.completionDate ? new Date(formData.completionDate) : null,
-          status: formData.status,
-          featured: formData.featured,
-          updatedAt: serverTimestamp(),
+      try {
+        const uploadResult = await uploadToCloudinary(mediaItem.file);
+        setFormData((prev) => {
+          const newMedia = [...prev.media];
+          newMedia[i] = { ...newMedia[i], isUploading: true, uploadProgress: 80, url: uploadResult.url };
+          return { ...prev, media: newMedia };
         });
+
+        allMedia.push({
+          type: uploadResult.type,
+          url: uploadResult.url,
+        });
+
+        setFormData((prev) => {
+          const newMedia = [...prev.media];
+          newMedia[i] = { ...newMedia[i], isUploading: false, uploadProgress: 100 };
+          return { ...prev, media: newMedia };
+        });
+      } catch (error) {
+        console.error('Error uploading media:', error);
+        toast.error(`Failed to upload ${mediaItem.type}`);
+        setFormData((prev) => {
+          const newMedia = [...prev.media];
+          newMedia[i] = { ...newMedia[i], isUploading: false, uploadProgress: 0 };
+          return { ...prev, media: newMedia };
+        });
+      }
+    }
+
+    // Set thumbnail to first media item if not set
+    const thumbnail = formData.thumbnail || (allMedia.length > 0 ? allMedia[0].url : '');
+
+    const payload = {
+      title: formData.title.trim(),
+      shortDescription: formData.shortDescription.trim(),
+      fullDescription: formData.fullDescription.trim(),
+      category: formData.category,
+      technologiesUsed: formData.technologiesUsed.split(',').map((t) => t.trim()).filter((t) => t.length > 0),
+      media: allMedia,
+      thumbnail: thumbnail || null,
+      links: formData.links.filter((link) => link.text.trim() && link.url.trim()),
+      clientName: formData.clientName.trim() || null,
+      completionDate: formData.completionDate ? new Date(formData.completionDate) : null,
+      status: formData.status,
+      featured: formData.featured,
+      updatedAt: serverTimestamp(),
+    };
+
+    console.log('Saving links:', payload.links);
+    console.log('Full payload:', payload);
+
+    try {
+      if (editingWork) {
+        await updateDoc(doc(db, 'works', editingWork.id), payload);
         toast.success('Work updated');
       } else {
-        const docRef = await addDoc(collection(db, 'works'), {
-          title: formData.title.trim(),
-          shortDescription: formData.shortDescription.trim(),
-          fullDescription: formData.fullDescription.trim(),
-          category: formData.category,
-          technologiesUsed: formData.technologiesUsed.split(',').map((t) => t.trim()).filter((t) => t.length > 0),
-          images,
-          thumbnail,
-          githubLink: formData.githubLink.trim() || null,
-          liveDemoLink: formData.liveDemoLink.trim() || null,
-          clientName: formData.clientName.trim() || null,
-          completionDate: formData.completionDate ? new Date(formData.completionDate) : null,
-          status: formData.status,
-          featured: formData.featured,
+        await addDoc(collection(db, 'works'), {
+          ...payload,
           createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
         });
-
-        if (imageFile) {
-          thumbnail = await uploadWorkImage(imageFile, docRef.id);
-          await updateDoc(docRef, { thumbnail, updatedAt: serverTimestamp() });
-        }
-
         toast.success('Work added');
       }
 
@@ -290,6 +402,7 @@ export default function AdminWorks() {
     } catch (error) {
       console.error('Error saving work:', error);
       toast.error('Failed to save work');
+    } finally {
       setSaving(false);
     }
   };
@@ -494,71 +607,227 @@ export default function AdminWorks() {
                 />
               </div>
 
+              {/* Media Upload Section */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-cyan-200">Thumbnail</label>
-                <div className="flex gap-4">
-                  <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-lg border border-cyan-500/20 bg-slate-800">
-                    {imagePreview ? (
-                      <Image src={imagePreview} alt="Preview" fill className="object-cover" sizes="128px" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-slate-500">
-                        <ImagePlus className="h-8 w-8" />
-                      </div>
-                    )}
+                <label className="mb-1.5 block text-sm font-medium text-cyan-200">Media (Images & Videos)</label>
+                
+                {/* Upload Area */}
+                <div
+                  ref={dropZoneRef}
+                  className="relative mb-4 flex h-48 flex-col items-center justify-center rounded-xl border-2 border-dashed border-cyan-500/30 bg-slate-900/70 transition hover:border-cyan-400/50 hover:bg-slate-800/50"
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    id="work-media"
+                    accept=".jpg,.jpeg,.png,.webp,.mp4,.mov,.webm"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                    disabled={saving}
+                  />
+                  <Upload className="mb-3 h-12 w-12 text-cyan-400" />
+                  <p className="mb-2 text-sm font-semibold text-cyan-300">Upload Media</p>
+                  <p className="text-xs text-gray-400">Drag & drop or click to browse</p>
+                  <p className="mt-2 text-xs text-gray-500">Images: .jpg, .jpeg, .png, .webp (max 5MB)</p>
+                  <p className="text-xs text-gray-500">Videos: .mp4, .mov, .webm (max 100MB)</p>
+                </div>
+
+                {/* Existing Media */}
+                {formData.existingMedia.length > 0 && (
+                  <div className="mb-4">
+                    <p className="mb-2 text-sm font-semibold text-cyan-200">Existing Media</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {formData.existingMedia.map((media, index) => (
+                        <div
+                          key={index}
+                          className="group relative aspect-video overflow-hidden rounded-lg border border-cyan-500/30 bg-slate-900/70"
+                        >
+                          {media.type === 'image' ? (
+                            <Image
+                              src={media.url}
+                              alt={`Media ${index + 1}`}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 50vw, 33vw"
+                            />
+                          ) : (
+                            <video
+                              src={media.url}
+                              className="h-full w-full object-cover"
+                              controls
+                            />
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition group-hover:opacity-100">
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => handleMoveExistingMedia(index, index - 1)}
+                                className="rounded-full bg-cyan-500 p-2 text-white transition hover:bg-cyan-600"
+                                aria-label="Move left"
+                              >
+                                <ChevronUp className="h-4 w-4 -rotate-90" />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveExistingMedia(index)}
+                              className="rounded-full bg-rose-500 p-2 text-white transition hover:bg-rose-600"
+                              aria-label="Remove media"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                            {index < formData.existingMedia.length - 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleMoveExistingMedia(index, index + 1)}
+                                className="rounded-full bg-cyan-500 p-2 text-white transition hover:bg-cyan-600"
+                                aria-label="Move right"
+                              >
+                                <ChevronDown className="h-4 w-4 -rotate-90" />
+                              </button>
+                            )}
+                          </div>
+                          {media.type === 'video' && (
+                            <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1">
+                              <Video className="h-3 w-3 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
+                )}
+
+                {/* New Media Previews */}
+                {formData.media.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-sm font-semibold text-cyan-200">New Media</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {formData.media.map((media, index) => (
+                        <div
+                          key={index}
+                          className="group relative aspect-video overflow-hidden rounded-lg border border-cyan-500/30 bg-slate-900/70"
+                        >
+                          {media.type === 'image' ? (
+                            <img
+                              src={media.preview}
+                              alt={`Media ${index + 1}`}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <video
+                              src={media.preview}
+                              className="h-full w-full object-cover"
+                              controls
+                            />
+                          )}
+                          {media.isUploading && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                              <div className="text-center">
+                                <div className="mb-2 h-2 w-32 overflow-hidden rounded-full bg-slate-700">
+                                  <div
+                                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                                    style={{ width: `${media.uploadProgress}%` }}
+                                  />
+                                </div>
+                                <p className="text-xs font-semibold text-cyan-300">{Math.round(media.uploadProgress)}%</p>
+                              </div>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition group-hover:opacity-100">
+                            {index > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => handleMoveMedia(index, index - 1)}
+                                className="rounded-full bg-cyan-500 p-2 text-white transition hover:bg-cyan-600"
+                                aria-label="Move left"
+                              >
+                                <ChevronUp className="h-4 w-4 -rotate-90" />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMedia(index)}
+                              className="rounded-full bg-rose-500 p-2 text-white transition hover:bg-rose-600"
+                              aria-label="Remove media"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                            {index < formData.media.length - 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleMoveMedia(index, index + 1)}
+                                className="rounded-full bg-cyan-500 p-2 text-white transition hover:bg-cyan-600"
+                                aria-label="Move right"
+                              >
+                                <ChevronDown className="h-4 w-4 -rotate-90" />
+                              </button>
+                            )}
+                          </div>
+                          {media.type === 'video' && (
+                            <div className="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-1">
+                              <Video className="h-3 w-3 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Project Links Section */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-cyan-200">Project Links</label>
+                
+                {formData.links.length === 0 ? (
+                  <button
+                    type="button"
+                    onClick={handleAddLink}
+                    className="flex items-center gap-2 rounded-lg border border-dashed border-cyan-500/30 bg-slate-900/50 px-4 py-3 text-sm text-cyan-300 transition hover:border-cyan-400/50 hover:bg-slate-800/50"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add First Link
+                  </button>
+                ) : (
+                  <div className="space-y-3">
+                    {formData.links.map((link, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={link.text}
+                          onChange={(event) => handleLinkChange(index, 'text', event.target.value)}
+                          className="tech-input flex-1 rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
+                          placeholder="Link text (e.g., GitHub Repository)"
+                        />
+                        <input
+                          type="url"
+                          value={link.url}
+                          onChange={(event) => handleLinkChange(index, 'url', event.target.value)}
+                          className="tech-input flex-1 rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
+                          placeholder="https://..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveLink(index)}
+                          className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-rose-400 transition hover:bg-rose-500/20"
+                          aria-label="Remove link"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="tech-btn-secondary flex items-center gap-2 px-4 py-2"
+                      onClick={handleAddLink}
+                      className="flex items-center gap-2 rounded-lg border border-dashed border-cyan-500/30 bg-slate-900/50 px-4 py-2 text-sm text-cyan-300 transition hover:border-cyan-400/50 hover:bg-slate-800/50"
                     >
-                      <Upload className="h-4 w-4" />
-                      Upload Image
+                      <Plus className="h-4 w-4" />
+                      Add Another Link
                     </button>
-                    <p className="mt-1 text-xs text-slate-400">Max 5MB. Recommended: 800x600px.</p>
                   </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-cyan-200">Additional Images</label>
-                <input
-                  type="text"
-                  value={formData.images}
-                  onChange={(event) => setFormData({ ...formData, images: event.target.value })}
-                  className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
-                  placeholder="Image URLs (comma-separated)"
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-cyan-200">GitHub Link</label>
-                  <input
-                    type="url"
-                    value={formData.githubLink}
-                    onChange={(event) => setFormData({ ...formData, githubLink: event.target.value })}
-                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
-                    placeholder="https://github.com/..."
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-cyan-200">Live Demo Link</label>
-                  <input
-                    type="url"
-                    value={formData.liveDemoLink}
-                    onChange={(event) => setFormData({ ...formData, liveDemoLink: event.target.value })}
-                    className="tech-input w-full rounded-lg border border-cyan-500/20 bg-slate-900/80 px-4 py-2.5"
-                    placeholder="https://..."
-                  />
-                </div>
+                )}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

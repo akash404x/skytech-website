@@ -15,6 +15,8 @@ import type {
   UserRole,
   WalletTransaction,
   Work,
+  WorkLink,
+  WorkMedia,
   WorkStatus,
 } from './types';
 
@@ -191,6 +193,24 @@ export function mapWork(id: string, data: DataRecord): Work {
   const thumbnailRaw = asString(data.thumbnail);
   const legacyThumbnail = asStringArray(data.images)[0] ?? '';
 
+  // Map media array if available
+  const media = Array.isArray(data.media) 
+    ? data.media.filter((item): item is WorkMedia => 
+        typeof item === 'object' && item !== null && 
+        (item.type === 'image' || item.type === 'video') && 
+        typeof item.url === 'string'
+      )
+    : [];
+
+  // Map links array if available
+  const links = Array.isArray(data.links)
+    ? data.links.filter((item): item is WorkLink =>
+        typeof item === 'object' && item !== null &&
+        typeof item.text === 'string' &&
+        typeof item.url === 'string'
+      )
+    : [];
+
   return {
     id,
     title: asString(data.title),
@@ -198,16 +218,19 @@ export function mapWork(id: string, data: DataRecord): Work {
     fullDescription: asString(data.fullDescription),
     category: asString(data.category, 'General'),
     technologiesUsed: Array.isArray(data.technologiesUsed) ? data.technologiesUsed.map(String) : [],
-    images: asStringArray(data.images),
+    media,
     thumbnail: thumbnailRaw || legacyThumbnail || null,
-    githubLink: asString(data.githubLink) || null,
-    liveDemoLink: asString(data.liveDemoLink) || null,
+    links,
     clientName: asString(data.clientName) || null,
     completionDate: data.completionDate as Work['completionDate'],
     featured: asBoolean(data.featured, false),
     status: normalizeWorkStatus(data.status),
     createdAt: data.createdAt as Work['createdAt'],
     updatedAt: data.updatedAt as Work['updatedAt'],
+    // Legacy fields for backward compatibility
+    images: asStringArray(data.images),
+    githubLink: asString(data.githubLink) || null,
+    liveDemoLink: asString(data.liveDemoLink) || null,
   };
 }
 

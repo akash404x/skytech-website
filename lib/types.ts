@@ -243,6 +243,16 @@ export interface UserProfile {
   lastLogin?: DateValue;
 }
 
+export interface WorkMedia {
+  type: 'image' | 'video';
+  url: string;
+}
+
+export interface WorkLink {
+  text: string;
+  url: string;
+}
+
 export interface Work {
   id: string;
   title: string;
@@ -250,16 +260,19 @@ export interface Work {
   fullDescription: string;
   category: string;
   technologiesUsed: string[];
-  images: string[];
+  media: WorkMedia[];
   thumbnail: string | null;
-  githubLink: string | null;
-  liveDemoLink: string | null;
+  links: WorkLink[];
   clientName: string | null;
   completionDate: DateValue | null;
   featured: boolean;
   status: WorkStatus;
   createdAt?: DateValue;
   updatedAt?: DateValue;
+  // Legacy fields for backward compatibility
+  images?: string[];
+  githubLink?: string | null;
+  liveDemoLink?: string | null;
 }
 
 export interface GSTSettings {
