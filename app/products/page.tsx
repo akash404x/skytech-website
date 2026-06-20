@@ -37,6 +37,24 @@ export default function ProductsPage() {
       <Navbar />
       <main className="flex-1">
         <ProductsHero />
+        
+        {/* Premium Announcement Section */}
+        <section className="relative py-12 md:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="tech-glass-card p-8 md:p-12 text-center">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#00bfff]/5 via-transparent to-[#00e5ff]/5 rounded-2xl" />
+              <div className="relative">
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+                  Free Technical Support on Every Product Purchased
+                </h2>
+                <p className="text-[#d6e4ff]/80 text-base md:text-lg max-w-2xl mx-auto">
+                  Get complete setup guidance, usage instructions, and expert technical support with every purchase.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
         <Suspense fallback={<CatalogFallback />}>
           <ProductsCatalog />
         </Suspense>

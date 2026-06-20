@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Briefcase, Home, Info, LogOut, Menu, Package, PackageCheck, Shield, ShoppingCart, User, Wrench, X, Rocket, Sparkles } from 'lucide-react';
+import { Briefcase, Home, Info, LogOut, Menu, Package, PackageCheck, Shield, ShoppingCart, User, Wrench, X, Layers } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
@@ -99,16 +99,10 @@ export default function Navbar() {
               <Info className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">About</span>
             </NavLink>
-
-            {/* Resources CTA Button */}
-            <Link
-              href="/resources"
-              className="group relative inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#00bfff] to-[#00e5ff] px-5 py-2 font-semibold text-[#020617] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,191,255,0.5)] focus:outline-none focus:ring-2 focus:ring-[#00bfff]/50 focus:ring-offset-2 focus:ring-offset-[#020617]"
-            >
-              <Rocket className="h-4 w-4" />
-              <span>Resources</span>
-              <Sparkles className="absolute -top-1 -right-1 h-3 w-3 animate-pulse text-[#00e5ff]" />
-            </Link>
+            <NavLink href="/resources" isActive={isActiveRoute('/resources')}>
+              <Layers className="h-4 w-4 shrink-0 opacity-80" />
+              <span className="font-medium">Resources</span>
+            </NavLink>
 
             {loading ? (
               <div className="mx-2 h-6 w-6 animate-spin rounded-full border-2 border-cyan-400/30 border-t-cyan-400" />
@@ -190,15 +184,10 @@ export default function Navbar() {
                 <Info className="h-5 w-5" />
                 <span>About</span>
               </NavLink>
-
-              {/* Mobile Resources Link */}
-              <Link
-                href="/resources"
-                className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#00bfff]/20 to-[#00e5ff]/20 px-3 py-2.5 font-semibold text-[#00e5ff] transition-all hover:bg-gradient-to-r hover:from-[#00bfff]/30 hover:to-[#00e5ff]/30"
-              >
-                <Rocket className="h-5 w-5" />
+              <NavLink href="/resources" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/resources')}>
+                <Layers className="h-5 w-5" />
                 <span>Resources</span>
-              </Link>
+              </NavLink>
 
               {loading ? (
                 <div className="flex justify-center py-3">
