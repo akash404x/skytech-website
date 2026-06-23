@@ -1,11 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Briefcase, Home, Info, LogOut, Menu, Package, PackageCheck, Shield, ShoppingCart, User, Wrench, X, Layers } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
+import LogoModal from '@/components/LogoModal';
 
 function NavLink({
   href,
@@ -36,6 +38,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
 
   const isActiveRoute = (href: string) => {
     if (href === '/') {
@@ -71,14 +74,28 @@ export default function Navbar() {
       <div className="tech-navbar-glow pointer-events-none absolute inset-x-0 bottom-0 h-px" aria-hidden />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className={`flex items-center justify-between transition-all duration-500 ${scrolled ? 'h-14 md:h-16' : 'h-16 md:h-20'}`}>
-          <Link href="/" className="group flex shrink-0 items-center transition-transform duration-300 hover:scale-[1.03]">
+          {/* Brand Section */}
+          <button
+            onClick={() => setIsLogoModalOpen(true)}
+            className="group flex shrink-0 items-center gap-3 mr-6 md:mr-8 transition-all duration-300 hover:scale-[1.03]"
+            aria-label="View Sky Tech logo"
+          >
+            <div className="relative h-8 w-8 md:h-8 md:w-8 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(0,191,255,0.5)]">
+              <Image
+                src="/favicon.ico"
+                alt="Sky Tech Logo"
+                fill
+                className="object-contain"
+                sizes="32px"
+              />
+            </div>
             <div className="text-2xl font-bold italic tracking-tight text-white">
               Sky<span className="bg-gradient-to-r from-[#00bfff] to-[#00e5ff] bg-clip-text text-transparent">Tech</span>
             </div>
-          </Link>
+          </button>
 
-
-          <div className="hidden items-center gap-2 md:flex md:gap-3">
+          {/* Navigation Section */}
+          <div className="hidden items-center gap-4 md:flex md:gap-5">
             <NavLink href="/" isActive={isActiveRoute('/')}>
               <Home className="h-4 w-4 shrink-0 opacity-80" />
               <span className="font-medium">Home</span>
@@ -163,7 +180,7 @@ export default function Navbar() {
 
         {isMenuOpen && (
           <div className="animate-slideDown border-t border-white/5 pb-4 pt-3 md:hidden">
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <NavLink href="/" className="rounded-lg px-2 py-2.5" isActive={isActiveRoute('/')}>
                 <Home className="h-5 w-5" />
                 <span>Home</span>
@@ -229,6 +246,9 @@ export default function Navbar() {
           </div>
         )}
       </div>
+
+      {/* Logo Modal */}
+      <LogoModal isOpen={isLogoModalOpen} onClose={() => setIsLogoModalOpen(false)} />
     </nav>
   );
 }

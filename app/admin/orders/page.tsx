@@ -72,7 +72,13 @@ export default function AdminOrders() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to update order status');
-      toast.success('Order status updated');
+      
+      // Show success message with email status
+      if (data.emailSent) {
+        toast.success(`Order status updated and email sent to ${order.userEmail}`);
+      } else {
+        toast.success('Order status updated (email notification may be delayed)');
+      }
     } catch (error) {
       console.error('Error updating order status:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update order');

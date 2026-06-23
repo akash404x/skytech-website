@@ -14,53 +14,81 @@ interface EmailConfig {
 let transporter: nodemailer.Transporter | null = null;
 let transporterVerified = false;
 
-function getTransporter(): nodemailer.Transporter {
+async function getTransporter(): Promise<nodemailer.Transporter> {
   if (transporter) return transporter;
 
+  // Validate environment variables
+  const missingVars: string[] = [];
+  if (!process.env.ZOHO_EMAIL) missingVars.push('ZOHO_EMAIL');
+  if (!process.env.ZOHO_PASSWORD) missingVars.push('ZOHO_PASSWORD');
+  if (!process.env.ZOHO_SMTP_HOST) missingVars.push('ZOHO_SMTP_HOST');
+  if (!process.env.ZOHO_SMTP_PORT) missingVars.push('ZOHO_SMTP_PORT');
+  if (!process.env.ZOHO_SMTP_SECURE) missingVars.push('ZOHO_SMTP_SECURE');
+  if (!process.env.ZOHO_SMTP_FROM) missingVars.push('ZOHO_SMTP_FROM');
+
+  if (missingVars.length > 0) {
+    console.error('❌ Missing environment variables:');
+    missingVars.forEach(v => console.error(`  - ${v}`));
+    throw new Error(`Missing environment variables: ${missingVars.join(', ')}`);
+  }
+
+  // Trim whitespace from password
+  const trimmedPassword = process.env.ZOHO_PASSWORD.trim();
+  const trimmedEmail = process.env.ZOHO_EMAIL.trim();
+
   const config: EmailConfig = {
-    host: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com',
-    port: parseInt(process.env.ZOHO_SMTP_PORT || '465'),
-    secure: process.env.ZOHO_SMTP_SECURE === 'true',
+    host: process.env.ZOHO_SMTP_HOST!.trim(),
+    port: Number(process.env.ZOHO_SMTP_PORT!.trim()),
+    secure: process.env.ZOHO_SMTP_SECURE!.trim() === 'true',
     auth: {
-      user: process.env.ZOHO_SMTP_USER || '',
-      pass: process.env.ZOHO_SMTP_PASS || '',
+      user: trimmedEmail,
+      pass: trimmedPassword,
     },
   };
 
-  // Log email service configuration
+  // Log email service configuration with masked values
   console.log('=== EMAIL SERVICE CONFIGURATION ===');
   console.log('Provider: Nodemailer with Zoho SMTP');
   console.log('Environment:', process.env.NODE_ENV || 'development');
   console.log('SMTP Host:', config.host);
   console.log('SMTP Port:', config.port);
   console.log('SMTP Secure:', config.secure);
+  console.log('SMTP User (exact):', config.auth.user);
   console.log('SMTP User present:', !!config.auth.user);
-  console.log('SMTP User:', config.auth.user ? config.auth.user.substring(0, 3) + '***' : 'NOT SET');
-  console.log('SMTP Pass present:', !!config.auth.pass);
-  console.log('SMTP Pass length:', config.auth.pass ? config.auth.pass.length : 0);
-  console.log('SMTP From:', process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>');
+  console.log('SMTP Password present:', !!config.auth.pass);
+  console.log('SMTP Password length:', config.auth.pass.length);
+  console.log('SMTP From:', process.env.ZOHO_SMTP_FROM!.trim());
   console.log('=====================================');
 
-  if (!config.auth.user || !config.auth.pass) {
-    console.error('❌ Zoho SMTP credentials are not configured');
-    throw new Error('Zoho SMTP credentials are not configured');
-  }
-
   try {
-    transporter = nodemailer.createTransport(config);
-    console.log('✅ Email transporter created successfully');
-    
-    // Verify transporter connection
-    transporter.verify((error, success) => {
-      if (error) {
-        console.error('❌ SMTP transporter verification failed:', error);
-        transporterVerified = false;
-      } else {
-        console.log('✅ SMTP transporter verification successful');
-        transporterVerified = true;
-      }
+    transporter = nodemailer.createTransport({
+      ...config,
+      tls: {
+        rejectUnauthorized: false, // Allow self-signed certificates
+      },
     });
-    
+    console.log('✅ Email transporter created successfully');
+
+    // Verify SMTP connection and log complete error
+    await new Promise<void>((resolve, reject) => {
+      transporter!.verify((error: any) => {
+        if (error) {
+          console.error('❌ SMTP Verification Failed - Complete Error Object:');
+          console.error('Error Code:', error.code);
+          console.error('Error Response:', error.response);
+          console.error('Error Response Code:', error.responseCode);
+          console.error('Error Command:', error.command);
+          console.error('Full Error:', error);
+          transporterVerified = false;
+          reject(error);
+        } else {
+          console.log('✅ SMTP Connected Successfully');
+          transporterVerified = true;
+          resolve();
+        }
+      });
+    });
+
     return transporter;
   } catch (error) {
     console.error('❌ Failed to create email transporter:', error);
@@ -133,7 +161,7 @@ export async function sendEmail({
     console.log('Subject:', subject);
     console.log('From:', process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>');
     
-    const transport = getTransporter();
+    const transport = await getTransporter();
     
     const info = await transport.sendMail({
       from: process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>',
