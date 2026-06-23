@@ -33,8 +33,8 @@ async function getTransporter(): Promise<nodemailer.Transporter> {
   }
 
   // Trim whitespace from password
-  const trimmedPassword = process.env.ZOHO_PASSWORD.trim();
-  const trimmedEmail = process.env.ZOHO_EMAIL.trim();
+  const trimmedPassword = process.env.ZOHO_PASSWORD!.trim();
+  const trimmedEmail = process.env.ZOHO_EMAIL!.trim();
 
   const config: EmailConfig = {
     host: process.env.ZOHO_SMTP_HOST!.trim(),
