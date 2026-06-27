@@ -184,12 +184,20 @@ export async function POST(request: Request) {
 
       // Create receipt object for email template
       const receipt = {
+        id: order.id,
+        orderId: order.id,
+        userId: profile.uid,
         receiptNumber: order.orderNumber,
         orderNumber: order.orderNumber,
+        transactionId: body.razorpayOrderId,
         paymentId: body.razorpayPaymentId,
         paymentMethod: 'Razorpay',
         paymentDate: new Date(),
+        amount: checkout.total,
+        tax: body.gstAmount || 0,
         grandTotal: checkout.total,
+        currency: checkout.currency,
+        status: 'paid',
         customerName: body.shippingAddress.fullName || profile.displayName,
         userEmail: profile.email,
         customerPhone: body.shippingAddress.phone,

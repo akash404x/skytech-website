@@ -295,12 +295,20 @@ export async function POST(request: Request) {
 
       // Create receipt object for email template
       const receipt = {
+        id: orderRef.id,
+        orderId: orderRef.id,
+        userId: profile.uid,
         receiptNumber: orderNumber,
         orderNumber,
+        transactionId: `WALLET-${orderRef.id}`,
         paymentId: `WALLET-${orderRef.id}`,
         paymentMethod: 'Wallet',
         paymentDate: new Date(),
+        amount: checkout.total,
+        tax: body.gstAmount || 0,
         grandTotal: checkout.total,
+        currency: checkout.currency,
+        status: 'paid',
         customerName: body.shippingAddress.fullName || profile.displayName,
         userEmail: profile.email,
         customerPhone: body.shippingAddress.phone,
