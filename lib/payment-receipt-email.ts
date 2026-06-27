@@ -1,8 +1,8 @@
 import { generateSkyTechEmailTemplate, SkyTechEmailData } from '@/lib/skytech-email-template';
-import type { PaymentReceipt, Order } from '@/lib/types';
+import type { PaymentReceipt, OrderItem } from '@/lib/types';
 
-export function generatePaymentReceiptEmailTemplate(receipt: PaymentReceipt, order: Order): string {
-  const itemsList = order.items.map(item => 
+export function generatePaymentReceiptEmailTemplate(receipt: PaymentReceipt, items: OrderItem[]): string {
+  const itemsList = items.map(item => 
     `<li style="margin-bottom: 8px; padding: 12px; background: #F8FBFF; border-radius: 8px; border: 1px solid #DCEEFF;">
       <div style="font-weight: 600; color: #1F2937; margin-bottom: 4px;">${item.name}</div>
       <div style="font-size: 14px; color: #64748B;">Qty: ${item.quantity} × ₹${item.unitPrice.toFixed(2)} = ₹${item.lineTotal.toFixed(2)}</div>

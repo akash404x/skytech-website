@@ -7,7 +7,7 @@ import { sendEmail, getOrderStatusEmailTemplate } from '@/lib/email-service';
 import { generateReceiptNumber } from '@/lib/invoice-utils';
 import { markCouponAsUsed } from '@/lib/coupon-service';
 import { generatePaymentReceiptEmailTemplate } from '@/lib/payment-receipt-email';
-import type { CartItem, ShippingAddress, PaymentReceipt } from '@/lib/types';
+import type { CartItem, ShippingAddress, PaymentReceipt, OrderItem } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -317,7 +317,7 @@ export async function POST(request: Request) {
       };
 
       // Send payment receipt email
-      const emailHtml = generatePaymentReceiptEmailTemplate(receipt, order);
+      const emailHtml = generatePaymentReceiptEmailTemplate(receipt, checkout.items);
       const emailResult = await sendEmail({
         to: order.userEmail,
         subject: `Payment Receipt - ${receipt.receiptNumber} - Sky Tech`,

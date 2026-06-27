@@ -7,7 +7,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { generateReceiptNumber } from '@/lib/invoice-utils';
 import { sendEmail } from '@/lib/email-service';
 import { generatePaymentReceiptEmailTemplate } from '@/lib/payment-receipt-email';
-import type { CartItem, ShippingAddress, PaymentReceipt } from '@/lib/types';
+import type { CartItem, ShippingAddress, PaymentReceipt, OrderItem } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -205,7 +205,7 @@ export async function POST(request: Request) {
         status: 'paid',
       };
 
-      const emailHtml = generatePaymentReceiptEmailTemplate(receipt, order);
+      const emailHtml = generatePaymentReceiptEmailTemplate(receipt, checkout.items);
       const emailResult = await sendEmail({
         to: profile.email,
         subject: `Payment Receipt - ${receipt.receiptNumber} - Sky Tech`,
