@@ -10,16 +10,11 @@ import ProductCard from '@/components/ProductCard';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
 import { mapProduct } from '@/lib/firestore-mappers';
+import { toDate } from '@/lib/format';
 import type { Product } from '@/lib/types';
 
 function toTimestamp(dateValue: Product['updatedAt']): number {
-  if (!dateValue) return 0;
-  if (typeof dateValue === 'number') return dateValue;
-  if (dateValue instanceof Date) return dateValue.getTime();
-  if (typeof dateValue === 'string') return new Date(dateValue).getTime();
-  if (typeof dateValue === 'object' && 'toDate' in dateValue) return dateValue.toDate().getTime();
-  if (typeof dateValue === 'object' && 'seconds' in dateValue) return dateValue.seconds * 1000;
-  return 0;
+  return toDate(dateValue).getTime();
 }
 
 export default function FeaturedProducts() {

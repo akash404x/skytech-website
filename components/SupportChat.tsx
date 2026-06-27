@@ -5,6 +5,7 @@ import { Paperclip, Send, Sparkles, UploadCloud } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { db } from '@/lib/firebase';
 import { uploadChatAttachment } from '@/lib/firebase-storage';
+import { toDate } from '@/lib/format';
 import { mapChat, mapChatMessage } from '@/lib/firestore-mappers';
 import type { Chat, ChatMessage } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,24 +44,10 @@ export default function SupportChat({ orderId, orderNumber, userName, userEmail,
   const currentUserName = user?.displayName || user?.email || 'Customer';
 
   const formatTimestamp = (timestamp: unknown) => {
-    if (!timestamp) return '…';
-    if (
-      typeof timestamp === 'object' &&
-      timestamp !== null &&
-      'toDate' in timestamp &&
-      typeof (timestamp as { toDate?: unknown }).toDate === 'function'
-    ) {
-      return (timestamp as { toDate: () => Date }).toDate().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    }
-
-    if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-      return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    return '…';
+    return toDate(timestamp).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const activeChatId = chatId || chat?.id;

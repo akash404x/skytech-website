@@ -21,12 +21,12 @@ export function formatDate(value: DateValue) {
   }).format(date);
 }
 
-export function toDate(value: DateValue): Date | null {
-  if (!value) return null;
+export function toDate(value: DateValue): Date {
+  if (!value) return new Date();
   if (value instanceof Date) return value;
   if (typeof value === 'string' || typeof value === 'number') {
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date;
+    return Number.isNaN(date.getTime()) ? new Date() : date;
   }
   if ('toDate' in value && typeof value.toDate === 'function') {
     return value.toDate();
@@ -34,7 +34,7 @@ export function toDate(value: DateValue): Date | null {
   if ('seconds' in value && typeof value.seconds === 'number') {
     return new Date(value.seconds * 1000);
   }
-  return null;
+  return new Date();
 }
 
 export function orderStatusLabel(status: OrderStatus) {

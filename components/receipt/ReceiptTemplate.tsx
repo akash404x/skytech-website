@@ -1,4 +1,5 @@
 import type { Order } from '@/lib/types';
+import { toDate } from '@/lib/format';
 
 interface ReceiptTemplateProps {
   order: Order;
@@ -15,14 +16,14 @@ export default function ReceiptTemplate({ order }: ReceiptTemplateProps) {
   const grandTotal = subtotal + gst + shipping + delivery - wallet - discount;
 
   // Format dates (display only)
-  const receiptDate = order.receiptGeneratedAt || order.createdAt;
-  const receiptDateStr = new Date(receiptDate).toLocaleDateString('en-IN', {
+  const receiptDate = toDate(order.receiptGeneratedAt || order.createdAt);
+  const receiptDateStr = receiptDate.toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 
-  const paymentDate = new Date(receiptDate).toLocaleString('en-IN', {
+  const paymentDate = receiptDate.toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

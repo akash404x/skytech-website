@@ -1,4 +1,5 @@
 import { generateSkyTechEmailTemplate, SkyTechEmailData } from '@/lib/skytech-email-template';
+import { toDate } from '@/lib/format';
 import type { Invoice, Order } from '@/lib/types';
 
 export function generateOrderConfirmedEmailTemplate(invoice: Invoice, order: Order): string {
@@ -29,7 +30,7 @@ export function generateOrderConfirmedEmailTemplate(invoice: Invoice, order: Ord
         </div>
         <div>
           <p style="color: #64748B; font-size: 14px; margin: 0 0 4px 0;">Invoice Date</p>
-          <p style="color: #1F2937; font-weight: 600; font-size: 16px; margin: 0;">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+          <p style="color: #1F2937; font-weight: 600; font-size: 16px; margin: 0;">${toDate(invoice.invoiceDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
         </div>
         <div>
           <p style="color: #64748B; font-size: 14px; margin: 0 0 4px 0;">Order Status</p>

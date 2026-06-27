@@ -1,5 +1,6 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb } from './firebase-admin';
+import { toDate } from './format';
 import type { Coupon, CouponDiscountType, CouponStatus, DateValue } from './types';
 
 export interface CouponValidationResult {
@@ -73,14 +74,7 @@ export async function validateCoupon(
     // Check expiry date
     if (coupon.expiryDate) {
       console.log('Checking expiry date...');
-      let expiryDate: Date;
-      if (typeof coupon.expiryDate === 'object' && 'toDate' in coupon.expiryDate) {
-        expiryDate = coupon.expiryDate.toDate();
-      } else if (typeof coupon.expiryDate === 'object' && 'seconds' in coupon.expiryDate) {
-        expiryDate = new Date(coupon.expiryDate.seconds * 1000);
-      } else {
-        expiryDate = new Date(coupon.expiryDate);
-      }
+      const expiryDate = toDate(coupon.expiryDate);
       console.log('Expiry date:', expiryDate);
       console.log('Current date:', new Date());
 
@@ -323,22 +317,7 @@ export async function getCoupons(status?: CouponStatus): Promise<Coupon[]> {
 function convertDateToTime(dateValue: DateValue | undefined): number {
   if (!dateValue) return 0;
   try {
-    if (typeof dateValue === 'object' && 'toDate' in dateValue) {
-      return dateValue.toDate().getTime();
-    }
-    if (typeof dateValue === 'object' && 'seconds' in dateValue) {
-      return dateValue.seconds * 1000;
-    }
-    if (typeof dateValue === 'string') {
-      return new Date(dateValue).getTime();
-    }
-    if (typeof dateValue === 'number') {
-      return dateValue;
-    }
-    if (dateValue instanceof Date) {
-      return dateValue.getTime();
-    }
-    return 0;
+    return toDate(dateValue).getTime();
   } catch (error) {
     console.error('Error converting date to time:', error, dateValue);
     return 0;

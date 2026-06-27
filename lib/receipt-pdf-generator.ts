@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { toDate } from '@/lib/format';
 import type { PaymentReceipt, Order, OrderItem } from '@/lib/types';
 
 export function generatePaymentReceiptPDF(receipt: PaymentReceipt, order: Order): jsPDF {
@@ -12,16 +13,6 @@ export function generatePaymentReceiptPDF(receipt: PaymentReceipt, order: Order)
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 15;
   let yPosition = margin;
-
-  // Helper function to convert DateValue to Date
-  const toDate = (dateValue: any): Date => {
-    if (!dateValue) return new Date();
-    if (dateValue instanceof Date) return dateValue;
-    if (typeof dateValue === 'string' || typeof dateValue === 'number') return new Date(dateValue);
-    if (dateValue.toDate) return dateValue.toDate();
-    if (dateValue.seconds) return new Date(dateValue.seconds * 1000);
-    return new Date();
-  };
 
   // Helper function to add text
   const addText = (text: string, x: number, y: number, fontSize: number = 10, isBold: boolean = false, color: string = '#000000') => {

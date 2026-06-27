@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { toDate } from './format';
 import type { Order } from './types';
 
 interface EmailConfig {
@@ -258,11 +259,7 @@ export function getOrderStatusEmailTemplate(order: Order, status: string): strin
         ` : '';
 
   const statusInfo = statusMessages[status] || statusMessages.pending;
-  const orderDate = order.createdAt ? new Date(order.createdAt as any).toLocaleDateString('en-IN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }) : new Date().toLocaleDateString('en-IN', {
+  const orderDate = toDate(order.createdAt).toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

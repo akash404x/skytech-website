@@ -16,7 +16,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProducts } from '@/hooks/useProducts';
 import { db } from '@/lib/firebase';
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, toDate } from '@/lib/format';
 import { getProductPrice } from '@/lib/cart';
 import { mapProduct } from '@/lib/firestore-mappers';
 import type { Product, Review } from '@/lib/types';
@@ -85,16 +85,7 @@ export default function ProductDetailView() {
         const reviewsData = snapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() } as Review))
           .sort((a, b) => {
-            const toTimestamp = (dateValue: Review['createdAt']): number => {
-              if (!dateValue) return 0;
-              if (typeof dateValue === 'number') return dateValue;
-              if (dateValue instanceof Date) return dateValue.getTime();
-              if (typeof dateValue === 'string') return new Date(dateValue).getTime();
-              if (typeof dateValue === 'object' && 'toDate' in dateValue) return dateValue.toDate().getTime();
-              if (typeof dateValue === 'object' && 'seconds' in dateValue) return dateValue.seconds * 1000;
-              return 0;
-            };
-            return toTimestamp(b.createdAt) - toTimestamp(a.createdAt);
+            return toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime();
           });
         setReviews(reviewsData);
         setLoadingReviews(false);
