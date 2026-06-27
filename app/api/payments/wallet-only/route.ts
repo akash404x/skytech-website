@@ -7,7 +7,7 @@ import { sendEmail, getOrderStatusEmailTemplate } from '@/lib/email-service';
 import { generateReceiptNumber } from '@/lib/invoice-utils';
 import { markCouponAsUsed } from '@/lib/coupon-service';
 import { generatePaymentReceiptEmailTemplate } from '@/lib/payment-receipt-email';
-import type { CartItem, ShippingAddress } from '@/lib/types';
+import type { CartItem, ShippingAddress, PaymentReceipt } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -294,14 +294,19 @@ export async function POST(request: Request) {
       };
 
       // Create receipt object for email template
-      const receipt = {
+      const receipt: PaymentReceipt = {
         id: orderRef.id,
         orderId: orderRef.id,
         userId: profile.uid,
+        userEmail: profile.email,
         receiptNumber: orderNumber,
         orderNumber,
         transactionId: `WALLET-${orderRef.id}`,
         paymentId: `WALLET-${orderRef.id}`,
+        customerName: body.shippingAddress.fullName || profile.displayName,
+        customerPhone: body.shippingAddress.phone,
+        billingAddress: body.shippingAddress,
+        shippingAddress: body.shippingAddress,
         paymentMethod: 'Wallet',
         paymentDate: new Date(),
         amount: checkout.total,
@@ -309,11 +314,6 @@ export async function POST(request: Request) {
         grandTotal: checkout.total,
         currency: checkout.currency,
         status: 'paid',
-        customerName: body.shippingAddress.fullName || profile.displayName,
-        userEmail: profile.email,
-        customerPhone: body.shippingAddress.phone,
-        billingAddress: body.shippingAddress,
-        shippingAddress: body.shippingAddress,
       };
 
       // Send payment receipt email

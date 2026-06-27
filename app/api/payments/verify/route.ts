@@ -7,7 +7,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { generateReceiptNumber } from '@/lib/invoice-utils';
 import { sendEmail } from '@/lib/email-service';
 import { generatePaymentReceiptEmailTemplate } from '@/lib/payment-receipt-email';
-import type { CartItem, ShippingAddress } from '@/lib/types';
+import type { CartItem, ShippingAddress, PaymentReceipt } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -183,14 +183,19 @@ export async function POST(request: Request) {
       console.log('Customer Email:', profile.email);
 
       // Create receipt object for email template
-      const receipt = {
+      const receipt: PaymentReceipt = {
         id: order.id,
         orderId: order.id,
         userId: profile.uid,
+        userEmail: profile.email,
         receiptNumber: order.orderNumber,
         orderNumber: order.orderNumber,
         transactionId: body.razorpayOrderId,
         paymentId: body.razorpayPaymentId,
+        customerName: body.shippingAddress.fullName || profile.displayName,
+        customerPhone: body.shippingAddress.phone,
+        billingAddress: body.shippingAddress,
+        shippingAddress: body.shippingAddress,
         paymentMethod: 'Razorpay',
         paymentDate: new Date(),
         amount: checkout.total,
@@ -198,11 +203,6 @@ export async function POST(request: Request) {
         grandTotal: checkout.total,
         currency: checkout.currency,
         status: 'paid',
-        customerName: body.shippingAddress.fullName || profile.displayName,
-        userEmail: profile.email,
-        customerPhone: body.shippingAddress.phone,
-        billingAddress: body.shippingAddress,
-        shippingAddress: body.shippingAddress,
       };
 
       const emailHtml = generatePaymentReceiptEmailTemplate(receipt, order);
