@@ -47,6 +47,7 @@ import {
   Type,
   Highlighter,
   Upload,
+  Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
 
