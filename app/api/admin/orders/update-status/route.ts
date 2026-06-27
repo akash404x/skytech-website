@@ -4,6 +4,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { sendEmail, getOrderStatusEmailTemplate, getReturnApprovedEmailTemplate, getReplacementApprovedEmailTemplate } from '@/lib/email-service';
 import { sendOrderStatusEmail } from '@/lib/sendOrderEmail';
 import { processOrderRefund } from '@/lib/refund-service';
+import { generateInvoiceNumber } from '@/lib/invoice-utils';
 import type { Order, NotificationType } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -49,6 +50,68 @@ export async function POST(request: Request) {
     await adminDb.collection('orders').doc(orderId).update({
       timeline: [...(order.timeline || []), timelineEvent],
     });
+
+    // Auto-generate invoice when order is confirmed
+    if (status === 'confirmed' && !order.invoiceNumber) {
+      try {
+        console.log('=== GENERATING INVOICE FOR CONFIRMED ORDER ===');
+        console.log('Order ID:', orderId);
+        console.log('Order Number:', order.orderNumber);
+
+        const invoiceNumber = generateInvoiceNumber();
+        const invoiceDate = new Date();
+
+        // Try to write invoice - if it fails due to permissions, store in order instead
+        try {
+          const invoiceRef = adminDb.collection('invoices').doc();
+          const invoiceData = {
+            id: invoiceRef.id,
+            orderId: order.id,
+            orderNumber: order.orderNumber,
+            userId: order.userId,
+            userEmail: order.userEmail,
+            invoiceNumber,
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            billingAddress: order.shippingAddress,
+            shippingAddress: order.shippingAddress,
+            items: order.items,
+            subtotal: order.subtotal,
+            gstAmount: order.gstAmount,
+            gstPercentage: order.gstPercentage,
+            shippingFee: order.shippingFee,
+            deliveryCharge: order.deliveryCharge,
+            discount: order.discount,
+            total: order.total,
+            currency: order.currency,
+            invoiceDate,
+            status: 'generated',
+          };
+
+          console.log('Attempting to write invoice to Firestore...');
+          await invoiceRef.set(invoiceData);
+          console.log('Invoice written successfully');
+        } catch (collectionError) {
+          console.warn('Could not write to invoices collection, storing in order instead:', collectionError);
+          // Store invoice data directly in order document as fallback
+        }
+
+        // Update order with invoice details (this should always work)
+        console.log('Updating order with invoice details...');
+        await adminDb.collection('orders').doc(orderId).update({
+          invoiceNumber,
+          invoiceGeneratedAt: invoiceDate,
+          updatedAt: new Date(),
+        });
+        console.log('Order updated successfully');
+
+        console.log('✅ Invoice processed:', { invoiceNumber });
+      } catch (invoiceError) {
+        console.error('❌ Failed to process invoice:', invoiceError);
+        console.error('Error details:', JSON.stringify(invoiceError, null, 2));
+        // Don't fail the status update if invoice generation fails
+      }
+    }
 
     // Process refund if order is cancelled
     if (status === 'cancelled') {

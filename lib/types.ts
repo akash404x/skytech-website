@@ -185,6 +185,9 @@ export interface Order {
   invoiceNumber?: string;
   invoiceUrl?: string;
   invoiceGeneratedAt?: DateValue;
+  receiptNumber?: string;
+  receiptUrl?: string;
+  receiptGeneratedAt?: DateValue;
   createdAt?: DateValue;
   updatedAt?: DateValue;
   // Coupon-related fields
@@ -360,6 +363,58 @@ export interface Coupon {
   usedBy?: string;
   usedOrderId?: string;
   usedAt?: DateValue;
+  createdAt?: DateValue;
+  updatedAt?: DateValue;
+}
+
+export interface PaymentReceipt {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  userId: string;
+  userEmail: string;
+  receiptNumber: string;
+  transactionId: string;
+  paymentId: string;
+  customerName: string;
+  customerPhone?: string;
+  billingAddress: ShippingAddress;
+  shippingAddress: ShippingAddress;
+  paymentMethod: string;
+  paymentDate: DateValue;
+  amount: number;
+  tax: number;
+  grandTotal: number;
+  currency: string;
+  status: 'paid';
+  pdfUrl?: string;
+  createdAt?: DateValue;
+}
+
+export interface Invoice {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  userId: string;
+  userEmail: string;
+  invoiceNumber: string;
+  customerName: string;
+  customerPhone?: string;
+  billingAddress: ShippingAddress;
+  shippingAddress: ShippingAddress;
+  items: OrderItem[];
+  subtotal: number;
+  gstAmount?: number;
+  gstPercentage?: number;
+  shippingFee?: number;
+  deliveryCharge?: number;
+  discount?: number;
+  total: number;
+  currency: string;
+  invoiceDate: DateValue;
+  dueDate?: DateValue;
+  status: 'generated' | 'sent';
+  pdfUrl?: string;
   createdAt?: DateValue;
   updatedAt?: DateValue;
 }

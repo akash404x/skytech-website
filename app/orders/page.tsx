@@ -1,7 +1,7 @@
 'use client';
 
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw, Eye, Star, FileText } from 'lucide-react';
+import { CreditCard, PackageCheck, ReceiptText, X, RotateCcw, RefreshCw, Eye, Star, FileText, Receipt, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 import { mapOrder, mapPayment } from '@/lib/firestore-mappers';
 import { formatCurrency, formatDate, orderStatusLabel, statusBadgeClass, toDate } from '@/lib/format';
-import type { Order, OrderStatus, PaymentTransaction } from '@/lib/types';
+import type { Order, OrderStatus, PaymentTransaction, PaymentReceipt } from '@/lib/types';
 
 const timelineStatuses: OrderStatus[] = ['pending', 'confirmed', 'packed', 'shipped', 'delivered'];
 
@@ -203,6 +203,7 @@ export default function OrdersPage() {
   const { user, loading: authLoading, getIdToken } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [payments, setPayments] = useState<PaymentTransaction[]>([]);
+  const [receipts, setReceipts] = useState<Record<string, PaymentReceipt>>({});
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingPayments, setLoadingPayments] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -258,6 +259,30 @@ export default function OrdersPage() {
     return () => unsubscribe();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return undefined;
+
+    const receiptsQuery = query(collection(db, 'paymentReceipts'), where('userId', '==', user.uid));
+    const unsubscribe = onSnapshot(
+      receiptsQuery,
+      (snapshot) => {
+        const receiptsMap: Record<string, PaymentReceipt> = {};
+        snapshot.docs.forEach((doc) => {
+          const receipt = { id: doc.id, ...doc.data() } as PaymentReceipt;
+          receiptsMap[receipt.orderId] = receipt;
+        });
+        setReceipts(receiptsMap);
+      },
+      (error) => {
+        console.warn('Error loading receipts (collection may not exist or permission issue):', error);
+        // Don't fail the entire page if receipt fetching fails
+        setReceipts({});
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user]);
+
   const isLoading = authLoading || loadingOrders;
   const totalPaid = useMemo(() => payments.reduce((total, payment) => total + payment.amount, 0), [payments]);
 
@@ -268,6 +293,15 @@ export default function OrdersPage() {
     } catch (error) {
       console.error('Error viewing invoice:', error);
       toast.error('Invoice not available yet');
+    }
+  };
+
+  const handleViewReceipt = (order: Order) => {
+    try {
+      window.open(`/receipt-preview/${order.orderNumber}`, '_blank');
+    } catch (error) {
+      console.error('Error viewing receipt:', error);
+      toast.error('Receipt not available yet');
     }
   };
 
@@ -333,29 +367,56 @@ export default function OrdersPage() {
                   <OrderTimeline order={order} />
                 </div>
 
-                {/* Invoice Section */}
+                {/* Payment Receipt Card */}
+                <div className="mt-5 rounded-2xl border border-emerald-500/30 p-5" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 78, 59, 0.1) 100%)' }}>
+                  <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-white">
+                    <Receipt className="h-4 w-4 text-emerald-400" />
+                    Payment Receipt
+                  </div>
+                  {order.payment ? (
+                    <button
+                      onClick={() => handleViewReceipt(order)}
+                      className="group relative flex w-full items-center justify-center gap-3 rounded-[15px] border border-emerald-500 px-6 py-[14px] font-semibold text-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.8) 0%, rgba(6, 78, 59, 0.8) 100%)',
+                        backdropFilter: 'blur(10px)',
+                        height: '54px'
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                      View Receipt
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Receipt className="h-4 w-4" />
+                      Payment receipt is being generated...
+                    </div>
+                  )}
+                </div>
+
+                {/* Invoice Card */}
                 <div className="mt-5 rounded-2xl border border-[#00E5FF]/30 p-5" style={{ background: 'linear-gradient(135deg, rgba(2,6,23,0.9) 0%, rgba(6,18,45,0.9) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)' }}>
                   <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-white">
-                    <ReceiptText className="h-4 w-4 text-[#00E5FF]" />
+                    <FileText className="h-4 w-4 text-[#00E5FF]" />
                     Invoice
                   </div>
                   {order.status === 'pending' ? (
                     <div className="flex items-center gap-2 text-sm text-slate-400">
-                      <ReceiptText className="h-4 w-4" />
-                      Invoice will be available after order confirmation
+                      <FileText className="h-4 w-4" />
+                      Invoice will be generated after order confirmation
                     </div>
                   ) : (
                     <button
                       onClick={() => handleViewInvoice(order.orderNumber)}
                       className="group relative flex w-full items-center justify-center gap-3 rounded-[15px] border border-[#00E5FF] px-6 py-[14px] font-semibold text-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-[0_0_30px_rgba(0,229,255,0.3)]"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(2,6,23,0.8) 0%, rgba(6,18,45,0.8) 100%)',
+                        background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.8) 0%, rgba(0, 150, 200, 0.8) 100%)',
                         backdropFilter: 'blur(10px)',
                         height: '54px'
                       }}
                     >
-                      <FileText className="h-5 w-5 text-[#00E5FF] transition-colors group-hover:text-[#00BFFF]" />
-                      <span className="text-[#D6E4FF] group-hover:text-white">View Invoice</span>
+                      <Eye className="h-4 w-4" />
+                      View Invoice
                     </button>
                   )}
                 </div>

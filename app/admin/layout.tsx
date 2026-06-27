@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw, Settings, MessageSquare, Ticket } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw, Settings, MessageSquare, Ticket, Mail, Send, FileText, Clock, Database } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
@@ -83,6 +83,7 @@ export default function AdminLayout({
     { name: 'Pricing Settings', href: '/admin/pricing-settings', icon: Settings },
     ...(isAdmin ? [{ name: 'Users', href: '/admin/users', icon: Users }] : []),
     { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare, badge: pendingReviewsCount },
+    { name: 'Send Bulk Message', href: '/admin/send-bulk-message', icon: Send },
   ];
 
   return (

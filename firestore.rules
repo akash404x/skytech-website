@@ -113,5 +113,17 @@ service cloud.firestore {
       // Only admins can read/write coupons
       allow read, write: if isAdmin();
     }
+    
+    // Payment receipts collection - users can read their own receipts, admins can read all
+    match /paymentReceipts/{receiptId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAdmin();
+    }
+    
+    // Invoices collection - users can read their own invoices, admins can read/write all
+    match /invoices/{invoiceId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create, update: if isAdmin();
+    }
   }
 }

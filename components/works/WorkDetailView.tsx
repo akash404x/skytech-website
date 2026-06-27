@@ -55,13 +55,71 @@ export default function WorkDetailView({ work, relatedWorks }: WorkDetailViewPro
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const galleryImages = work.images || [];
   const allImages = work.thumbnail ? [work.thumbnail, ...galleryImages.filter(img => img !== work.thumbnail)] : galleryImages;
-  
+
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    console.log('Next button clicked, current index:', currentImageIndex, 'total images:', allImages.length);
+    setCurrentImageIndex((prev) => {
+      const newIndex = (prev + 1) % allImages.length;
+      console.log('New index:', newIndex);
+      return newIndex;
+    });
   };
-  
+
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+    console.log('Previous button clicked, current index:', currentImageIndex, 'total images:', allImages.length);
+    setCurrentImageIndex((prev) => {
+      const newIndex = (prev - 1 + allImages.length) % allImages.length;
+      console.log('New index:', newIndex);
+      return newIndex;
+    });
+  };
+
+  const goToImage = (index: number) => {
+    console.log('Dot indicator clicked, going to index:', index);
+    setCurrentImageIndex(index);
+  };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (allImages.length <= 1) return;
+      if (e.key === 'ArrowLeft') {
+        prevImage();
+      } else if (e.key === 'ArrowRight') {
+        nextImage();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [allImages.length]);
+
+  // Swipe support for mobile
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextImage();
+    } else if (isRightSwipe) {
+      prevImage();
+    }
   };
 
   const sectionRef = useRef<HTMLElement>(null);
@@ -116,6 +174,9 @@ export default function WorkDetailView({ work, relatedWorks }: WorkDetailViewPro
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.65, delay: 0.2, ease: [0.22, 1, 0.36, 1] as const }}
             className="relative mb-8 aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-800/50"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -129,33 +190,47 @@ export default function WorkDetailView({ work, relatedWorks }: WorkDetailViewPro
                 <ProductImage src={allImages[currentImageIndex]} alt={`${work.title} - Image ${currentImageIndex + 1}`} />
               </motion.div>
             </AnimatePresence>
-            
+
             {allImages.length > 1 && (
               <>
                 <button
                   type="button"
-                  onClick={prevImage}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition hover:bg-black/70"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Previous button clicked directly');
+                    prevImage();
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition hover:bg-black/70 hover:scale-110 active:scale-95"
                   aria-label="Previous image"
                 >
                   <ChevronLeft className="h-6 w-6" />
                 </button>
                 <button
                   type="button"
-                  onClick={nextImage}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition hover:bg-black/70"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Next button clicked directly');
+                    nextImage();
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition hover:bg-black/70 hover:scale-110 active:scale-95"
                   aria-label="Next image"
                 >
                   <ChevronRight className="h-6 w-6" />
                 </button>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
                   {allImages.map((_, index) => (
                     <button
                       key={index}
                       type="button"
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`h-2 w-2 rounded-full transition ${
-                        index === currentImageIndex ? 'bg-cyan-400' : 'bg-white/50'
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        goToImage(index);
+                      }}
+                      className={`h-2 w-2 rounded-full transition hover:scale-125 ${
+                        index === currentImageIndex ? 'bg-cyan-400 scale-125' : 'bg-white/50 hover:bg-white/70'
                       }`}
                       aria-label={`Go to image ${index + 1}`}
                     />
@@ -222,7 +297,7 @@ export default function WorkDetailView({ work, relatedWorks }: WorkDetailViewPro
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 + index * 0.05 }}
                       whileHover={{ scale: 1.02 }}
-                      onClick={() => setCurrentImageIndex(index)}
+                      onClick={() => goToImage(index)}
                       className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-slate-800/50 cursor-pointer transition"
                     >
                       <ProductImage src={image} alt={`${work.title} - Image ${index + 1}`} />

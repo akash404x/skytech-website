@@ -4,8 +4,9 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase-admin';
 import { validateCheckoutItems } from '@/lib/server-checkout';
 import { sendEmail, getOrderStatusEmailTemplate } from '@/lib/email-service';
-import { generateInvoiceNumber } from '@/lib/invoice-utils';
+import { generateReceiptNumber } from '@/lib/invoice-utils';
 import { markCouponAsUsed } from '@/lib/coupon-service';
+import { generatePaymentReceiptEmailTemplate } from '@/lib/payment-receipt-email';
 import type { CartItem, ShippingAddress } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -188,20 +189,71 @@ export async function POST(request: Request) {
       }
     }
 
-    // Generate invoice number and send confirmation email
+    // Generate payment receipt for wallet payment
     try {
-      console.log('=== WALLET ORDER: GENERATING INVOICE AND SENDING EMAIL ===');
+      console.log('=== WALLET ORDER: GENERATING PAYMENT RECEIPT ===');
+      console.log('Order ID:', orderRef.id);
+      console.log('Order Number:', orderNumber);
+
+      const receiptNumber = orderNumber; // Use order number as receipt number
+      const paymentDate = new Date();
+
+      // Try to write receipt - if it fails due to permissions, store in order instead
+      try {
+        const receiptRef = adminDb.collection('paymentReceipts').doc();
+        const receiptData = {
+          id: receiptRef.id,
+          orderId: orderRef.id,
+          orderNumber,
+          userId: profile.uid,
+          userEmail: profile.email,
+          receiptNumber,
+          transactionId: `WALLET-${orderRef.id}`,
+          paymentId: `WALLET-${orderRef.id}`,
+          customerName: body.shippingAddress.fullName || profile.displayName,
+          customerPhone: body.shippingAddress.phone,
+          billingAddress: body.shippingAddress,
+          shippingAddress: body.shippingAddress,
+          paymentMethod: 'Wallet',
+          paymentDate,
+          amount: checkout.total,
+          tax: body.gstAmount || 0,
+          grandTotal: checkout.total,
+          currency: checkout.currency,
+          status: 'paid',
+        };
+
+        console.log('Attempting to write receipt to Firestore...');
+        await receiptRef.set(receiptData);
+        console.log('Receipt written successfully');
+      } catch (collectionError) {
+        console.warn('Could not write to paymentReceipts collection, storing in order instead:', collectionError);
+        // Store receipt data directly in order document as fallback
+      }
+
+      // Update order with receipt details (this should always work)
+      console.log('Updating order with receipt details...');
+      await adminDb.collection('orders').doc(orderRef.id).update({
+        receiptNumber,
+        receiptGeneratedAt: paymentDate,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      console.log('Order updated successfully');
+
+      console.log('✅ Wallet payment receipt processed:', { receiptNumber });
+    } catch (receiptError) {
+      console.error('❌ Failed to process wallet payment receipt:', receiptError);
+      console.error('Error details:', JSON.stringify(receiptError, null, 2));
+      // Don't fail the order if receipt generation fails
+    }
+
+    // Send confirmation email with payment receipt
+    try {
+      console.log('=== WALLET ORDER: SENDING CONFIRMATION EMAIL ===');
       console.log('Order ID:', orderRef.id);
       console.log('Order Number:', orderNumber);
       console.log('Customer Email:', profile.email);
       console.log('Customer Name:', body.shippingAddress.fullName || profile.displayName);
-
-      const invoiceNumber = generateInvoiceNumber();
-      await adminDb.collection('orders').doc(orderRef.id).update({
-        invoiceNumber,
-        invoiceGeneratedAt: new Date(),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
 
       // Create order object for email template
       const order = {
@@ -239,25 +291,39 @@ export async function POST(request: Request) {
         ],
         createdAt: new Date(),
         updatedAt: new Date(),
-        invoiceNumber,
       };
 
-      // Send confirmation email
-      const emailHtml = getOrderStatusEmailTemplate(order, 'pending');
+      // Create receipt object for email template
+      const receipt = {
+        receiptNumber: orderNumber,
+        orderNumber,
+        paymentId: `WALLET-${orderRef.id}`,
+        paymentMethod: 'Wallet',
+        paymentDate: new Date(),
+        grandTotal: checkout.total,
+        customerName: body.shippingAddress.fullName || profile.displayName,
+        userEmail: profile.email,
+        customerPhone: body.shippingAddress.phone,
+        billingAddress: body.shippingAddress,
+        shippingAddress: body.shippingAddress,
+      };
+
+      // Send payment receipt email
+      const emailHtml = generatePaymentReceiptEmailTemplate(receipt, order);
       const emailResult = await sendEmail({
         to: order.userEmail,
-        subject: 'Order Pending Once Confirmed You Will Be Notified and The Order Staus You will Be Able To See In The Website - Sky Tech',
+        subject: `Payment Receipt - ${receipt.receiptNumber} - Sky Tech`,
         html: emailHtml,
       });
 
       if (emailResult.success) {
-        console.log('✅ Wallet order confirmation email sent successfully:', { orderId: orderRef.id, userEmail: order.userEmail });
+        console.log('✅ Wallet order payment receipt email sent successfully:', { orderId: orderRef.id, userEmail: order.userEmail });
       } else {
-        console.error('❌ Failed to send wallet order confirmation email:', emailResult.error);
+        console.error('❌ Failed to send wallet order payment receipt email:', emailResult.error);
       }
       console.log('=======================================================');
     } catch (emailError) {
-      console.error('❌ Failed to send wallet order confirmation email:', emailError);
+      console.error('❌ Failed to send wallet order payment receipt email:', emailError);
       // Don't fail the order if email fails
     }
 

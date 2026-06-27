@@ -1,7 +1,7 @@
 'use client';
 
 import { arrayUnion, collection, doc, onSnapshot, query, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { PackageCheck, Search, ShoppingCart, Check, X } from 'lucide-react';
+import { PackageCheck, Search, ShoppingCart, Check, X, Receipt, FileText, Eye } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import EmptyState from '@/components/EmptyState';
@@ -236,6 +236,28 @@ export default function AdminOrders() {
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <p className="text-2xl font-bold text-white">{formatCurrency(order.total, order.currency)}</p>
+                  <div className="flex gap-2">
+                    {order.payment && (
+                      <button
+                        onClick={() => window.open(`/receipt-preview/${order.orderNumber}`, '_blank')}
+                        className="flex items-center gap-1 rounded-lg border border-emerald-500 bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/30"
+                        title="View Receipt"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Receipt
+                      </button>
+                    )}
+                    {order.status !== 'pending' && (
+                      <button
+                        onClick={() => window.open(`/invoice-preview/${order.orderNumber}`, '_blank')}
+                        className="flex items-center gap-1 rounded-lg border border-cyan-500 bg-cyan-500/20 px-3 py-2 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-500/30"
+                        title="View Invoice"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Invoice
+                      </button>
+                    )}
+                  </div>
                   <select
                     value={order.status}
                     disabled={updatingOrderId === order.id}
