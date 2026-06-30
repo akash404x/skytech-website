@@ -2,12 +2,15 @@ import { generateSkyTechEmailTemplate, SkyTechEmailData } from '@/lib/skytech-em
 import type { PaymentReceipt, OrderItem } from '@/lib/types';
 
 export function generatePaymentReceiptEmailTemplate(receipt: PaymentReceipt, items: OrderItem[]): string {
-  const itemsList = items.map(item => 
+  const itemsList = items.map(item =>
     `<li style="margin-bottom: 8px; padding: 12px; background: #F8FBFF; border-radius: 8px; border: 1px solid #DCEEFF;">
       <div style="font-weight: 600; color: #1F2937; margin-bottom: 4px;">${item.name}</div>
       <div style="font-size: 14px; color: #64748B;">Qty: ${item.quantity} × ₹${item.unitPrice.toFixed(2)} = ₹${item.lineTotal.toFixed(2)}</div>
     </li>`
   ).join('');
+
+  // Calculate subtotal from items
+  const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
 
   const content = `
     <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px; text-align: center;">
@@ -55,36 +58,12 @@ export function generatePaymentReceiptEmailTemplate(receipt: PaymentReceipt, ite
       
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #64748B;">Subtotal</span>
-        <span style="color: #1F2937; font-weight: 600;">₹${order.subtotal.toFixed(2)}</span>
+        <span style="color: #1F2937; font-weight: 600;">₹${subtotal.toFixed(2)}</span>
       </div>
-      ${order.gstAmount ? `
+      ${receipt.tax ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-        <span style="color: #64748B;">GST (${order.gstPercentage}%)</span>
-        <span style="color: #1F2937; font-weight: 600;">₹${order.gstAmount.toFixed(2)}</span>
-      </div>
-      ` : ''}
-      ${order.shippingFee ? `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-        <span style="color: #64748B;">Shipping</span>
-        <span style="color: #1F2937; font-weight: 600;">₹${order.shippingFee.toFixed(2)}</span>
-      </div>
-      ` : ''}
-      ${order.deliveryCharge ? `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-        <span style="color: #64748B;">Delivery Charge</span>
-        <span style="color: #1F2937; font-weight: 600;">₹${order.deliveryCharge.toFixed(2)}</span>
-      </div>
-      ` : ''}
-      ${order.discount ? `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-        <span style="color: #10B981;">Discount</span>
-        <span style="color: #10B981; font-weight: 600;">-₹${order.discount.toFixed(2)}</span>
-      </div>
-      ` : ''}
-      ${order.walletUsed ? `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-        <span style="color: #10B981;">Wallet Used</span>
-        <span style="color: #10B981; font-weight: 600;">-₹${order.walletUsed.toFixed(2)}</span>
+        <span style="color: #64748B;">Tax</span>
+        <span style="color: #1F2937; font-weight: 600;">₹${receipt.tax.toFixed(2)}</span>
       </div>
       ` : ''}
       
