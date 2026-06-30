@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { uploadChatAttachment } from '@/lib/firebase-storage';
 import { toDate } from '@/lib/format';
 import { mapChat, mapChatMessage } from '@/lib/firestore-mappers';
-import type { Chat, ChatMessage } from '@/lib/types';
+import type { Chat, ChatMessage, DateValue } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SupportChatProps {
@@ -43,7 +43,7 @@ export default function SupportChat({ orderId, orderNumber, userName, userEmail,
   const currentUserId = user?.uid || '';
   const currentUserName = user?.displayName || user?.email || 'Customer';
 
-  const formatTimestamp = (timestamp: unknown) => {
+  const formatTimestamp = (timestamp: DateValue) => {
     return toDate(timestamp).toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
