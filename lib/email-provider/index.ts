@@ -178,9 +178,9 @@ export class EmailService {
 
   static createZohoProvider(): EmailService {
     const config: EmailConfig = {
-      host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.in',
-      port: Number(process.env.ZOHO_SMTP_PORT?.trim()) || 465,
-      secure: process.env.ZOHO_SMTP_SECURE?.trim() === 'true',
+      host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.com',
+      port: Number(process.env.ZOHO_SMTP_PORT) || 465,
+      secure: process.env.ZOHO_SMTP_SECURE === 'true',
       auth: {
         user: process.env.ZOHO_EMAIL?.trim() || '',
         pass: process.env.ZOHO_PASSWORD?.trim() || '',

@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 
 // Email configuration using Zoho Mail SMTP
 const transporter = nodemailer.createTransport({
-  host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.in',
+  host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.com',
   port: Number(process.env.ZOHO_SMTP_PORT) || 465,
   secure: process.env.ZOHO_SMTP_SECURE === 'true',
   auth: {
@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.ZOHO_PASSWORD?.trim() || '',
   },
   tls: {
-    rejectUnauthorized: false, // Allow self-signed certificates
+    rejectUnauthorized: false,
   },
 });
 

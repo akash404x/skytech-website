@@ -2,16 +2,6 @@ import nodemailer from 'nodemailer';
 import { toDate } from './format';
 import type { Order } from './types';
 
-interface EmailConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  auth: {
-    user: string;
-    pass: string;
-  };
-}
-
 // Initialize transporter at module level for Vercel Serverless compatibility
 const transporter = nodemailer.createTransport({
   host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.com',
@@ -78,7 +68,14 @@ export async function sendEmail({
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error',
-      details: error,
+      details: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        response: (error as any).response,
+        responseStatus: (error as any).responseStatus,
+        responseCode: (error as any).responseCode,
+        command: (error as any).command,
+      } : null
     };
   }
 }
