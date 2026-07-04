@@ -3,8 +3,8 @@ import nodemailer from 'nodemailer';
 // Email configuration using Zoho Mail SMTP
 const transporter = nodemailer.createTransport({
   host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.in',
-  port: Number(process.env.ZOHO_SMTP_PORT?.trim()) || 465,
-  secure: process.env.ZOHO_SMTP_SECURE?.trim() === 'true',
+  port: Number(process.env.ZOHO_SMTP_PORT) || 465,
+  secure: process.env.ZOHO_SMTP_SECURE === 'true',
   auth: {
     user: process.env.ZOHO_EMAIL?.trim() || '',
     pass: process.env.ZOHO_PASSWORD?.trim() || '',
@@ -320,17 +320,25 @@ export async function sendOrderStatusEmail(data: OrderEmailData): Promise<{ succ
     console.log('=====================================');
 
     // Send email
-    const info = await transporter.sendMail({
-      from: process.env.ZOHO_SMTP_FROM?.trim() || process.env.ZOHO_EMAIL?.trim()!,
-      to: data.customerEmail,
-      subject,
-      html,
-    });
+    try {
+      const info = await transporter.sendMail({
+        from: process.env.ZOHO_SMTP_FROM?.trim() || process.env.ZOHO_EMAIL?.trim()!,
+        to: data.customerEmail,
+        subject,
+        html,
+      });
 
-    console.log('✅ Email sent successfully:', info.messageId);
-    return { success: true };
+      console.log('✅ Email sent successfully:', info.messageId);
+      return { success: true };
+    } catch (error) {
+      console.error('Vercel SMTP Error Details:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
   } catch (error) {
-    console.error('❌ Error sending order status email:', error);
+    console.error('Vercel SMTP Error Details:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred'
