@@ -57,8 +57,24 @@ export async function POST(request: Request) {
     const checkout = await validateCheckoutItems(body.items);
     const razorpayOrder = await fetchRazorpayOrder(body.razorpayOrderId);
 
-    // Calculate expected amount: total - wallet deduction - coupon discount
-    const expectedAmount = Math.round((checkout.total - (body.walletAmount || 0) - (body.discountAmount || 0)) * 100);
+    // Calculate final payable amount after all charges and discounts
+    const finalPayable = checkout.total - (body.discountAmount || 0);
+
+    // Auto-calculate wallet deduction: use minimum of wallet balance and final payable
+    const walletDeduction = body.walletAmount ? Math.min(body.walletAmount, finalPayable) : 0;
+    const remainingAmount = finalPayable - walletDeduction;
+
+    console.log('=== PAYMENT VERIFICATION WALLET CALCULATION ===');
+    console.log('Checkout total:', checkout.total);
+    console.log('Discount amount:', body.discountAmount);
+    console.log('Final payable:', finalPayable);
+    console.log('Wallet balance:', body.walletAmount);
+    console.log('Auto-calculated wallet deduction:', walletDeduction);
+    console.log('Remaining amount (Razorpay):', remainingAmount);
+    console.log('==============================================');
+
+    // Calculate expected Razorpay amount: remaining amount after wallet deduction
+    const expectedAmount = Math.round(remainingAmount * 100);
 
     if (
       razorpayOrder.id !== body.razorpayOrderId ||
@@ -69,7 +85,7 @@ export async function POST(request: Request) {
     }
 
     // If wallet was used, deduct from wallet balance
-    if (body.walletAmount && body.walletAmount > 0) {
+    if (walletDeduction > 0) {
       const now = FieldValue.serverTimestamp();
       const userRef = adminDb.collection('users').doc(profile.uid);
 
@@ -78,12 +94,12 @@ export async function POST(request: Request) {
         const userData = userDoc.data();
         const currentBalance = userData?.walletBalance || 0;
 
-        if (currentBalance < body.walletAmount!) {
+        if (currentBalance < walletDeduction) {
           throw new Error('Insufficient wallet balance');
         }
 
         transaction.update(userRef, {
-          walletBalance: FieldValue.increment(-body.walletAmount!),
+          walletBalance: FieldValue.increment(-walletDeduction),
           updatedAt: now,
         });
 
@@ -91,7 +107,7 @@ export async function POST(request: Request) {
         const walletTransactionRef = adminDb.collection('walletTransactions').doc();
         transaction.set(walletTransactionRef, {
           userId: profile.uid,
-          amount: body.walletAmount,
+          amount: walletDeduction,
           type: 'debit',
           description: `Partial payment for order`,
           createdAt: now,
@@ -109,7 +125,7 @@ export async function POST(request: Request) {
       gstPercentage: body.gstPercentage,
       shippingFee: body.shippingFee,
       deliveryCharge: body.deliveryCharge,
-      walletUsed: body.walletAmount,
+      walletUsed: walletDeduction,
       couponCode: body.couponCode,
       discountAmount: body.discountAmount,
     });

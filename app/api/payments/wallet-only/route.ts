@@ -34,28 +34,39 @@ export async function POST(request: Request) {
 
     const checkout = await validateCheckoutItems(body.items);
 
-    // Calculate amount after coupon discount
-    const amountAfterCoupon = checkout.total - (body.discountAmount || 0);
+    // Calculate final payable amount after all charges and discounts
+    const finalPayable = checkout.total - (body.discountAmount || 0);
 
     console.log('=== WALLET-ONLY PAYMENT VALIDATION ===');
     console.log('Checkout total:', checkout.total);
     console.log('Discount amount:', body.discountAmount);
-    console.log('Amount after coupon:', amountAfterCoupon);
-    console.log('Wallet deduction requested:', body.walletAmount);
+    console.log('Final payable amount:', finalPayable);
+    console.log('Wallet balance:', body.walletAmount);
 
-    // The wallet deduction should not exceed the amount after coupon
-    if (body.walletAmount > amountAfterCoupon) {
-      console.log('ERROR: Wallet deduction exceeds amount after coupon');
-      return NextResponse.json({ error: 'Wallet deduction cannot exceed payable amount after coupon' }, { status: 400 });
-    }
+    // Auto-calculate wallet deduction: use minimum of wallet balance and final payable
+    const walletDeduction = Math.min(body.walletAmount, finalPayable);
+    const remainingAmount = finalPayable - walletDeduction;
+
+    console.log('Auto-calculated wallet deduction:', walletDeduction);
+    console.log('Remaining amount to pay:', remainingAmount);
 
     // Ensure wallet deduction is not negative
-    if (body.walletAmount < 0) {
+    if (walletDeduction < 0) {
       console.log('ERROR: Wallet deduction is negative');
       return NextResponse.json({ error: 'Wallet deduction cannot be negative' }, { status: 400 });
     }
 
-    console.log('Validation passed');
+    // If there's a remaining amount, this should go through Razorpay, not wallet-only
+    if (remainingAmount > 0) {
+      console.log('ERROR: Remaining amount requires Razorpay payment');
+      return NextResponse.json({ 
+        error: 'Remaining amount requires online payment. Please use Razorpay checkout.',
+        remainingAmount,
+        walletDeduction
+      }, { status: 400 });
+    }
+
+    console.log('Validation passed - wallet covers full amount');
 
     const now = FieldValue.serverTimestamp();
     const timelineDate = new Date();
@@ -70,7 +81,7 @@ export async function POST(request: Request) {
       const userData = userDoc.data();
       const currentBalance = userData?.walletBalance || 0;
 
-      if (currentBalance < body.walletAmount) {
+      if (currentBalance < walletDeduction) {
         throw new Error('Insufficient wallet balance');
       }
 
@@ -90,9 +101,9 @@ export async function POST(request: Request) {
         });
       }
 
-      // Deduct wallet balance
+      // Deduct wallet balance (use auto-calculated walletDeduction)
       transaction.update(userRef, {
-        walletBalance: FieldValue.increment(-body.walletAmount),
+        walletBalance: FieldValue.increment(-walletDeduction),
         updatedAt: now,
       });
 
@@ -100,7 +111,7 @@ export async function POST(request: Request) {
       const walletTransactionRef = adminDb.collection('walletTransactions').doc();
       transaction.set(walletTransactionRef, {
         userId: profile.uid,
-        amount: body.walletAmount,
+        amount: walletDeduction,
         type: 'debit',
         orderId: orderRef.id,
         description: `Payment for order ${orderNumber}`,
@@ -120,7 +131,7 @@ export async function POST(request: Request) {
         gstPercentage: body.gstPercentage ?? 0,
         shippingFee: body.shippingFee ?? 0,
         deliveryCharge: body.deliveryCharge ?? 0,
-        walletUsed: body.walletAmount,
+        walletUsed: walletDeduction,
         discount: body.discountAmount ?? 0,
         couponCode: body.couponCode ?? null,
         total: checkout.total,
@@ -269,7 +280,7 @@ export async function POST(request: Request) {
         gstPercentage: body.gstPercentage,
         shippingFee: body.shippingFee,
         deliveryCharge: body.deliveryCharge,
-        walletUsed: body.walletAmount,
+        walletUsed: walletDeduction,
         total: checkout.total,
         currency: checkout.currency,
         status: 'pending' as const,
