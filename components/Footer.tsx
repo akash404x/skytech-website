@@ -88,7 +88,7 @@ export default function Footer() {
                   <div className="w-10 h-10 rounded-lg bg-[#00bfff]/10 border border-[#00bfff]/20 flex items-center justify-center">
                     <Phone className="h-5 w-5 text-[#00bfff]" />
                   </div>
-                  <span className="text-[#d6e4ff]">+91 5334357055</span>
+                  <span className="text-[#d6e4ff]">+91 8429372020</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-[#00bfff]/10 border border-[#00bfff]/20 flex items-center justify-center">

@@ -403,7 +403,7 @@ export function generateSkyTechEmailTemplate(data: SkyTechEmailData): string {
                 <td style="width: 12px;"></td>
                 <td style="padding: 16px; text-align: center; background: #ffffff; border: 1px solid #DCEEFF; border-radius: 10px;">
                   <p style="margin: 0 0 8px; color: #0EA5FF; font-size: 14px; font-weight: 600;">📞 Phone</p>
-                  <p style="margin: 0; color: #1F2937; font-size: 14px;">+91 5334357055</p>
+                  <p style="margin: 0; color: #1F2937; font-size: 14px;">+91 8429372020</p>
                 </td>
               </tr>
               <tr>

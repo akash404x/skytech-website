@@ -182,7 +182,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-white mb-1">Phone</h3>
-                    <p className="text-[#d6e4ff]/80">+91 5334357055</p>
+                    <p className="text-[#d6e4ff]/80">+91 8429372020</p>
                     <p className="text-sm text-[#d6e4ff]/60">Mon-Fri, 9AM-6PM IST</p>
                   </div>
                 </div>
@@ -218,7 +218,7 @@ export default function ContactPage() {
               <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
               <div className="space-y-3">
                 <a
-                  href="https://wa.me/915334357055"
+                  href="https://wa.me/918429372020"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-4 rounded-xl border border-green-500/30 bg-green-500/10 hover:bg-green-500/20 transition-colors"

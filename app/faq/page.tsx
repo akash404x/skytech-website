@@ -20,7 +20,7 @@ const faqData = [
       },
       {
         question: 'How can I contact SkyTech?',
-        answer: 'You can reach us through our contact page, email us at contact@theskytechnology.in, or call us at +91 5334357055. Our support team is available Monday-Friday, 9AM-6PM IST.',
+        answer: 'You can reach us through our contact page, email us at contact@theskytechnology.in, or call us at +91 8429372020. Our support team is available Monday-Friday, 9AM-6PM IST.',
       },
     ],
   },

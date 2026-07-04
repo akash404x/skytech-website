@@ -99,8 +99,8 @@ export default function ServicesShowcase({ variant = 'home' }: ServicesShowcaseP
                   const message = encodeURIComponent('Hi Sky Tech, I need a custom service/project. Please guide me.');
                   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                   const whatsappUrl = isMobile 
-                    ? `whatsapp://send?phone=9195334357055&text=${message}`
-                    : `https://wa.me/9195334357055?text=${message}`;
+                    ? `whatsapp://send?phone=918429372020&text=${message}`
+                    : `https://wa.me/918429372020?text=${message}`;
                   
                   if (isMobile) {
                     window.location.href = whatsappUrl;

@@ -214,7 +214,7 @@ export function generatePaymentReceiptPDF(receipt: PaymentReceipt, order: Order)
   yPosition += 6;
   addText('Email: contact@theskytechnology.in', margin, yPosition, 10, false, '#0EA5FF');
   yPosition += 6;
-  addText('Phone: +91 5334357055', margin, yPosition, 10, false, '#0EA5FF');
+  addText('Phone: +91 8429372020', margin, yPosition, 10, false, '#0EA5FF');
   yPosition += 6;
   addText('Website: theskytechnology.in', margin, yPosition, 10, false, '#0EA5FF');
   

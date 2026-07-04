@@ -325,7 +325,7 @@ export default function PrivacyPolicyPage() {
                 </a>
               </p>
               <p className="text-[#d6e4ff]/80">
-                <strong>Phone:</strong> +91 5334357055
+                <strong>Phone:</strong> +91 8429372020
               </p>
               <p className="text-[#d6e4ff]/80">
                 <strong>Address:</strong> Prayagraj, Uttar Pradesh, India
