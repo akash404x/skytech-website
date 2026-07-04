@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.in',
   port: Number(process.env.ZOHO_SMTP_PORT?.trim()) || 465,
-  secure: process.env.ZOHO_SMTP_SECURE?.trim() === 'true' || true,
+  secure: process.env.ZOHO_SMTP_SECURE?.trim() === 'true',
   auth: {
     user: process.env.ZOHO_EMAIL?.trim() || '',
     pass: process.env.ZOHO_PASSWORD?.trim() || '',
