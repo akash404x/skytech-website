@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { EmailService } from '@/lib/email-provider';
 import { sanitizeEmailHtml } from '@/lib/sanitize-html';
 import { generateSkyTechEmailTemplate, SkyTechEmailData } from '@/lib/skytech-email-template';
+import { sendEmail } from '@/lib/email-service';
 
 export const runtime = 'nodejs';
 
@@ -58,20 +58,6 @@ export async function POST(request: Request) {
     console.log('Batch size:', batchSize);
     console.log('Number of batches:', batches.length);
 
-    const emailService = EmailService.createDefaultProvider();
-    console.log('Email provider:', emailService.getProviderName());
-    
-    const verified = await emailService.verify();
-    console.log('Email provider verified:', verified);
-
-    if (!verified) {
-      console.error('❌ Email provider verification failed');
-      return NextResponse.json(
-        { success: false, error: 'Email service not available - SMTP verification failed' },
-        { status: 500 }
-      );
-    }
-
     for (const batch of batches) {
       console.log(`Processing batch of ${batch.length} recipients...`);
       const promises = batch.map(async (recipient: string) => {
@@ -99,15 +85,14 @@ export async function POST(request: Request) {
 
           const emailHtml = generateSkyTechEmailTemplate(templateData);
 
-          const result = await emailService.send({
+          const result = await sendEmail({
             to: recipient,
             subject: subject.trim(),
             html: emailHtml,
-            replyTo: 'contact@theskytechnology.in',
           });
 
           if (result.success) {
-            console.log(`✅ Sent to ${recipient}:`, result.messageId);
+            console.log(`✅ Sent to ${recipient}`);
             sentCount++;
           } else {
             console.error(`❌ Failed to send to ${recipient}:`, result.error);
@@ -115,7 +100,7 @@ export async function POST(request: Request) {
             errors.push(`${recipient}: ${result.error}`);
           }
         } catch (error) {
-          console.error(`❌ Exception sending to ${recipient}:`, error);
+          console.error('Vercel SMTP Error Details:', error);
           failedCount++;
           errors.push(`${recipient}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
