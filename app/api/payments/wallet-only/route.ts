@@ -34,12 +34,21 @@ export async function POST(request: Request) {
 
     const checkout = await validateCheckoutItems(body.items);
 
-    // Calculate final payable amount after all charges and discounts
-    const finalPayable = checkout.total - (body.discountAmount || 0);
+    // Calculate final payable amount including all charges and discounts
+    const subtotal = checkout.total;
+    const gstAmount = body.gstAmount || 0;
+    const shippingFee = body.shippingFee || 0;
+    const deliveryCharge = body.deliveryCharge || 0;
+    const discountAmount = body.discountAmount || 0;
+
+    const finalPayable = subtotal + gstAmount + shippingFee + deliveryCharge - discountAmount;
 
     console.log('=== WALLET-ONLY PAYMENT VALIDATION ===');
-    console.log('Checkout total:', checkout.total);
-    console.log('Discount amount:', body.discountAmount);
+    console.log('Subtotal (products):', subtotal);
+    console.log('GST amount:', gstAmount);
+    console.log('Shipping fee:', shippingFee);
+    console.log('Delivery charge:', deliveryCharge);
+    console.log('Coupon discount:', discountAmount);
     console.log('Final payable amount:', finalPayable);
     console.log('Wallet balance:', body.walletAmount);
 
