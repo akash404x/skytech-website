@@ -44,38 +44,16 @@ export interface EmailProvider {
 // Zoho Mail Provider (Current implementation)
 export class ZohoProvider implements EmailProvider {
   private config: EmailConfig;
+  private transporter: any = null;
 
   constructor(config: EmailConfig) {
     this.config = config;
   }
 
-  getProviderName(): string {
-    return 'Zoho Mail';
-  }
-
-  async verify(): Promise<boolean> {
-    const nodemailer = await import('nodemailer');
-    const transporter = nodemailer.createTransport({
-      host: this.config.host,
-      port: this.config.port,
-      secure: this.config.secure,
-      auth: this.config.auth,
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    return new Promise((resolve) => {
-      transporter.verify((error) => {
-        resolve(!error);
-      });
-    });
-  }
-
-  async send(message: EmailMessage): Promise<EmailSendResult> {
-    try {
+  private async getTransporter() {
+    if (!this.transporter) {
       const nodemailer = await import('nodemailer');
-      const transporter = nodemailer.createTransport({
+      this.transporter = nodemailer.createTransport({
         host: this.config.host,
         port: this.config.port,
         secure: this.config.secure,
@@ -84,6 +62,34 @@ export class ZohoProvider implements EmailProvider {
           rejectUnauthorized: false,
         },
       });
+    }
+    return this.transporter;
+  }
+
+  getProviderName(): string {
+    return 'Zoho Mail';
+  }
+
+  async verify(): Promise<boolean> {
+    const transporter = await this.getTransporter();
+
+    return new Promise((resolve) => {
+      transporter.verify((error: any) => {
+        resolve(!error);
+      });
+    });
+  }
+
+  async send(message: EmailMessage): Promise<EmailSendResult> {
+    try {
+      console.log('=== SENDING EMAIL VIA ZOHO PROVIDER ===');
+      console.log('To:', message.to);
+      console.log('Subject:', message.subject);
+      console.log('From:', this.config.from);
+      console.log('ReplyTo:', message.replyTo || this.config.replyTo);
+      console.log('==========================================');
+
+      const transporter = await this.getTransporter();
 
       const info = await transporter.sendMail({
         from: this.config.from,
@@ -95,12 +101,17 @@ export class ZohoProvider implements EmailProvider {
         replyTo: message.replyTo || this.config.replyTo,
       });
 
+      console.log('✅ Email sent successfully via Zoho:', info.messageId);
+      console.log('==========================================');
+
       return {
         success: true,
         messageId: info.messageId,
         provider: this.getProviderName(),
       };
     } catch (error) {
+      console.error('❌ Zoho SMTP Error Details:', error);
+      console.error('==========================================');
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -185,8 +196,8 @@ export class EmailService {
         user: process.env.ZOHO_EMAIL?.trim() || '',
         pass: process.env.ZOHO_PASSWORD?.trim() || '',
       },
-      from: 'Sky Tech <contact@theskytechnology.in>',
-      replyTo: 'contact@theskytechnology.in',
+      from: process.env.ZOHO_SMTP_FROM?.trim() || 'Sky Tech <contact@theskytechnology.in>',
+      replyTo: process.env.ZOHO_SMTP_FROM?.trim() || 'contact@theskytechnology.in',
     };
 
     return new EmailService(new ZohoProvider(config));
