@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wallet, ArrowDown, ArrowUp, Receipt, Plus, X, CreditCard } from 'lucide-react';
+import { Wallet, Plus, X, CreditCard } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/contexts/AuthContext';
-import { formatCurrency, formatDate, toDate } from '@/lib/format';
-import type { WalletTransaction } from '@/lib/types';
+import { formatCurrency } from '@/lib/format';
 
 declare global {
   interface Window {
@@ -63,7 +62,6 @@ export default function WalletPage() {
   const router = useRouter();
   const { user, loading: authLoading, getIdToken, profile } = useAuth();
   const [walletBalance, setWalletBalance] = useState(0);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddMoney, setShowAddMoney] = useState(false);
   const [addAmount, setAddAmount] = useState('');
@@ -87,15 +85,6 @@ export default function WalletPage() {
       if (balanceResponse.ok) {
         setWalletBalance(balanceData.walletBalance);
       }
-
-      // Fetch transactions
-      const transactionsResponse = await fetch('/api/wallet/transactions', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const transactionsData = await transactionsResponse.json();
-      if (transactionsResponse.ok) {
-        setTransactions(transactionsData.transactions);
-      }
     } catch (error) {
       console.error('Error fetching wallet data:', error);
       toast.error('Failed to load wallet data');
@@ -113,8 +102,8 @@ export default function WalletPage() {
     e.preventDefault();
     
     const amount = parseFloat(addAmount);
-    if (isNaN(amount) || amount < 10) {
-      toast.error('Minimum amount is ₹10');
+    if (isNaN(amount) || amount < 1) {
+      toast.error('Minimum amount is ₹1');
       return;
     }
     if (amount > 100000) {
@@ -225,14 +214,11 @@ export default function WalletPage() {
       <main className="tech-main">
         <div className="mb-8">
           <h1 className="tech-heading-gradient text-3xl font-bold">My Wallet</h1>
-          <p className="mt-2 tech-text">Manage your wallet balance and view transaction history</p>
+          <p className="mt-2 tech-text">Manage your wallet balance</p>
         </div>
 
         {loading ? (
-          <div className="space-y-6">
-            <Skeleton className="h-48" />
-            <Skeleton className="h-64" />
-          </div>
+          <Skeleton className="h-48" />
         ) : (
           <>
             {/* Wallet Balance Card */}
@@ -287,14 +273,14 @@ export default function WalletPage() {
                         value={addAmount}
                         onChange={(e) => setAddAmount(e.target.value)}
                         placeholder="Enter amount"
-                        min="10"
+                        min="1"
                         max="100000"
                         step="1"
                         required
                         disabled={addingMoney}
                         className="tech-input w-full"
                       />
-                      <p className="mt-2 text-xs tech-text">Minimum: ₹10 | Maximum: ₹1,00,000</p>
+                      <p className="mt-2 text-xs tech-text">Minimum: ₹1 | Maximum: ₹1,00,000</p>
                     </div>
 
                     <div className="flex gap-3">
@@ -333,67 +319,6 @@ export default function WalletPage() {
               </div>
             )}
 
-            {/* Transaction History */}
-            <div className="tech-glass-card p-6">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="rounded-lg bg-blue-600/30 p-3 text-blue-300">
-                  <Receipt className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">Transaction History</h2>
-                  <p className="text-sm tech-muted">All your wallet credits and debits</p>
-                </div>
-              </div>
-
-              {transactions.length === 0 ? (
-                <div className="py-12 text-center">
-                  <Receipt className="mx-auto h-12 w-12 text-slate-600" />
-                  <p className="mt-4 text-slate-400">No transactions yet</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {transactions.map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-900/50 p-4"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`rounded-lg p-3 ${
-                            transaction.type === 'credit'
-                              ? 'bg-green-500/20 text-green-300'
-                              : 'bg-red-500/20 text-red-300'
-                          }`}
-                        >
-                          {transaction.type === 'credit' ? (
-                            <ArrowDown className="h-5 w-5" />
-                          ) : (
-                            <ArrowUp className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-white">{transaction.description}</p>
-                          <p className="text-sm tech-text">{formatDate(transaction.createdAt)}</p>
-                          {transaction.status === 'pending' && (
-                            <span className="mt-1 inline-block rounded-full bg-yellow-500/20 px-2 py-0.5 text-xs text-yellow-300">
-                              Pending
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <p
-                        className={`text-lg font-semibold ${
-                          transaction.type === 'credit' ? 'text-green-300' : 'text-red-300'
-                        }`}
-                      >
-                        {transaction.type === 'credit' ? '+' : '-'}
-                        {formatCurrency(transaction.amount)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </>
         )}
       </main>

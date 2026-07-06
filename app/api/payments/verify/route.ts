@@ -118,7 +118,10 @@ export async function POST(request: Request) {
           userId: profile.uid,
           amount: walletDeduction,
           type: 'debit',
-          description: `Partial payment for order`,
+          status: 'completed',
+          orderId: order.id,
+          paymentId: body.razorpayPaymentId,
+          description: 'Order Payment',
           createdAt: now,
         });
       });

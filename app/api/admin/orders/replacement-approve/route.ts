@@ -80,8 +80,9 @@ export async function POST(request: Request) {
           userId: order.userId,
           amount: order.total,
           type: 'credit',
+          status: 'completed',
           orderId: order.id,
-          description: `Refund for replacement order ${order.orderNumber}`,
+          description: 'Replacement Refund',
           createdAt: now,
         });
       });

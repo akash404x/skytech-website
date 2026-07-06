@@ -122,8 +122,10 @@ export async function POST(request: Request) {
         userId: profile.uid,
         amount: walletDeduction,
         type: 'debit',
+        status: 'completed',
         orderId: orderRef.id,
-        description: `Payment for order ${orderNumber}`,
+        paymentId: `WALLET-${orderRef.id}`,
+        description: `Order Payment`,
         createdAt: now,
       });
 

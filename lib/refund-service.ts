@@ -50,12 +50,11 @@ export async function processOrderRefund(order: Order): Promise<{ success: boole
       const walletTransactionRef = adminDb.collection('walletTransactions').doc();
       transaction.set(walletTransactionRef, {
         userId: order.userId,
-        userEmail: order.userEmail,
         amount: refundAmount,
         type: 'credit',
-        reason: 'Admin Cancelled Order Refund',
+        status: 'completed',
         orderId: order.id,
-        orderNumber: order.orderNumber,
+        description: 'Order Refund',
         createdAt: now,
       });
       console.log('Wallet Transaction Created: ID:', walletTransactionRef.id);

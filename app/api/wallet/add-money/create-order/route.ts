@@ -12,8 +12,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { amount } = body;
 
-    if (!amount || typeof amount !== 'number' || amount < 10) {
-      return NextResponse.json({ error: 'Invalid amount. Minimum amount is ₹10' }, { status: 400 });
+    if (!amount || typeof amount !== 'number' || amount < 1) {
+      return NextResponse.json({ error: 'Invalid amount. Minimum amount is ₹1' }, { status: 400 });
     }
 
     if (amount > 100000) {
@@ -38,8 +38,8 @@ export async function POST(request: Request) {
       amount,
       type: 'credit',
       status: 'pending',
-      paymentId: razorpayOrder.id,
-      description: 'Adding money to wallet',
+      paymentId: razorpayOrder.id, // Store razorpayOrderId as paymentId for matching
+      description: 'Wallet Recharge',
       createdAt: FieldValue.serverTimestamp(),
     });
 
