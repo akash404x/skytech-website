@@ -65,7 +65,24 @@ export function mapProduct(id: string, data: DataRecord): Product {
   const rawDiscountPrice = data.discountPrice === null ? 0 : asNumber(data.discountPrice, 0);
   const imageUrlRaw = asString(data.imageUrl);
   const legacyImages = asStringArray(data.images);
-  const images = imageUrlRaw ? [imageUrlRaw] : legacyImages;
+
+  // Handle images array - support both string URLs and object format { url: string }
+  let images: string[] = [];
+  if (imageUrlRaw) {
+    images = [imageUrlRaw];
+  } else if (Array.isArray(data.images)) {
+    images = data.images.map((img) => {
+      if (typeof img === 'string') {
+        return img;
+      }
+      if (typeof img === 'object' && img !== null && 'url' in img) {
+        return asString((img as { url: string }).url);
+      }
+      return '';
+    }).filter((url) => url.length > 0);
+  } else if (legacyImages.length > 0) {
+    images = legacyImages;
+  }
 
   return {
     id,

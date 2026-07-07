@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/contexts/CartContext';
 import { formatCurrency } from '@/lib/format';
-import { getProductPrice } from '@/lib/cart';
+import { getProductPrice, getProductImageUrl } from '@/lib/cart';
 import type { Product } from '@/lib/types';
 
 interface PremiumProductCardProps {
@@ -23,6 +23,7 @@ export default function PremiumProductCard({ product, index }: PremiumProductCar
   const salePrice = getProductPrice(product);
   const hasDiscount = salePrice < product.price;
   const discount = hasDiscount ? Math.round(((product.price - salePrice) / product.price) * 100) : 0;
+  const imageUrl = getProductImageUrl(product);
 
   return (
     <motion.article
@@ -70,9 +71,9 @@ export default function PremiumProductCard({ product, index }: PremiumProductCar
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
             >
-              <ProductImage 
-                src={product.images[0]} 
-                alt={product.name} 
+              <ProductImage
+                src={imageUrl}
+                alt={product.name}
                 className="h-full w-full object-cover object-center"
               />
             </motion.div>

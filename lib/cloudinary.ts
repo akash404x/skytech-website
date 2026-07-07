@@ -1,4 +1,4 @@
-export async function uploadToCloudinary(file: File): Promise<{ url: string; type: 'image' | 'video' }> {
+export async function uploadToCloudinary(file: File): Promise<string> {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
@@ -29,8 +29,5 @@ export async function uploadToCloudinary(file: File): Promise<{ url: string; typ
   }
 
   const data = await response.json();
-  return {
-    url: data.secure_url,
-    type: resourceType as 'image' | 'video',
-  };
+  return data.secure_url;
 }

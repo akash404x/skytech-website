@@ -1,6 +1,6 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb, adminStorage } from './firebase-admin';
-import { getProductPrice } from './cart';
+import { getProductPrice, getProductImageUrl } from './cart';
 import { mapProduct } from './firestore-mappers';
 import { generateInvoiceNumber } from './invoice-utils';
 import { sendEmail, getOrderStatusEmailTemplate } from './email-service';
@@ -61,7 +61,7 @@ export async function validateCheckoutItems(items: Pick<CartItem, 'productId' | 
       productId: product.id,
       name: product.name,
       category: product.category,
-      image: product.images[0] ?? '',
+      image: getProductImageUrl(product),
       price: product.price,
       discountPrice: product.discountPrice,
       stock: product.stock,

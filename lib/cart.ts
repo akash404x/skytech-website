@@ -2,6 +2,16 @@ import type { CartItem, Product } from './types';
 
 export const CART_STORAGE_KEY = 'skytech_cart_v1';
 
+// Helper function to extract image URL from either string or object format
+export function getProductImageUrl(product: Product): string {
+  const firstImage = product.images[0];
+  if (!firstImage) return '';
+  if (typeof firstImage === 'string') {
+    return firstImage;
+  }
+  return (firstImage as { url: string }).url ?? '';
+}
+
 export function getProductPrice(product: Product) {
   return product.discountPrice && product.discountPrice > 0 && product.discountPrice < product.price
     ? product.discountPrice
@@ -23,7 +33,7 @@ export function productToCartItem(product: Product, quantity = 1): CartItem {
     productId: product.id,
     name: product.name,
     category: product.category,
-    image: product.images[0] ?? '',
+    image: getProductImageUrl(product),
     price: product.price,
     discountPrice: product.discountPrice,
     stock: product.stock,

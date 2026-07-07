@@ -5,14 +5,20 @@ import { useState } from 'react';
 import ProductImage from '@/components/ProductImage';
 
 interface ProductGalleryProps {
-  images: string[];
+  images: (string | { url: string })[];
   alt: string;
 }
 
+// Helper to convert images to string URLs
+function normalizeImages(images: (string | { url: string })[]): string[] {
+  return images.map((img) => (typeof img === 'string' ? img : img.url ?? ''));
+}
+
 export default function ProductGallery({ images, alt }: ProductGalleryProps) {
-  const galleryImages = images.length > 0 ? images : [''];
+  const galleryImages = normalizeImages(images);
+  const normalizedImages = galleryImages.length > 0 ? galleryImages : [''];
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeSrc = galleryImages[activeIndex];
+  const activeSrc = normalizedImages[activeIndex];
 
   return (
     <div className="space-y-4">
@@ -31,9 +37,9 @@ export default function ProductGallery({ images, alt }: ProductGalleryProps) {
         </AnimatePresence>
       </div>
 
-      {galleryImages.length > 1 && (
+      {normalizedImages.length > 1 && (
         <div className="flex gap-3 overflow-x-auto pb-1">
-          {galleryImages.map((src, index) => (
+          {normalizedImages.map((src, index) => (
             <button
               key={`${src}-${index}`}
               type="button"

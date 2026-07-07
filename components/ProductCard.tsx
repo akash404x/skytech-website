@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Sparkles, Star, Eye } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/format';
-import { getProductPrice } from '@/lib/cart';
+import { getProductPrice, getProductImageUrl } from '@/lib/cart';
 import type { Product } from '@/lib/types';
 import { useCart } from '@/contexts/CartContext';
 import ProductImage from './ProductImage';
@@ -20,6 +20,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const salePrice = getProductPrice(product);
   const hasDiscount = salePrice < product.price;
   const discount = hasDiscount ? Math.round(((product.price - salePrice) / product.price) * 100) : 0;
+  const imageUrl = getProductImageUrl(product);
 
   return (
     <motion.article
@@ -34,7 +35,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             transition={{ duration: 0.5 }}
             className="w-full h-full"
           >
-            <ProductImage src={product.images[0]} alt={product.name} priority={priority} />
+            <ProductImage src={imageUrl} alt={product.name} priority={priority} />
           </motion.div>
           
           {/* Badges */}

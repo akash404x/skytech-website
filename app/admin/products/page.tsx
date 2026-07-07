@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
 import { mapProduct } from '@/lib/firestore-mappers';
 import { formatCurrency } from '@/lib/format';
+import { getProductImageUrl } from '@/lib/cart';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import type { Product, ProductStatus } from '@/lib/types';
 
@@ -104,6 +105,10 @@ export default function AdminProducts() {
   };
 
   const openEditModal = (product: Product) => {
+    // Convert image objects to strings for backward compatibility
+    const firstImage = product.images[0];
+    const imageUrl = typeof firstImage === 'string' ? firstImage : firstImage?.url ?? '';
+
     setEditingProduct(product);
     setFormData({
       name: product.name,
@@ -115,7 +120,7 @@ export default function AdminProducts() {
       rating: product.rating.toString(),
       status: product.status,
       featured: product.featured,
-      imageUrl: product.images[0] ?? '',
+      imageUrl,
       imageFile: null,
       uploadProgress: 0,
       isUploading: false,
@@ -247,17 +252,17 @@ export default function AdminProducts() {
       // Upload image in background (non-blocking)
       if (formData.imageFile) {
         setFormData((prev) => ({ ...prev, isUploading: true, uploadProgress: 10 }));
-        
+
         try {
           const imageUrl = await uploadToCloudinary(formData.imageFile);
           setFormData((prev) => ({ ...prev, uploadProgress: 80 }));
-          
-          // Update product with image URL
+
+          // Update product with image URL (save as string, not object)
           await updateDoc(doc(db, 'products', productId), {
             images: [imageUrl],
             updatedAt: serverTimestamp(),
           });
-          
+
           setFormData((prev) => ({ ...prev, uploadProgress: 100, isUploading: false }));
           toast.success('Image uploaded successfully');
         } catch (error) {
@@ -326,7 +331,7 @@ export default function AdminProducts() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="relative h-20 w-20 overflow-hidden rounded-2xl bg-slate-900/70">
-                          <ProductImage src={product.images[0]} alt={product.name} />
+                          <ProductImage src={getProductImageUrl(product)} alt={product.name} />
                         </div>
                         <div>
                           <p className="font-semibold text-white">{product.name}</p>

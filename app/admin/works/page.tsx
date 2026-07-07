@@ -336,16 +336,16 @@ export default function AdminWorks() {
       });
 
       try {
-        const uploadResult = await uploadToCloudinary(mediaItem.file);
+        const uploadedUrl = await uploadToCloudinary(mediaItem.file);
         setFormData((prev) => {
           const newMedia = [...prev.media];
-          newMedia[i] = { ...newMedia[i], isUploading: true, uploadProgress: 80, url: uploadResult.url };
+          newMedia[i] = { ...newMedia[i], isUploading: true, uploadProgress: 80, url: uploadedUrl };
           return { ...prev, media: newMedia };
         });
 
         allMedia.push({
-          type: uploadResult.type,
-          url: uploadResult.url,
+          type: mediaItem.type,
+          url: uploadedUrl,
         });
 
         setFormData((prev) => {
