@@ -107,7 +107,7 @@ export default function AdminProducts() {
   const openEditModal = (product: Product) => {
     // Convert image objects to strings for backward compatibility
     const firstImage = product.images[0];
-    const imageUrl = typeof firstImage === 'string' ? firstImage : firstImage?.url ?? '';
+    const imageUrl = typeof firstImage === 'string' ? firstImage : (firstImage as { url: string })?.url ?? '';
 
     setEditingProduct(product);
     setFormData({
