@@ -2,15 +2,14 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Send, ArrowLeft, Upload, X } from 'lucide-react';
+import { Star, Send, ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { addDoc, collection, serverTimestamp, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
-import { storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 import type { Order, OrderItem } from '@/lib/types';
 
 const DESIGNATIONS = [
@@ -42,6 +41,8 @@ function WriteReviewContent() {
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [profileImagePreview, setProfileImagePreview] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [purchasedProducts, setPurchasedProducts] = useState<Array<{id: string; name: string}>>([]);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [reviewType, setReviewType] = useState<'general' | 'product'>('product');
@@ -120,9 +121,10 @@ function WriteReviewContent() {
         return;
       }
 
-      // Check file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select a valid image file');
+      // Check file type (JPG, JPEG, PNG, WEBP only)
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        toast.error('Please select a valid image file (JPG, JPEG, PNG, or WEBP)');
         return;
       }
 
@@ -190,9 +192,23 @@ function WriteReviewContent() {
       let profileImageUrl = '';
 
       if (profileImage) {
-        const storageRef = ref(storage, `review-profiles/${user.uid}-${Date.now()}`);
-        await uploadBytes(storageRef, profileImage);
-        profileImageUrl = await getDownloadURL(storageRef);
+        setIsUploadingImage(true);
+        setUploadProgress(0);
+        
+        try {
+          // Upload to Cloudinary
+          profileImageUrl = await uploadToCloudinary(profileImage);
+          setUploadProgress(100);
+          toast.success('Image uploaded successfully');
+        } catch (uploadError) {
+          console.error('Cloudinary upload error:', uploadError);
+          toast.error('Failed to upload image. Please try again.');
+          setIsSubmitting(false);
+          setIsUploadingImage(false);
+          return;
+        } finally {
+          setIsUploadingImage(false);
+        }
       }
 
       let productId = '';
@@ -529,15 +545,16 @@ function WriteReviewContent() {
                     <input
                       type="file"
                       id="profileImage"
-                      accept="image/*"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
                       onChange={handleImageChange}
+                      disabled={isUploadingImage || isSubmitting}
                       className="hidden"
                     />
-                    <label htmlFor="profileImage" className="cursor-pointer flex flex-col items-center gap-3">
+                    <label htmlFor="profileImage" className={`cursor-pointer flex flex-col items-center gap-3 ${isUploadingImage || isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
                       <Upload className="w-8 h-8 text-[#00bfff]/40" />
                       <div>
                         <p className="text-white font-medium">Upload a photo</p>
-                        <p className="text-xs text-[#d6e4ff]/60">PNG, JPG up to 5MB</p>
+                        <p className="text-xs text-[#d6e4ff]/60">JPG, JPEG, PNG, WEBP up to 5MB</p>
                       </div>
                     </label>
                   </div>
@@ -548,15 +565,27 @@ function WriteReviewContent() {
                       alt="Preview"
                       className="w-32 h-32 rounded-xl object-cover border border-[#00bfff]/20"
                     />
+                    {isUploadingImage && (
+                      <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 text-white animate-spin" />
+                      </div>
+                    )}
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       type="button"
                       onClick={removeImage}
-                      className="absolute -top-3 -right-3 p-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+                      disabled={isUploadingImage || isSubmitting}
+                      className="absolute -top-3 -right-3 p-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <X className="w-4 h-4" />
                     </motion.button>
+                  </div>
+                )}
+                {isUploadingImage && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 text-[#00bfff] animate-spin" />
+                    <span className="text-sm text-[#d6e4ff]/70">Uploading image...</span>
                   </div>
                 )}
               </div>
@@ -566,11 +595,16 @@ function WriteReviewContent() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploadingImage}
                 className="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-[#00bfff] to-[#00e5ff] text-[#020617] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isSubmitting ? (
                   'Submitting...'
+                ) : isUploadingImage ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Uploading Image...
+                  </>
                 ) : (
                   <>
                     <Send className="w-5 h-5" />
