@@ -93,20 +93,34 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             )}
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            disabled={product.stock <= 0}
-            onClick={() => {
-              addItem(product);
-              toast.success('Added to cart');
-            }}
-            className="tech-btn-primary flex w-full items-center justify-center gap-2 px-4 py-3 text-sm disabled:opacity-50"
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-2 gap-2.5"
           >
-            <ShoppingCart className="h-4 w-4" />
-            {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-          </motion.button>
+            <Link
+              href={`/products/${product.id}`}
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-[#00bfff]/30 bg-[#00bfff]/10 px-3 py-2.5 text-sm font-semibold text-[#00e5ff] transition-all duration-300 hover:border-[#00bfff]/50 hover:bg-[#00bfff]/20 hover:shadow-[0_0_20px_rgba(0,191,255,0.2)]"
+            >
+              <Eye className="h-4 w-4" />
+              View Details
+            </Link>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              disabled={product.stock <= 0}
+              onClick={() => {
+                addItem(product);
+                toast.success('Added to cart');
+              }}
+              className="tech-btn-primary flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm disabled:opacity-50"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {product.stock > 0 ? 'Add' : 'Out'}
+            </motion.button>
+          </motion.div>
         </div>
 
         {/* Decorative Corner */}
