@@ -86,7 +86,7 @@ export default function FounderSection() {
                 alt="Founder"
                 fill
                 className="object-cover"
-                style={{ objectPosition: 'center top' }}
+                style={{ objectPosition: 'center center' }}
                 priority
               />
               
