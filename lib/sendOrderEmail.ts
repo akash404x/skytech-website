@@ -353,14 +353,14 @@ export async function sendOrderStatusEmail(data: OrderEmailData): Promise<{ succ
 // Function to send multiple emails (batch processing)
 export async function sendBatchOrderEmails(emailDataArray: OrderEmailData[]): Promise<{ success: boolean; errors: string[] }> {
   const errors: string[] = [];
-  
+
   for (const data of emailDataArray) {
     const result = await sendOrderStatusEmail(data);
     if (!result.success) {
       errors.push(`Order #${data.orderId}: ${result.error}`);
     }
   }
-  
+
   return {
     success: errors.length === 0,
     errors,
