@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function AdminDashboard() {
-  const { profile } = useAuth();
+  const { profile, isAdmin } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -20,6 +20,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState({ orders: true, products: true, users: true, works: true, reviews: true });
 
   useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
+
+    // Orders - both admin and editor can read
     const unsubscribeOrders = onSnapshot(
       query(collection(db, 'orders')),
       (snapshot) => {
@@ -31,7 +34,9 @@ export default function AdminDashboard() {
         setLoading((current) => ({ ...current, orders: false }));
       },
     );
+    unsubscribes.push(unsubscribeOrders);
 
+    // Products - both admin and editor can read
     const unsubscribeProducts = onSnapshot(
       query(collection(db, 'products')),
       (snapshot) => {
@@ -43,19 +48,9 @@ export default function AdminDashboard() {
         setLoading((current) => ({ ...current, products: false }));
       },
     );
+    unsubscribes.push(unsubscribeProducts);
 
-    const unsubscribeUsers = onSnapshot(
-      query(collection(db, 'users')),
-      (snapshot) => {
-        setUsers(snapshot.docs.map((document) => mapUserProfile(document.id, document.data())));
-        setLoading((current) => ({ ...current, users: false }));
-      },
-      (error) => {
-        console.error('Error loading dashboard users:', error);
-        setLoading((current) => ({ ...current, users: false }));
-      },
-    );
-
+    // Works - both admin and editor can read
     const unsubscribeWorks = onSnapshot(
       query(collection(db, 'works')),
       (snapshot) => {
@@ -67,27 +62,48 @@ export default function AdminDashboard() {
         setLoading((current) => ({ ...current, works: false }));
       },
     );
+    unsubscribes.push(unsubscribeWorks);
 
-    const unsubscribeReviews = onSnapshot(
-      query(collection(db, 'reviews')),
-      (snapshot) => {
-        setReviews(snapshot.docs.map((document) => ({ id: document.id, ...document.data() } as Review)));
-        setLoading((current) => ({ ...current, reviews: false }));
-      },
-      (error) => {
-        console.error('Error loading dashboard reviews:', error);
-        setLoading((current) => ({ ...current, reviews: false }));
-      },
-    );
+    // Users - admin only
+    if (isAdmin) {
+      const unsubscribeUsers = onSnapshot(
+        query(collection(db, 'users')),
+        (snapshot) => {
+          setUsers(snapshot.docs.map((document) => mapUserProfile(document.id, document.data())));
+          setLoading((current) => ({ ...current, users: false }));
+        },
+        (error) => {
+          console.error('Error loading dashboard users:', error);
+          setLoading((current) => ({ ...current, users: false }));
+        },
+      );
+      unsubscribes.push(unsubscribeUsers);
+    } else {
+      setLoading((current) => ({ ...current, users: false }));
+    }
+
+    // Reviews - admin only
+    if (isAdmin) {
+      const unsubscribeReviews = onSnapshot(
+        query(collection(db, 'reviews')),
+        (snapshot) => {
+          setReviews(snapshot.docs.map((document) => ({ id: document.id, ...document.data() } as Review)));
+          setLoading((current) => ({ ...current, reviews: false }));
+        },
+        (error) => {
+          console.error('Error loading dashboard reviews:', error);
+          setLoading((current) => ({ ...current, reviews: false }));
+        },
+      );
+      unsubscribes.push(unsubscribeReviews);
+    } else {
+      setLoading((current) => ({ ...current, reviews: false }));
+    }
 
     return () => {
-      unsubscribeOrders();
-      unsubscribeProducts();
-      unsubscribeUsers();
-      unsubscribeWorks();
-      unsubscribeReviews();
+      unsubscribes.forEach((unsub) => unsub());
     };
-  }, []);
+  }, [isAdmin]);
 
   const isLoading = loading.orders || loading.products || loading.users || loading.works || loading.reviews;
   const paidOrders = orders.filter((order) => order.status !== 'cancelled');
@@ -123,7 +139,15 @@ export default function AdminDashboard() {
   const featuredWorks = works.filter((work) => work.featured);
   const activeWorks = works.filter((work) => work.status === 'active');
 
-  const statCards = [
+  // Editor-only stat cards (no admin analytics)
+  const editorStatCards = [
+    { name: 'Orders', value: orders.length.toString(), icon: ShoppingCart, tone: 'bg-blue-100 text-blue-700' },
+    { name: 'Products', value: products.length.toString(), icon: Package, tone: 'bg-amber-100 text-amber-700' },
+    { name: 'Works', value: `${activeWorks.length} / ${works.length}`, icon: Briefcase, tone: 'bg-cyan-100 text-cyan-700' },
+  ];
+
+  // Admin stat cards (includes analytics)
+  const adminStatCards = [
     { name: 'Total Revenue', value: formatCurrency(revenue), icon: DollarSign, tone: 'bg-green-100 text-green-700' },
     { name: 'Orders', value: orders.length.toString(), icon: ShoppingCart, tone: 'bg-blue-100 text-blue-700' },
     { name: 'Products', value: products.length.toString(), icon: Package, tone: 'bg-amber-100 text-amber-700' },
@@ -134,6 +158,8 @@ export default function AdminDashboard() {
     { name: 'Works', value: `${activeWorks.length} / ${works.length}`, icon: Briefcase, tone: 'bg-cyan-100 text-cyan-700' },
     { name: 'Registered Users', value: users.length.toString(), icon: Users, tone: 'bg-purple-100 text-purple-700' },
   ];
+
+  const statCards = isAdmin ? adminStatCards : editorStatCards;
 
   if (isLoading) {
     return (

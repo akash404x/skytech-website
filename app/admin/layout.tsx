@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw, Settings, MessageSquare, Ticket, Mail, Send, FileText, Clock, Database } from 'lucide-react';
+import { Briefcase, LayoutDashboard, Package, ShoppingCart, Users, LogOut, Menu, X, Shield, Wrench, RotateCcw, RefreshCw, Settings, MessageSquare, Ticket, Mail, Send, FileText, Clock, Database, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
@@ -20,6 +20,7 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
 
   const isAuthenticated = !!user;
   const isLoading = firebaseLoading;
@@ -32,9 +33,9 @@ export default function AdminLayout({
     }
   }, [isLoading, isAuthenticated, isEditor, router]);
 
-  // Fetch pending reviews count
+  // Fetch pending reviews count (admin only)
   useEffect(() => {
-    if (!isEditor) return;
+    if (!isAdmin) return;
 
     const q = query(collection(db, 'reviews'), where('status', '==', 'pending'));
     const unsubscribe = onSnapshot(
@@ -48,7 +49,25 @@ export default function AdminLayout({
     );
 
     return () => unsubscribe();
-  }, [isEditor]);
+  }, [isAdmin]);
+
+  // Fetch pending approvals count (admin only)
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const q = query(collection(db, 'approval_requests'), where('status', '==', 'pending'));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        setPendingApprovalsCount(snapshot.size);
+      },
+      (error) => {
+        console.error('Error fetching pending approvals count:', error);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [isAdmin]);
 
   if (isLoading) {
     return (
@@ -79,11 +98,14 @@ export default function AdminLayout({
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Returns', href: '/admin/returns', icon: RotateCcw },
     { name: 'Replacements', href: '/admin/replacements', icon: RefreshCw },
-    { name: 'Coupon Codes', href: '/admin/coupons', icon: Ticket },
-    { name: 'Pricing Settings', href: '/admin/pricing-settings', icon: Settings },
-    ...(isAdmin ? [{ name: 'Users', href: '/admin/users', icon: Users }] : []),
-    { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare, badge: pendingReviewsCount },
-    { name: 'Send Bulk Message', href: '/admin/send-bulk-message', icon: Send },
+    ...(isAdmin ? [
+      { name: 'Users', href: '/admin/users', icon: Users },
+      { name: 'Coupon Codes', href: '/admin/coupons', icon: Ticket },
+      { name: 'Pricing Settings', href: '/admin/pricing-settings', icon: Settings },
+      { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare, badge: pendingReviewsCount },
+      { name: 'Send Bulk Message', href: '/admin/send-bulk-message', icon: Send },
+      { name: 'Approvals', href: '/admin/approvals', icon: CheckCircle, badge: pendingApprovalsCount },
+    ] : []),
   ];
 
   return (

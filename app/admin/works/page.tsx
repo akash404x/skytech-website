@@ -22,6 +22,8 @@ import { uploadToCloudinary } from '@/lib/cloudinary';
 import { mapWork } from '@/lib/firestore-mappers';
 import { toDate } from '@/lib/format';
 import { WORK_CATEGORIES } from '@/lib/works-content';
+import { createApprovalRequest } from '@/lib/approval-service';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Work, WorkStatus, WorkMedia, WorkLink } from '@/lib/types';
 
 interface MediaItem {
@@ -83,6 +85,7 @@ function TableSkeleton({ rows }: { rows: number }) {
 }
 
 export default function AdminWorks() {
+  const { user, isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
@@ -277,6 +280,34 @@ export default function AdminWorks() {
   const handleDeleteWork = async (work: Work) => {
     if (!window.confirm(`Delete "${work.title}"?`)) return;
 
+    // Editors create approval request, admins delete directly
+    if (!isAdmin) {
+      try {
+        const result = await createApprovalRequest({
+          type: 'work',
+          action: 'delete',
+          documentId: work.id,
+          newData: {},
+          oldData: work as unknown as Record<string, unknown>,
+          requestedBy: {
+            uid: user!.uid,
+            name: user!.displayName || 'Editor',
+            email: user!.email || '',
+          },
+        });
+
+        if (result.success) {
+          toast.success('Delete request submitted for approval');
+        } else {
+          toast.error(result.error || 'Failed to submit delete request');
+        }
+      } catch (error) {
+        console.error('Error creating delete approval request:', error);
+        toast.error('Failed to submit delete request');
+      }
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, 'works', work.id));
       toast.success('Work deleted');
@@ -287,6 +318,12 @@ export default function AdminWorks() {
   };
 
   const toggleStatus = async (work: Work) => {
+    // Editors cannot toggle status directly
+    if (!isAdmin) {
+      toast.error('Only admins can toggle work status');
+      return;
+    }
+
     const nextStatus: WorkStatus = work.status === 'active' ? 'inactive' : 'active';
     try {
       await updateDoc(doc(db, 'works', work.id), {
@@ -301,6 +338,12 @@ export default function AdminWorks() {
   };
 
   const toggleFeatured = async (work: Work) => {
+    // Editors cannot toggle featured directly
+    if (!isAdmin) {
+      toast.error('Only admins can toggle featured status');
+      return;
+    }
+
     try {
       await updateDoc(doc(db, 'works', work.id), {
         featured: !work.featured,
@@ -387,6 +430,32 @@ export default function AdminWorks() {
     console.log('Full payload:', payload);
 
     try {
+      // Editors create approval request, admins save directly
+      if (!isAdmin) {
+        const action = editingWork ? 'update' : 'create';
+        const result = await createApprovalRequest({
+          type: 'work',
+          action,
+          documentId: editingWork?.id || null,
+          newData: payload as unknown as Record<string, unknown>,
+          oldData: editingWork ? (editingWork as unknown as Record<string, unknown>) : {},
+          requestedBy: {
+            uid: user!.uid,
+            name: user!.displayName || 'Editor',
+            email: user!.email || '',
+          },
+        });
+
+        if (result.success) {
+          toast.success(`${action === 'create' ? 'Create' : 'Update'} request submitted for approval`);
+          closeModal();
+        } else {
+          toast.error(result.error || 'Failed to submit request');
+        }
+        setSaving(false);
+        return;
+      }
+
       if (editingWork) {
         await updateDoc(doc(db, 'works', editingWork.id), payload);
         toast.success('Work updated');

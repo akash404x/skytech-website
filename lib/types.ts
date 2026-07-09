@@ -16,6 +16,9 @@ export type EmailStatus = 'pending' | 'sent' | 'failed';
 export type NotificationType = 'order_placed' | 'order_confirmed' | 'order_packed' | 'order_shipped' | 'order_delivered' | 'order_cancelled' | 'return_approved' | 'replacement_approved' | 'wallet_credited';
 export type CouponDiscountType = 'fixed' | 'percentage';
 export type CouponStatus = 'active' | 'used' | 'expired';
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+export type ApprovalType = 'product' | 'service' | 'work';
+export type ApprovalAction = 'create' | 'update' | 'delete';
 
 export type DateValue =
   | Date
@@ -417,4 +420,31 @@ export interface Invoice {
   pdfUrl?: string;
   createdAt?: DateValue;
   updatedAt?: DateValue;
+}
+
+export interface ApprovalRequest {
+  id: string;
+  type: ApprovalType;
+  action: ApprovalAction;
+  documentId: string | null;
+  newData: Record<string, unknown>;
+  oldData: Record<string, unknown>;
+  requestedBy: {
+    uid: string;
+    name: string;
+    email: string;
+  };
+  status: ApprovalStatus;
+  createdAt?: DateValue;
+  approvedBy?: string | null;
+  approvedAt?: DateValue | null;
+  rejectedReason?: string | null;
+}
+
+export interface ActivityLog {
+  id: string;
+  user: string;
+  action: string;
+  target: string;
+  timestamp?: DateValue;
 }

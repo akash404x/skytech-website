@@ -12,6 +12,8 @@ import { mapProduct } from '@/lib/firestore-mappers';
 import { formatCurrency } from '@/lib/format';
 import { getProductImageUrl } from '@/lib/cart';
 import { uploadToCloudinary } from '@/lib/cloudinary';
+import { createApprovalRequest } from '@/lib/approval-service';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Product, ProductStatus } from '@/lib/types';
 
 const CATEGORIES = [
@@ -62,6 +64,7 @@ const emptyForm: ProductFormState = {
 };
 
 export default function AdminProducts() {
+  const { user, isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +137,7 @@ export default function AdminProducts() {
     setSaving(false);
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -149,12 +152,40 @@ export default function AdminProducts() {
       return;
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      imageFile: file,
-      uploadProgress: 0,
-      isUploading: false,
-    }));
+    // For editors, upload immediately to Cloudinary
+    if (!isAdmin) {
+      setFormData((prev) => ({ ...prev, imageFile: file, isUploading: true, uploadProgress: 10 }));
+      
+      try {
+        const imageUrl = await uploadToCloudinary(file);
+        console.log('Cloudinary upload successful, URL:', imageUrl);
+        
+        setFormData((prev) => {
+          const updated = { 
+            ...prev, 
+            imageUrl, 
+            uploadProgress: 100, 
+            isUploading: false 
+          };
+          console.log('Updated formData in setFormData callback:', updated);
+          return updated;
+        });
+        
+        toast.success('Image uploaded successfully');
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        toast.error('Failed to upload image');
+        setFormData((prev) => ({ ...prev, imageFile: null, isUploading: false, uploadProgress: 0 }));
+      }
+    } else {
+      // For admins, just store the file for later upload
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: file,
+        uploadProgress: 0,
+        isUploading: false,
+      }));
+    }
   };
 
   const handleRemoveImage = () => {
@@ -170,6 +201,34 @@ export default function AdminProducts() {
   const handleDeleteProduct = async (product: Product) => {
     if (!window.confirm(`Delete ${product.name}?`)) return;
 
+    // Editors create approval request, admins delete directly
+    if (!isAdmin) {
+      try {
+        const result = await createApprovalRequest({
+          type: 'product',
+          action: 'delete',
+          documentId: product.id,
+          newData: {},
+          oldData: product as unknown as Record<string, unknown>,
+          requestedBy: {
+            uid: user!.uid,
+            name: user!.displayName || 'Editor',
+            email: user!.email || '',
+          },
+        });
+
+        if (result.success) {
+          toast.success('Delete request submitted for approval');
+        } else {
+          toast.error(result.error || 'Failed to submit delete request');
+        }
+      } catch (error) {
+        console.error('Error creating delete approval request:', error);
+        toast.error('Failed to submit delete request');
+      }
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, 'products', product.id));
       toast.success('Product deleted');
@@ -180,6 +239,12 @@ export default function AdminProducts() {
   };
 
   const toggleFeatured = async (product: Product) => {
+    // Editors cannot toggle featured directly
+    if (!isAdmin) {
+      toast.error('Only admins can toggle featured status');
+      return;
+    }
+
     try {
       await updateDoc(doc(db, 'products', product.id), {
         featured: !product.featured,
@@ -215,6 +280,12 @@ export default function AdminProducts() {
       return;
     }
 
+    // For editors, wait for image upload to complete before submitting
+    if (!isAdmin && formData.isUploading) {
+      toast.error('Please wait for image upload to complete');
+      return;
+    }
+
     setSaving(true);
 
     const payload = {
@@ -231,7 +302,35 @@ export default function AdminProducts() {
       updatedAt: serverTimestamp(),
     };
 
+    console.log('Payload before Firestore:', payload);
+
     try {
+      // Editors create approval request, admins save directly
+      if (!isAdmin) {
+        const action = editingProduct ? 'update' : 'create';
+        const result = await createApprovalRequest({
+          type: 'product',
+          action,
+          documentId: editingProduct?.id || null,
+          newData: payload as unknown as Record<string, unknown>,
+          oldData: editingProduct ? (editingProduct as unknown as Record<string, unknown>) : {},
+          requestedBy: {
+            uid: user!.uid,
+            name: user!.displayName || 'Editor',
+            email: user!.email || '',
+          },
+        });
+
+        if (result.success) {
+          toast.success(`${action === 'create' ? 'Create' : 'Update'} request submitted for approval`);
+          closeModal();
+        } else {
+          toast.error(result.error || 'Failed to submit request');
+        }
+        setSaving(false);
+        return;
+      }
+
       let productId: string;
 
       if (editingProduct) {

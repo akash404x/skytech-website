@@ -19,9 +19,12 @@ import EmptyState from '@/components/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { db } from '@/lib/firebase';
 import { uploadServiceImage } from '@/lib/firebase-storage';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 import { mapService } from '@/lib/firestore-mappers';
 import { SERVICE_CATEGORIES } from '@/lib/services-content';
 import { SERVICE_ICON_OPTIONS } from '@/lib/service-icons';
+import { createApprovalRequest } from '@/lib/approval-service';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Service, ServiceStatus } from '@/lib/types';
 
 interface ServiceFormState {
@@ -49,6 +52,7 @@ const emptyForm: ServiceFormState = {
 };
 
 export default function AdminServices() {
+  const { user, isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,7 +137,7 @@ export default function AdminServices() {
     resetImageState();
   };
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -147,13 +151,65 @@ export default function AdminServices() {
       return;
     }
 
-    setImageFile(file);
-    if (imagePreview?.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
-    setImagePreview(URL.createObjectURL(file));
+    // For editors, upload immediately to Cloudinary
+    if (!isAdmin) {
+      setSaving(true);
+      try {
+        const imageUrl = await uploadToCloudinary(file);
+        console.log('Cloudinary upload successful, URL:', imageUrl);
+        
+        setFormData((prev) => {
+          const updated = { ...prev, imageUrl };
+          console.log('Updated service formData in setFormData callback:', updated);
+          return updated;
+        });
+        
+        setImagePreview(imageUrl);
+        toast.success('Image uploaded successfully');
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        toast.error('Failed to upload image');
+      } finally {
+        setSaving(false);
+      }
+    } else {
+      // For admins, just store the file for later upload
+      setImageFile(file);
+      if (imagePreview?.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
+      setImagePreview(URL.createObjectURL(file));
+    }
   };
 
   const handleDeleteService = async (service: Service) => {
     if (!window.confirm(`Delete "${service.title}"?`)) return;
+
+    // Editors create approval request, admins delete directly
+    if (!isAdmin) {
+      try {
+        const result = await createApprovalRequest({
+          type: 'service',
+          action: 'delete',
+          documentId: service.id,
+          newData: {},
+          oldData: service as unknown as Record<string, unknown>,
+          requestedBy: {
+            uid: user!.uid,
+            name: user!.displayName || 'Editor',
+            email: user!.email || '',
+          },
+        });
+
+        if (result.success) {
+          toast.success('Delete request submitted for approval');
+        } else {
+          toast.error(result.error || 'Failed to submit delete request');
+        }
+      } catch (error) {
+        console.error('Error creating delete approval request:', error);
+        toast.error('Failed to submit delete request');
+      }
+      return;
+    }
 
     try {
       await deleteDoc(doc(db, 'services', service.id));
@@ -165,6 +221,12 @@ export default function AdminServices() {
   };
 
   const toggleStatus = async (service: Service) => {
+    // Editors cannot toggle status directly
+    if (!isAdmin) {
+      toast.error('Only admins can toggle service status');
+      return;
+    }
+
     const nextStatus: ServiceStatus = service.status === 'active' ? 'inactive' : 'active';
     try {
       await updateDoc(doc(db, 'services', service.id), {
@@ -179,6 +241,12 @@ export default function AdminServices() {
   };
 
   const toggleFeatured = async (service: Service) => {
+    // Editors cannot toggle featured directly
+    if (!isAdmin) {
+      toast.error('Only admins can toggle featured status');
+      return;
+    }
+
     try {
       await updateDoc(doc(db, 'services', service.id), {
         featured: !service.featured,
@@ -199,9 +267,56 @@ export default function AdminServices() {
       return;
     }
 
+    // For editors, wait for image upload to complete before submitting
+    if (!isAdmin && saving) {
+      toast.error('Please wait for image upload to complete');
+      return;
+    }
+
     setSaving(true);
 
+    const payload = {
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      category: formData.category,
+      icon: formData.icon,
+      image: formData.imageUrl.trim() || null,
+      buttonText: formData.buttonText.trim() || null,
+      buttonLink: formData.buttonLink.trim() || null,
+      status: formData.status,
+      featured: formData.featured,
+      updatedAt: serverTimestamp(),
+    };
+
+    console.log('Service payload before Firestore:', payload);
+
     try {
+      // Editors create approval request, admins save directly
+      if (!isAdmin) {
+        const action = editingService ? 'update' : 'create';
+        const result = await createApprovalRequest({
+          type: 'service',
+          action,
+          documentId: editingService?.id || null,
+          newData: payload as unknown as Record<string, unknown>,
+          oldData: editingService ? (editingService as unknown as Record<string, unknown>) : {},
+          requestedBy: {
+            uid: user!.uid,
+            name: user!.displayName || 'Editor',
+            email: user!.email || '',
+          },
+        });
+
+        if (result.success) {
+          toast.success(`${action === 'create' ? 'Create' : 'Update'} request submitted for approval`);
+          closeModal();
+        } else {
+          toast.error(result.error || 'Failed to submit request');
+        }
+        setSaving(false);
+        return;
+      }
+
       let imageUrl = formData.imageUrl.trim() || null;
 
       if (editingService) {
@@ -210,31 +325,14 @@ export default function AdminServices() {
         }
 
         await updateDoc(doc(db, 'services', editingService.id), {
-          title: formData.title.trim(),
-          description: formData.description.trim(),
-          category: formData.category,
-          icon: formData.icon,
+          ...payload,
           image: imageUrl,
-          buttonText: formData.buttonText.trim() || null,
-          buttonLink: formData.buttonLink.trim() || null,
-          status: formData.status,
-          featured: formData.featured,
-          updatedAt: serverTimestamp(),
         });
         toast.success('Service updated');
       } else {
         const docRef = await addDoc(collection(db, 'services'), {
-          title: formData.title.trim(),
-          description: formData.description.trim(),
-          category: formData.category,
-          icon: formData.icon,
-          image: imageUrl,
-          buttonText: formData.buttonText.trim() || null,
-          buttonLink: formData.buttonLink.trim() || null,
-          status: formData.status,
-          featured: formData.featured,
+          ...payload,
           createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
         });
 
         if (imageFile) {
@@ -249,6 +347,7 @@ export default function AdminServices() {
     } catch (error) {
       console.error('Error saving service:', error);
       toast.error('Failed to save service');
+    } finally {
       setSaving(false);
     }
   };

@@ -25,14 +25,27 @@ interface Subscriber {
   source: string;
 }
 
+interface MergedRecipient {
+  id: string;
+  email: string;
+  type: 'user' | 'subscriber';
+  name?: string;
+  role?: string;
+  subscribedAt?: any;
+  status?: string;
+  source?: string;
+}
+
 export default function SendBulkMessagePage() {
   const [users, setUsers] = useState<User[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [selectedSubscribers, setSelectedSubscribers] = useState<Set<string>>(new Set());
+  const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
   const [selectAllUsers, setSelectAllUsers] = useState(false);
   const [selectAllSubscribers, setSelectAllSubscribers] = useState(false);
+  const [selectAll, setSelectAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sending, setSending] = useState(false);
   
@@ -130,6 +143,67 @@ export default function SendBulkMessagePage() {
     setSelectAllSubscribers(!selectAllSubscribers);
   };
 
+  const toggleMergedSelection = (email: string) => {
+    const newSelection = new Set(selectedEmails);
+    if (newSelection.has(email)) {
+      newSelection.delete(email);
+    } else {
+      newSelection.add(email);
+    }
+    setSelectedEmails(newSelection);
+    setSelectAll(newSelection.size === filteredMergedRecipients.length);
+    
+    // Sync with individual selections
+    const user = users.find(u => u.email === email);
+    if (user) {
+      if (newSelection.has(email)) {
+        setSelectedUsers(prev => new Set(prev).add(user.id));
+      } else {
+        setSelectedUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(user.id);
+          return newSet;
+        });
+      }
+    }
+    
+    const subscriber = subscribers.find(s => s.email === email);
+    if (subscriber) {
+      if (newSelection.has(email)) {
+        setSelectedSubscribers(prev => new Set(prev).add(subscriber.id));
+      } else {
+        setSelectedSubscribers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(subscriber.id);
+          return newSet;
+        });
+      }
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedEmails(new Set());
+      setSelectedUsers(new Set());
+      setSelectedSubscribers(new Set());
+    } else {
+      const allEmails = new Set(filteredMergedRecipients.map(r => r.email));
+      setSelectedEmails(allEmails);
+      
+      // Sync with individual selections
+      const userIds = new Set(filteredMergedRecipients
+        .filter(r => r.type === 'user')
+        .map(r => r.id));
+      setSelectedUsers(userIds);
+      
+      const subscriberIds = new Set(filteredMergedRecipients
+        .filter(r => r.type === 'subscriber')
+        .map(r => r.id));
+      setSelectedSubscribers(subscriberIds);
+    }
+    setSelectAll(!selectAll);
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
@@ -140,6 +214,44 @@ export default function SendBulkMessagePage() {
 
   const filteredSubscribers = subscribers.filter(sub => {
     return sub.email?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  // Create merged recipient list with deduplication
+  const mergedRecipients: MergedRecipient[] = (() => {
+    const emailMap = new Map<string, MergedRecipient>();
+    
+    // Add users
+    users.forEach(user => {
+      emailMap.set(user.email, {
+        id: user.id,
+        email: user.email,
+        type: 'user',
+        name: user.name,
+        role: user.role,
+      });
+    });
+    
+    // Add subscribers (only if email doesn't already exist)
+    subscribers.forEach(sub => {
+      if (!emailMap.has(sub.email)) {
+        emailMap.set(sub.email, {
+          id: sub.id,
+          email: sub.email,
+          type: 'subscriber',
+          subscribedAt: sub.subscribedAt,
+          status: sub.status,
+          source: sub.source,
+        });
+      }
+    });
+    
+    return Array.from(emailMap.values());
+  })();
+
+  // Filter merged recipients by search
+  const filteredMergedRecipients = mergedRecipients.filter(recipient => {
+    return recipient.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           recipient.name?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   // Get all unique emails from both users and subscribers
@@ -189,7 +301,11 @@ export default function SendBulkMessagePage() {
     
     switch (recipientType) {
       case 'all':
-        recipients = allRecipients;
+        if (selectedEmails.size === 0) {
+          toast.error('Please select at least one recipient');
+          return;
+        }
+        recipients = Array.from(selectedEmails);
         break;
       case 'registered':
         if (selectedUsers.size === 0) {
@@ -278,8 +394,10 @@ export default function SendBulkMessagePage() {
         setAttachments([]);
         setSelectedUsers(new Set());
         setSelectedSubscribers(new Set());
+        setSelectedEmails(new Set());
         setSelectAllUsers(false);
         setSelectAllSubscribers(false);
+        setSelectAll(false);
       } else {
         toast.error(data.error || 'Failed to send message');
       }
@@ -328,7 +446,10 @@ export default function SendBulkMessagePage() {
                       : 'bg-slate-900/50 text-gray-400 border border-white/10'
                   }`}
                 >
-                  All ({allRecipients.length})
+                  {selectedEmails.size > 0 
+                    ? `Selected (${selectedEmails.size})` 
+                    : `All (${allRecipients.length})`
+                  }
                 </button>
                 <button
                   onClick={() => setRecipientType('registered')}
@@ -364,7 +485,7 @@ export default function SendBulkMessagePage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
               <input
                 type="text"
-                placeholder={recipientType === 'subscribers' ? "Search subscribers..." : "Search users..."}
+                placeholder={recipientType === 'subscribers' ? "Search subscribers..." : recipientType === 'all' ? "Search all recipients..." : "Search users..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-cyan-500/30 focus:outline-none"
@@ -372,6 +493,28 @@ export default function SendBulkMessagePage() {
             </div>
 
             {/* Quick Actions */}
+            {recipientType === 'all' && filteredMergedRecipients.length > 0 && (
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={toggleSelectAll}
+                  className="flex-1 px-3 py-2 rounded-lg bg-slate-900/50 border border-white/10 text-white text-sm hover:bg-slate-900/70 transition"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedEmails(new Set());
+                    setSelectedUsers(new Set());
+                    setSelectedSubscribers(new Set());
+                    setSelectAll(false);
+                  }}
+                  className="flex-1 px-3 py-2 rounded-lg bg-slate-900/50 border border-white/10 text-white text-sm hover:bg-slate-900/70 transition"
+                >
+                  Deselect All
+                </button>
+              </div>
+            )}
+
             {recipientType === 'subscribers' && filteredSubscribers.length > 0 && (
               <div className="flex gap-2 mb-4">
                 <button
@@ -392,10 +535,79 @@ export default function SendBulkMessagePage() {
               </div>
             )}
 
+            {recipientType === 'registered' && filteredUsers.length > 0 && (
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={toggleSelectAllUsers}
+                  className="flex-1 px-3 py-2 rounded-lg bg-slate-900/50 border border-white/10 text-white text-sm hover:bg-slate-900/70 transition"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedUsers(new Set());
+                    setSelectAllUsers(false);
+                  }}
+                  className="flex-1 px-3 py-2 rounded-lg bg-slate-900/50 border border-white/10 text-white text-sm hover:bg-slate-900/70 transition"
+                >
+                  Deselect All
+                </button>
+              </div>
+            )}
+
             {/* Recipient List */}
             <div className="max-h-[400px] overflow-y-auto space-y-2">
               {loading ? (
                 <div className="text-center py-8 text-gray-400">Loading...</div>
+              ) : recipientType === 'all' ? (
+                filteredMergedRecipients.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">No recipients found</div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 p-3 bg-slate-900/30 rounded-lg">
+                      <input
+                        type="checkbox"
+                        checked={selectAll}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
+                      />
+                      <span className="text-sm text-gray-400">Select All ({filteredMergedRecipients.length})</span>
+                    </div>
+                    {filteredMergedRecipients.map((recipient) => (
+                      <div
+                        key={recipient.id}
+                        onClick={() => toggleMergedSelection(recipient.email)}
+                        className={`flex items-center gap-3 p-3 rounded-lg transition cursor-pointer ${
+                          selectedEmails.has(recipient.email)
+                            ? 'bg-cyan-500/10 border border-cyan-500/20'
+                            : 'bg-slate-900/30 border border-white/5'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedEmails.has(recipient.email)}
+                          onChange={() => toggleMergedSelection(recipient.email)}
+                          className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{recipient.email}</p>
+                          <p className="text-xs text-gray-400">
+                            {recipient.type === 'user' 
+                              ? `${recipient.name} • ${recipient.role}`
+                              : `Subscriber • ${recipient.status}`
+                            }
+                          </p>
+                        </div>
+                        <span className={`text-xs ${recipient.type === 'user' ? 'text-purple-400' : 'text-cyan-400'}`}>
+                          {recipient.type === 'user' ? 'User' : 'Subscriber'}
+                        </span>
+                        {selectedEmails.has(recipient.email) && (
+                          <Check className="h-4 w-4 text-cyan-400" />
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )
               ) : recipientType === 'subscribers' ? (
                 filteredSubscribers.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">No subscribers found</div>
@@ -449,8 +661,7 @@ export default function SendBulkMessagePage() {
                           type="checkbox"
                           checked={selectAllUsers}
                           onChange={toggleSelectAllUsers}
-                          disabled={recipientType === 'all'}
-                          className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500 disabled:opacity-50"
+                          className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
                         />
                         <span className="text-sm text-gray-400">Select All ({filteredUsers.length})</span>
                       </div>
@@ -468,8 +679,7 @@ export default function SendBulkMessagePage() {
                             type="checkbox"
                             checked={selectedUsers.has(user.id)}
                             onChange={() => toggleUserSelection(user.id)}
-                            disabled={recipientType === 'all'}
-                            className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500 disabled:opacity-50"
+                            className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-white truncate">{user.name}</p>
@@ -491,7 +701,7 @@ export default function SendBulkMessagePage() {
             <div className="mt-4 pt-4 border-t border-white/10">
               <p className="text-sm text-gray-400">
                 {recipientType === 'all' 
-                  ? `Will send to ${getRecipientCount()} recipients`
+                  ? `Selected: ${selectedEmails.size} / Total: ${filteredMergedRecipients.length}`
                   : recipientType === 'registered'
                   ? `Selected: ${selectedUsers.size} / Total: ${filteredUsers.length}`
                   : `Selected: ${selectedSubscribers.size} / Total: ${filteredSubscribers.length}`
