@@ -15,15 +15,20 @@ The email service code was implemented but the Zoho SMTP credentials were not co
 Add the following environment variables to your `.env.local` file:
 
 ```bash
-# Required Zoho SMTP Credentials
-ZOHO_SMTP_USER=contact@theskytechnology.in
-ZOHO_SMTP_PASS=H56mzpTWKLs1
-
-# Optional (with defaults shown)
-ZOHO_SMTP_HOST=smtp.zoho.com
+# Zoho SMTP Configuration (shared)
+ZOHO_SMTP_HOST=smtp.zoho.in
 ZOHO_SMTP_PORT=465
 ZOHO_SMTP_SECURE=true
-ZOHO_SMTP_FROM=SkyTech <contact@theskytechnology.in>
+
+# Order Email Provider (for order-related emails)
+ORDER_EMAIL=order@theskytechnology.in
+ORDER_EMAIL_PASSWORD=your_order_email_password
+ORDER_SMTP_FROM=Sky Tech <order@theskytechnology.in>
+
+# Contact Email Provider (for contact form and bulk messages)
+CONTACT_EMAIL=contact@theskytechnology.in
+CONTACT_EMAIL_PASSWORD=your_contact_email_password
+CONTACT_SMTP_FROM=Sky Tech <contact@theskytechnology.in>
 ```
 
 ### 2. Get Zoho SMTP Credentials
@@ -33,10 +38,14 @@ ZOHO_SMTP_FROM=SkyTech <contact@theskytechnology.in>
 3. Find "SMTP" or "Outgoing Server" settings
 4. Generate an App Password (if using 2FA) or use your regular password
 5. Note down:
-   - SMTP Host: smtp.zoho.com
+   - SMTP Host: smtp.zoho.in
    - SMTP Port: 465 (SSL) or 587 (TLS)
    - Username: Your full Zoho email address
    - Password: Your App Password or regular password
+
+**Note**: You need two separate Zoho email accounts:
+- One for order-related emails (ORDER_EMAIL)
+- One for contact form and bulk messages (CONTACT_EMAIL)
 
 ### 3. Test Email Configuration
 

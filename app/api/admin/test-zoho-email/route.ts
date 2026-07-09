@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       to: testEmail,
       subject: 'Sky Tech Email Test',
       html: testHtml,
+      provider: 'order',
     });
 
     if (result.success) {

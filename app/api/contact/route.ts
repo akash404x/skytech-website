@@ -61,8 +61,8 @@ export async function POST(request: Request) {
       message: message.trim(),
     };
 
-    // Send email using Email Service
-    const emailService = EmailService.createDefaultProvider();
+    // Send email using Email Service with contact provider
+    const emailService = EmailService.createContactProvider();
     const verified = await emailService.verify();
 
     if (!verified) {

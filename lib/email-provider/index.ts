@@ -187,17 +187,33 @@ export class EmailService {
     this.provider = provider;
   }
 
-  static createZohoProvider(): EmailService {
+  static createOrderProvider(): EmailService {
     const config: EmailConfig = {
       host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.com',
       port: Number(process.env.ZOHO_SMTP_PORT) || 465,
       secure: process.env.ZOHO_SMTP_SECURE === 'true',
       auth: {
-        user: process.env.ZOHO_EMAIL?.trim() || '',
-        pass: process.env.ZOHO_PASSWORD?.trim() || '',
+        user: process.env.ORDER_EMAIL?.trim() || '',
+        pass: process.env.ORDER_EMAIL_PASSWORD?.trim() || '',
       },
-      from: process.env.ZOHO_SMTP_FROM?.trim() || 'Sky Tech <contact@theskytechnology.in>',
-      replyTo: process.env.ZOHO_SMTP_FROM?.trim() || 'contact@theskytechnology.in',
+      from: process.env.ORDER_SMTP_FROM?.trim() || 'Sky Tech <order@theskytechnology.in>',
+      replyTo: process.env.ORDER_SMTP_FROM?.trim() || 'order@theskytechnology.in',
+    };
+
+    return new EmailService(new ZohoProvider(config));
+  }
+
+  static createContactProvider(): EmailService {
+    const config: EmailConfig = {
+      host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.com',
+      port: Number(process.env.ZOHO_SMTP_PORT) || 465,
+      secure: process.env.ZOHO_SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.CONTACT_EMAIL?.trim() || '',
+        pass: process.env.CONTACT_EMAIL_PASSWORD?.trim() || '',
+      },
+      from: process.env.CONTACT_SMTP_FROM?.trim() || 'Sky Tech <contact@theskytechnology.in>',
+      replyTo: process.env.CONTACT_SMTP_FROM?.trim() || 'contact@theskytechnology.in',
     };
 
     return new EmailService(new ZohoProvider(config));
@@ -216,17 +232,18 @@ export class EmailService {
   }
 
   static createDefaultProvider(): EmailService {
-    // Default to Zoho, can be changed via environment variable
-    const providerType = process.env.EMAIL_PROVIDER?.toLowerCase() || 'zoho';
+    // Default to order provider for backward compatibility
+    return this.createOrderProvider();
+  }
 
-    switch (providerType) {
-      case 'brevo':
-        return this.createBrevoProvider();
-      case 'resend':
-        return this.createResendProvider();
-      case 'zoho':
+  static createProvider(provider: 'order' | 'contact'): EmailService {
+    switch (provider) {
+      case 'order':
+        return this.createOrderProvider();
+      case 'contact':
+        return this.createContactProvider();
       default:
-        return this.createZohoProvider();
+        return this.createOrderProvider();
     }
   }
 

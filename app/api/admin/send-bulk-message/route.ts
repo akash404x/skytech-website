@@ -89,6 +89,7 @@ export async function POST(request: Request) {
             to: recipient,
             subject: subject.trim(),
             html: emailHtml,
+            provider: 'contact',
           });
 
           if (result.success) {

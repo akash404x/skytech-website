@@ -143,6 +143,7 @@ export async function POST(request: Request) {
           to: email,
           subject: `${subject} - SkyTech`,
           html: emailHtml,
+          provider: 'contact',
         });
 
         if (result.success) {

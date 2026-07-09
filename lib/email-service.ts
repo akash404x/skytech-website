@@ -1,34 +1,24 @@
-import nodemailer from 'nodemailer';
+import { EmailService } from './email-provider';
 import { toDate } from './format';
 import type { Order } from './types';
 
-// Initialize transporter at module level for Vercel Serverless compatibility
-const transporter = nodemailer.createTransport({
-  host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.com',
-  port: Number(process.env.ZOHO_SMTP_PORT) || 465,
-  secure: process.env.ZOHO_SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.ZOHO_EMAIL?.trim() || '',
-    pass: process.env.ZOHO_PASSWORD?.trim() || '',
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
-
 export async function getEmailDebugInfo() {
   const config: any = {
-    provider: 'Nodemailer with Zoho SMTP',
+    provider: 'Email Service with Provider Selection',
     environment: process.env.NODE_ENV || 'development',
     smtpHost: process.env.ZOHO_SMTP_HOST || 'smtp.zoho.com',
     smtpPort: process.env.ZOHO_SMTP_PORT || '465',
     smtpSecure: process.env.ZOHO_SMTP_SECURE === 'true',
-    smtpUserPresent: !!process.env.ZOHO_EMAIL,
-    smtpUser: process.env.ZOHO_EMAIL ? process.env.ZOHO_EMAIL.substring(0, 3) + '***' : 'NOT SET',
-    smtpPassPresent: !!process.env.ZOHO_PASSWORD,
-    smtpPassLength: process.env.ZOHO_PASSWORD ? process.env.ZOHO_PASSWORD.length : 0,
-    smtpFrom: process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>',
-    transporterCreated: !!transporter,
+    orderEmailPresent: !!process.env.ORDER_EMAIL,
+    orderEmail: process.env.ORDER_EMAIL ? process.env.ORDER_EMAIL.substring(0, 3) + '***' : 'NOT SET',
+    orderPassPresent: !!process.env.ORDER_EMAIL_PASSWORD,
+    orderPassLength: process.env.ORDER_EMAIL_PASSWORD ? process.env.ORDER_EMAIL_PASSWORD.length : 0,
+    orderFrom: process.env.ORDER_SMTP_FROM || 'Sky Tech <order@theskytechnology.in>',
+    contactEmailPresent: !!process.env.CONTACT_EMAIL,
+    contactEmail: process.env.CONTACT_EMAIL ? process.env.CONTACT_EMAIL.substring(0, 3) + '***' : 'NOT SET',
+    contactPassPresent: !!process.env.CONTACT_EMAIL_PASSWORD,
+    contactPassLength: process.env.CONTACT_EMAIL_PASSWORD ? process.env.CONTACT_EMAIL_PASSWORD.length : 0,
+    contactFrom: process.env.CONTACT_SMTP_FROM || 'Sky Tech <contact@theskytechnology.in>',
   };
   
   return config;
@@ -39,29 +29,50 @@ export async function sendEmail({
   subject,
   html,
   text,
+  provider = 'order',
 }: {
   to: string;
   subject: string;
   html: string;
   text?: string;
+  provider?: 'order' | 'contact';
 }): Promise<{ success: boolean; error?: string; details?: any }> {
   try {
     console.log('=== SENDING EMAIL ===');
     console.log('To:', to);
     console.log('Subject:', subject);
-    console.log('From:', process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>');
+    console.log('Provider:', provider);
     
-    const info = await transporter.sendMail({
-      from: process.env.ZOHO_SMTP_FROM || 'SkyTech <noreply@skytech.com>',
+    const emailService = EmailService.createProvider(provider);
+    const verified = await emailService.verify();
+
+    if (!verified) {
+      console.error('❌ Email provider verification failed for:', provider);
+      return { 
+        success: false, 
+        error: `Email provider verification failed for ${provider}`
+      };
+    }
+
+    const result = await emailService.send({
       to,
       subject,
       html,
       text: text || html.replace(/<[^>]*>/g, ''),
     });
 
-    console.log('✅ Email sent successfully:', info.messageId);
-    console.log('====================');
-    return { success: true };
+    if (result.success) {
+      console.log('✅ Email sent successfully:', result.messageId);
+      console.log('====================');
+      return { success: true };
+    } else {
+      console.error('❌ Failed to send email:', result.error);
+      console.error('====================');
+      return { 
+        success: false, 
+        error: result.error || 'Unknown error'
+      };
+    }
   } catch (error) {
     console.error('Vercel SMTP Error Details:', error);
     console.error('====================');

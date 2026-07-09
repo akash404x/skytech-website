@@ -1,18 +1,4 @@
-import nodemailer from 'nodemailer';
-
-// Email configuration using Zoho Mail SMTP
-const transporter = nodemailer.createTransport({
-  host: process.env.ZOHO_SMTP_HOST?.trim() || 'smtp.zoho.com',
-  port: Number(process.env.ZOHO_SMTP_PORT) || 465,
-  secure: process.env.ZOHO_SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.ZOHO_EMAIL?.trim() || '',
-    pass: process.env.ZOHO_PASSWORD?.trim() || '',
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
+import { EmailService } from './email-provider';
 
 // Order status types
 export type OrderStatus = 'Pending' | 'Confirmed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
@@ -281,19 +267,19 @@ export async function sendOrderStatusEmail(data: OrderEmailData): Promise<{ succ
   try {
     // Validate environment variables
     const missingVars: string[] = [];
-    if (!process.env.ZOHO_EMAIL) missingVars.push('ZOHO_EMAIL');
-    if (!process.env.ZOHO_PASSWORD) missingVars.push('ZOHO_PASSWORD');
+    if (!process.env.ORDER_EMAIL) missingVars.push('ORDER_EMAIL');
+    if (!process.env.ORDER_EMAIL_PASSWORD) missingVars.push('ORDER_EMAIL_PASSWORD');
     if (!process.env.ZOHO_SMTP_HOST) missingVars.push('ZOHO_SMTP_HOST');
     if (!process.env.ZOHO_SMTP_PORT) missingVars.push('ZOHO_SMTP_PORT');
     if (!process.env.ZOHO_SMTP_SECURE) missingVars.push('ZOHO_SMTP_SECURE');
-    if (!process.env.ZOHO_SMTP_FROM) missingVars.push('ZOHO_SMTP_FROM');
+    if (!process.env.ORDER_SMTP_FROM) missingVars.push('ORDER_SMTP_FROM');
 
     if (missingVars.length > 0) {
       console.error('❌ Missing environment variables:');
       missingVars.forEach(v => console.error(`  - ${v}`));
       return {
         success: false,
-        error: `Missing environment variables: ${missingVars.join(', ')}`
+        error: `Missing environment variables: ${missingVars.join(', ')}'
       };
     }
 
@@ -316,20 +302,38 @@ export async function sendOrderStatusEmail(data: OrderEmailData): Promise<{ succ
     console.log('=== SENDING ORDER STATUS EMAIL ===');
     console.log('To:', data.customerEmail);
     console.log('Subject:', subject);
-    console.log('From:', process.env.ZOHO_SMTP_FROM?.trim() || process.env.ZOHO_EMAIL?.trim());
+    console.log('From:', process.env.ORDER_SMTP_FROM?.trim() || process.env.ORDER_EMAIL?.trim());
     console.log('=====================================');
 
-    // Send email
+    // Send email using order provider
     try {
-      const info = await transporter.sendMail({
-        from: process.env.ZOHO_SMTP_FROM?.trim() || process.env.ZOHO_EMAIL?.trim()!,
+      const emailService = EmailService.createOrderProvider();
+      const verified = await emailService.verify();
+
+      if (!verified) {
+        console.error('❌ Email provider verification failed');
+        return {
+          success: false,
+          error: 'Email provider verification failed'
+        };
+      }
+
+      const result = await emailService.send({
         to: data.customerEmail,
         subject,
         html,
       });
 
-      console.log('✅ Email sent successfully:', info.messageId);
-      return { success: true };
+      if (result.success) {
+        console.log('✅ Email sent successfully:', result.messageId);
+        return { success: true };
+      } else {
+        console.error('❌ Failed to send email:', result.error);
+        return {
+          success: false,
+          error: result.error || 'Unknown error occurred'
+        };
+      }
     } catch (error) {
       console.error('Vercel SMTP Error Details:', error);
       return {

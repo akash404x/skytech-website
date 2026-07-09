@@ -40,6 +40,7 @@ export async function POST(request: Request) {
       to: testEmail,
       subject: 'Email Test - SkyTech',
       html: testHtml,
+      provider: 'order',
     });
 
     return NextResponse.json({

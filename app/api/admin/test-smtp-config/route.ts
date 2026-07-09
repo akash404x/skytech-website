@@ -45,8 +45,8 @@ export async function POST(request: Request) {
           port: smtpConfig.port,
           secure: smtpConfig.secure,
           auth: {
-            user: process.env.ZOHO_EMAIL?.trim(),
-            pass: process.env.ZOHO_PASSWORD?.trim(),
+            user: process.env.ORDER_EMAIL?.trim(),
+            pass: process.env.ORDER_EMAIL_PASSWORD?.trim(),
           },
           tls: {
             rejectUnauthorized: false,
@@ -56,8 +56,8 @@ export async function POST(request: Request) {
         console.log(`SMTP Host: ${smtpConfig.host}`);
         console.log(`SMTP Port: ${smtpConfig.port}`);
         console.log(`SMTP Secure: ${smtpConfig.secure}`);
-        console.log(`SMTP User: ${process.env.ZOHO_EMAIL?.trim()}`);
-        console.log(`Password Length: ${process.env.ZOHO_PASSWORD?.trim().length}`);
+        console.log(`SMTP User: ${process.env.ORDER_EMAIL?.trim()}`);
+        console.log(`Password Length: ${process.env.ORDER_EMAIL_PASSWORD?.trim().length}`);
 
         // Verify connection
         await new Promise<void>((resolve, reject) => {
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         `;
 
         const info = await transporter.sendMail({
-          from: process.env.ZOHO_SMTP_FROM?.trim() || process.env.ZOHO_EMAIL?.trim(),
+          from: process.env.ORDER_SMTP_FROM?.trim() || process.env.ORDER_EMAIL?.trim(),
           to: testEmail,
           subject: `SMTP Test - ${smtpConfig.name}`,
           html: testHtml,
