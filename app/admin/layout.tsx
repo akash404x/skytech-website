@@ -84,6 +84,7 @@ export default function AdminLayout({
     ...(isAdmin ? [{ name: 'Users', href: '/admin/users', icon: Users }] : []),
     { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare, badge: pendingReviewsCount },
     { name: 'Send Bulk Message', href: '/admin/send-bulk-message', icon: Send },
+    { name: 'Newsletter Subscribers', href: '/admin/newsletter-subscribers', icon: Mail },
   ];
 
   return (

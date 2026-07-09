@@ -17,11 +17,22 @@ interface User {
   createdAt: any;
 }
 
+interface Subscriber {
+  id: string;
+  email: string;
+  subscribedAt: any;
+  status: string;
+  source: string;
+}
+
 export default function SendBulkMessagePage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
-  const [selectAll, setSelectAll] = useState(false);
+  const [selectedSubscribers, setSelectedSubscribers] = useState<Set<string>>(new Set());
+  const [selectAllUsers, setSelectAllUsers] = useState(false);
+  const [selectAllSubscribers, setSelectAllSubscribers] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sending, setSending] = useState(false);
   
@@ -37,11 +48,11 @@ export default function SendBulkMessagePage() {
   });
 
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [recipientType, setRecipientType] = useState<'all' | 'selected'>('all');
+  const [recipientType, setRecipientType] = useState<'all' | 'registered' | 'subscribers'>('all');
 
   useEffect(() => {
     const usersQuery = query(collection(db, 'users'));
-    const unsubscribe = onSnapshot(
+    const usersUnsubscribe = onSnapshot(
       usersQuery,
       (snapshot) => {
         const usersData = snapshot.docs.map(doc => ({
@@ -58,7 +69,25 @@ export default function SendBulkMessagePage() {
       }
     );
 
-    return () => unsubscribe();
+    const subscribersQuery = query(collection(db, 'newsletter_subscribers'));
+    const subscribersUnsubscribe = onSnapshot(
+      subscribersQuery,
+      (snapshot) => {
+        const subscribersData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Subscriber[];
+        setSubscribers(subscribersData);
+      },
+      (error) => {
+        console.error('Error fetching subscribers:', error);
+      }
+    );
+
+    return () => {
+      usersUnsubscribe();
+      subscribersUnsubscribe();
+    };
   }, []);
 
   const toggleUserSelection = (userId: string) => {
@@ -69,16 +98,36 @@ export default function SendBulkMessagePage() {
       newSelection.add(userId);
     }
     setSelectedUsers(newSelection);
-    setSelectAll(newSelection.size === filteredUsers.length);
+    setSelectAllUsers(newSelection.size === filteredUsers.length);
   };
 
-  const toggleSelectAll = () => {
-    if (selectAll) {
+  const toggleSelectAllUsers = () => {
+    if (selectAllUsers) {
       setSelectedUsers(new Set());
     } else {
       setSelectedUsers(new Set(filteredUsers.map(u => u.id)));
     }
-    setSelectAll(!selectAll);
+    setSelectAllUsers(!selectAllUsers);
+  };
+
+  const toggleSubscriberSelection = (subscriberId: string) => {
+    const newSelection = new Set(selectedSubscribers);
+    if (newSelection.has(subscriberId)) {
+      newSelection.delete(subscriberId);
+    } else {
+      newSelection.add(subscriberId);
+    }
+    setSelectedSubscribers(newSelection);
+    setSelectAllSubscribers(newSelection.size === filteredSubscribers.length);
+  };
+
+  const toggleSelectAllSubscribers = () => {
+    if (selectAllSubscribers) {
+      setSelectedSubscribers(new Set());
+    } else {
+      setSelectedSubscribers(new Set(filteredSubscribers.map(s => s.id)));
+    }
+    setSelectAllSubscribers(!selectAllSubscribers);
   };
 
   const filteredUsers = users.filter(user => {
@@ -88,6 +137,29 @@ export default function SendBulkMessagePage() {
       (user.phone && user.phone.includes(searchQuery));
     return matchesSearch;
   });
+
+  const filteredSubscribers = subscribers.filter(sub => {
+    return sub.email?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  // Get all unique emails from both users and subscribers
+  const allRecipients = Array.from(new Set([
+    ...users.map(u => u.email),
+    ...subscribers.map(s => s.email)
+  ]));
+
+  const getRecipientCount = () => {
+    switch (recipientType) {
+      case 'all':
+        return allRecipients.length;
+      case 'registered':
+        return filteredUsers.length;
+      case 'subscribers':
+        return filteredSubscribers.length;
+      default:
+        return 0;
+    }
+  };
 
   const handleAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -113,9 +185,31 @@ export default function SendBulkMessagePage() {
       return;
     }
 
-    const recipients = recipientType === 'all' 
-      ? filteredUsers.map(u => u.email)
-      : filteredUsers.filter(u => selectedUsers.has(u.id)).map(u => u.email);
+    let recipients: string[] = [];
+    
+    switch (recipientType) {
+      case 'all':
+        recipients = allRecipients;
+        break;
+      case 'registered':
+        if (selectedUsers.size === 0) {
+          toast.error('Please select at least one user');
+          return;
+        }
+        recipients = filteredUsers
+          .filter(u => selectedUsers.has(u.id))
+          .map(u => u.email);
+        break;
+      case 'subscribers':
+        if (selectedSubscribers.size === 0) {
+          toast.error('Please select at least one subscriber');
+          return;
+        }
+        recipients = filteredSubscribers
+          .filter(s => selectedSubscribers.has(s.id))
+          .map(s => s.email);
+        break;
+    }
 
     if (recipients.length === 0) {
       toast.error('No recipients selected');
@@ -183,7 +277,9 @@ export default function SendBulkMessagePage() {
         });
         setAttachments([]);
         setSelectedUsers(new Set());
-        setSelectAll(false);
+        setSelectedSubscribers(new Set());
+        setSelectAllUsers(false);
+        setSelectAllSubscribers(false);
       } else {
         toast.error(data.error || 'Failed to send message');
       }
@@ -232,17 +328,33 @@ export default function SendBulkMessagePage() {
                       : 'bg-slate-900/50 text-gray-400 border border-white/10'
                   }`}
                 >
-                  Send to All
+                  All ({allRecipients.length})
                 </button>
                 <button
-                  onClick={() => setRecipientType('selected')}
+                  onClick={() => setRecipientType('registered')}
                   className={`flex-1 px-4 py-2 rounded-lg transition ${
-                    recipientType === 'selected'
+                    recipientType === 'registered'
                       ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                       : 'bg-slate-900/50 text-gray-400 border border-white/10'
                   }`}
                 >
-                  Selected Users
+                  {selectedUsers.size > 0 
+                    ? `Selected (${selectedUsers.size})` 
+                    : `Registered Users (${filteredUsers.length})`
+                  }
+                </button>
+                <button
+                  onClick={() => setRecipientType('subscribers')}
+                  className={`flex-1 px-4 py-2 rounded-lg transition ${
+                    recipientType === 'subscribers'
+                      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                      : 'bg-slate-900/50 text-gray-400 border border-white/10'
+                  }`}
+                >
+                  {selectedSubscribers.size > 0 
+                    ? `Selected (${selectedSubscribers.size})` 
+                    : `Subscribers (${filteredSubscribers.length})`
+                  }
                 </button>
               </div>
             </div>
@@ -252,53 +364,125 @@ export default function SendBulkMessagePage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder={recipientType === 'subscribers' ? "Search subscribers..." : "Search users..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-900/50 border border-white/10 text-white placeholder-gray-500 focus:border-cyan-500/30 focus:outline-none"
               />
             </div>
 
-            {/* User List */}
+            {/* Quick Actions */}
+            {recipientType === 'subscribers' && filteredSubscribers.length > 0 && (
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={toggleSelectAllSubscribers}
+                  className="flex-1 px-3 py-2 rounded-lg bg-slate-900/50 border border-white/10 text-white text-sm hover:bg-slate-900/70 transition"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedSubscribers(new Set());
+                    setSelectAllSubscribers(false);
+                  }}
+                  className="flex-1 px-3 py-2 rounded-lg bg-slate-900/50 border border-white/10 text-white text-sm hover:bg-slate-900/70 transition"
+                >
+                  Deselect All
+                </button>
+              </div>
+            )}
+
+            {/* Recipient List */}
             <div className="max-h-[400px] overflow-y-auto space-y-2">
               {loading ? (
-                <div className="text-center py-8 text-gray-400">Loading users...</div>
-              ) : filteredUsers.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">No users found</div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 p-3 bg-slate-900/30 rounded-lg">
-                    <input
-                      type="checkbox"
-                      checked={selectAll}
-                      onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
-                    />
-                    <span className="text-sm text-gray-400">Select All ({filteredUsers.length})</span>
-                  </div>
-                  {filteredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg transition ${
-                        selectedUsers.has(user.id)
-                          ? 'bg-cyan-500/10 border border-cyan-500/20'
-                          : 'bg-slate-900/30 border border-white/5'
-                      }`}
-                    >
+                <div className="text-center py-8 text-gray-400">Loading...</div>
+              ) : recipientType === 'subscribers' ? (
+                filteredSubscribers.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">No subscribers found</div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 p-3 bg-slate-900/30 rounded-lg">
                       <input
                         type="checkbox"
-                        checked={selectedUsers.has(user.id)}
-                        onChange={() => toggleUserSelection(user.id)}
-                        disabled={recipientType === 'all'}
-                        className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500 disabled:opacity-50"
+                        checked={selectAllSubscribers}
+                        onChange={toggleSelectAllSubscribers}
+                        className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
                       />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{user.name}</p>
-                        <p className="text-xs text-gray-400 truncate">{user.email}</p>
-                      </div>
-                      <span className="text-xs text-gray-500 capitalize">{user.role}</span>
+                      <span className="text-sm text-gray-400">Select All ({filteredSubscribers.length})</span>
                     </div>
-                  ))}
+                    {filteredSubscribers.map((sub) => (
+                      <div
+                        key={sub.id}
+                        onClick={() => toggleSubscriberSelection(sub.id)}
+                        className={`flex items-center gap-3 p-3 rounded-lg transition cursor-pointer ${
+                          selectedSubscribers.has(sub.id)
+                            ? 'bg-cyan-500/10 border border-cyan-500/20'
+                            : 'bg-slate-900/30 border border-white/5'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedSubscribers.has(sub.id)}
+                          onChange={() => toggleSubscriberSelection(sub.id)}
+                          className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{sub.email}</p>
+                          <p className="text-xs text-gray-400">Subscribed: {sub.subscribedAt ? new Date(sub.subscribedAt.seconds * 1000).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <span className="text-xs text-cyan-400">{sub.status}</span>
+                        {selectedSubscribers.has(sub.id) && (
+                          <Check className="h-4 w-4 text-cyan-400" />
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )
+              ) : (
+                <>
+                  {filteredUsers.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">No users found</div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 p-3 bg-slate-900/30 rounded-lg">
+                        <input
+                          type="checkbox"
+                          checked={selectAllUsers}
+                          onChange={toggleSelectAllUsers}
+                          disabled={recipientType === 'all'}
+                          className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500 disabled:opacity-50"
+                        />
+                        <span className="text-sm text-gray-400">Select All ({filteredUsers.length})</span>
+                      </div>
+                      {filteredUsers.map((user) => (
+                        <div
+                          key={user.id}
+                          onClick={() => toggleUserSelection(user.id)}
+                          className={`flex items-center gap-3 p-3 rounded-lg transition cursor-pointer ${
+                            selectedUsers.has(user.id)
+                              ? 'bg-cyan-500/10 border border-cyan-500/20'
+                              : 'bg-slate-900/30 border border-white/5'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.has(user.id)}
+                            onChange={() => toggleUserSelection(user.id)}
+                            disabled={recipientType === 'all'}
+                            className="w-4 h-4 rounded border-gray-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500 disabled:opacity-50"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                            <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                          </div>
+                          <span className="text-xs text-gray-500 capitalize">{user.role}</span>
+                          {selectedUsers.has(user.id) && (
+                            <Check className="h-4 w-4 text-cyan-400" />
+                          )}
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -307,8 +491,10 @@ export default function SendBulkMessagePage() {
             <div className="mt-4 pt-4 border-t border-white/10">
               <p className="text-sm text-gray-400">
                 {recipientType === 'all' 
-                  ? `Will send to all ${filteredUsers.length} users`
-                  : `${selectedUsers.size} user(s) selected`
+                  ? `Will send to ${getRecipientCount()} recipients`
+                  : recipientType === 'registered'
+                  ? `Selected: ${selectedUsers.size} / Total: ${filteredUsers.length}`
+                  : `Selected: ${selectedSubscribers.size} / Total: ${filteredSubscribers.length}`
                 }
               </p>
             </div>

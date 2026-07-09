@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { browserLocalPersistence, getAuth, setPersistence } from 'firebase/auth';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import { getFirestore, initializeFirestore, CACHE_SIZE_UNLIMITED, setLogLevel } from 'firebase/firestore';
+import { getFirestore, setLogLevel } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -28,14 +28,13 @@ if (missingClientVars.length > 0) {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
-// Initialize Firestore with settings to suppress GRPC errors
-const db = initializeFirestore(app, {
-  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
-  ignoreUndefinedProperties: true,
-});
+// Use standard Firestore initialization
+const db = getFirestore(app);
 
-// Suppress Firestore console warnings in development
-setLogLevel('error');
+// Enable verbose logging for debugging
+if (process.env.NODE_ENV === 'development') {
+  setLogLevel('debug');
+}
 
 const storage = getStorage(app);
 

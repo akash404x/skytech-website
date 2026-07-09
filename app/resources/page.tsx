@@ -37,10 +37,10 @@ const resourceCategories = [
         href: '/careers',
       },
       {
-        title: 'Blog',
-        description: 'Stay updated with our latest news and insights',
-        icon: FileText,
-        href: '/blog',
+        title: 'Subscribe',
+        description: 'Subscribe to our newsletter and receive product launches, offers, project ideas, tutorials, and Sky Tech updates directly in your inbox',
+        icon: Mail,
+        href: '/subscribe',
       },
       {
         title: 'Contact',
@@ -248,8 +248,8 @@ export default function ResourcesPage() {
                         
                         {/* Explore Button */}
                         <div className={`inline-flex items-center gap-2 rounded-lg ${bgColors[category.color as keyof typeof bgColors]} ${borderColors[category.color as keyof typeof borderColors]} border px-4 py-2 text-sm font-semibold text-[#00e5ff] transition-all group-hover:bg-[#00bfff]/20`}>
-                          <span>Explore</span>
-                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                          <span>{resource.title === 'Subscribe' ? 'Subscribe →' : 'Explore'}</span>
+                          {resource.title !== 'Subscribe' && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
                         </div>
                       </div>
                     </motion.a>

@@ -1,8 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MessageCircle, Share2, Mail, Phone, MapPin, Globe, Zap, Cpu } from 'lucide-react';
+import { MessageCircle, Share2, Mail, Phone, MapPin, Globe, Zap, Cpu, Loader2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const footerLinks: Record<string, Array<{ name: string; href: string; icon?: LucideIcon }>> = {
   Company: [
@@ -30,6 +34,42 @@ const footerLinks: Record<string, Array<{ name: string; href: string; icon?: Luc
 };
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      toast.error('Please enter your email');
+      return;
+    }
+
+    setSubscribing(true);
+    try {
+      console.log('Writing to collection: newsletter_subscribers');
+      const docRef = await addDoc(collection(db, 'newsletter_subscribers'), {
+        email: email.trim(),
+        status: 'active',
+        subscribedAt: serverTimestamp(),
+        createdAt: serverTimestamp(),
+      });
+      console.log('Document written with ID:', docRef.id);
+      
+      toast.success('Subscribed successfully!');
+      setEmail('');
+    } catch (error: any) {
+      console.error('Subscription error:');
+      console.error('Error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      toast.error('Failed to subscribe. Please try again.');
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
   return (
     <footer className="relative overflow-hidden">
       {/* Circuit Background */}
@@ -108,16 +148,29 @@ export default function Footer() {
               <div className="p-4 rounded-xl bg-[#06122d]/40 border border-[#00bfff]/10">
                 <p className="text-sm font-semibold text-white mb-2">Stay Updated</p>
                 <p className="text-xs text-[#d6e4ff]/60 mb-3">Get the latest news and updates</p>
-                <div className="flex gap-2">
+                <form onSubmit={handleSubscribe} className="flex gap-2">
                   <input
                     type="email"
                     placeholder="Enter your email"
-                    className="flex-1 px-3 py-2 rounded-lg bg-[#020617]/50 border border-[#00bfff]/20 text-white text-sm focus:outline-none focus:border-[#00bfff]/40"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={subscribing}
+                    className="flex-1 px-3 py-2 rounded-lg bg-[#020617]/50 border border-[#00bfff]/20 text-white text-sm focus:outline-none focus:border-[#00bfff]/40 disabled:opacity-50"
                   />
-                  <button className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#00bfff] to-[#00e5ff] text-[#020617] font-semibold text-sm hover:opacity-90 transition-opacity">
-                    Subscribe
+                  <button
+                    type="submit"
+                    disabled={subscribing}
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#00bfff] to-[#00e5ff] text-[#020617] font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {subscribing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      </>
+                    ) : (
+                      'Subscribe'
+                    )}
                   </button>
-                </div>
+                </form>
               </div>
             </motion.div>
           </div>
