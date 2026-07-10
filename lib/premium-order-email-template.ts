@@ -1,30 +1,30 @@
 import { toDate } from './format';
-import type { Order } from './types';
+import type { Order, OrderStatus } from './types';
 
-// Order status types for email templates
-export type OrderEmailStatus = 
-  | 'confirmed' 
-  | 'packed' 
-  | 'shipped' 
-  | 'out_for_delivery' 
-  | 'delivered' 
-  | 'cancelled' 
-  | 'refunded';
-
-// Status configuration
-const STATUS_CONFIG: Record<OrderEmailStatus, {
+// Status configuration for email display
+const STATUS_CONFIG: Record<OrderStatus, {
   emoji: string;
   title: string;
   message: string;
   color: string;
   bgColor: string;
+  subject: string;
 }> = {
+  pending: {
+    emoji: '⏳',
+    title: 'ORDER PENDING',
+    message: 'We have received your order and are reviewing it. You will receive a confirmation email shortly.',
+    color: '#F59E0B',
+    bgColor: 'rgba(245, 158, 11, 0.15)',
+    subject: 'Order Pending - SkyTech',
+  },
   confirmed: {
     emoji: '✅',
     title: 'ORDER CONFIRMED',
     message: 'Great news! Your order has been confirmed and is now being prepared for processing.',
     color: '#00C8FF',
     bgColor: 'rgba(0, 200, 255, 0.15)',
+    subject: 'Order Confirmed - SkyTech',
   },
   packed: {
     emoji: '📦',
@@ -32,6 +32,7 @@ const STATUS_CONFIG: Record<OrderEmailStatus, {
     message: 'Your order has been carefully packed by our team and is now ready for shipment. You\'ll receive another email as soon as it\'s handed over to our courier partner.',
     color: '#38BDF8',
     bgColor: 'rgba(56, 189, 248, 0.15)',
+    subject: 'Your SkyTech Order Has Been Packed',
   },
   shipped: {
     emoji: '🚚',
@@ -39,13 +40,7 @@ const STATUS_CONFIG: Record<OrderEmailStatus, {
     message: 'Your order has been shipped and is on its way to you! Track your delivery using the tracking information provided below.',
     color: '#0EA5E9',
     bgColor: 'rgba(14, 165, 233, 0.15)',
-  },
-  out_for_delivery: {
-    emoji: '🚗',
-    title: 'OUT FOR DELIVERY',
-    message: 'Your order is out for delivery and will reach you soon! The courier partner will contact you before delivery.',
-    color: '#06B6D4',
-    bgColor: 'rgba(6, 182, 212, 0.15)',
+    subject: 'Your Order Has Been Shipped',
   },
   delivered: {
     emoji: '✅',
@@ -53,6 +48,7 @@ const STATUS_CONFIG: Record<OrderEmailStatus, {
     message: 'Your order has been successfully delivered! Thank you for shopping with SkyTech. We hope you love your purchase.',
     color: '#10B981',
     bgColor: 'rgba(16, 185, 129, 0.15)',
+    subject: 'Your Order Has Been Delivered',
   },
   cancelled: {
     emoji: '❌',
@@ -60,32 +56,43 @@ const STATUS_CONFIG: Record<OrderEmailStatus, {
     message: 'Your order has been cancelled as per your request. If you had paid, the refund will be processed to your original payment method within 5-7 business days.',
     color: '#EF4444',
     bgColor: 'rgba(239, 68, 68, 0.15)',
+    subject: 'Your Order Has Been Cancelled',
   },
-  refunded: {
-    emoji: '💰',
-    title: 'ORDER REFUNDED',
-    message: 'Your refund has been processed successfully. The amount has been credited to your original payment method. It may take 5-7 business days to reflect in your account.',
+  cancellation_requested: {
+    emoji: '⏳',
+    title: 'CANCELLATION REQUESTED',
+    message: 'Your cancellation request has been received and is being reviewed. You will be notified once it is processed.',
     color: '#F59E0B',
     bgColor: 'rgba(245, 158, 11, 0.15)',
+    subject: 'Cancellation Requested - SkyTech',
+  },
+  cancellation_rejected: {
+    emoji: '❌',
+    title: 'CANCELLATION REJECTED',
+    message: 'Your cancellation request has been rejected. Your order will continue processing as normal.',
+    color: '#EF4444',
+    bgColor: 'rgba(239, 68, 68, 0.15)',
+    subject: 'Cancellation Rejected - SkyTech',
   },
 };
 
-// Progress timeline stages
-const TIMELINE_STAGES = [
+// Progress timeline stages - must match OrderStatus values
+const TIMELINE_STAGES: Array<{ key: OrderStatus; label: string }> = [
   { key: 'confirmed', label: 'Order Confirmed' },
   { key: 'packed', label: 'Packed' },
   { key: 'shipped', label: 'Shipped' },
-  { key: 'out_for_delivery', label: 'Out for Delivery' },
   { key: 'delivered', label: 'Delivered' },
 ];
 
 // Helper function to format currency
-function formatCurrency(amount: number): string {
+function formatCurrency(amount: number | undefined | null): string {
+  if (amount === undefined || amount === null) return '₹0.00';
   return `₹${amount.toFixed(2)}`;
 }
 
 // Helper function to format date
 function formatDate(dateValue: any): string {
+  if (!dateValue) return 'N/A';
   try {
     const date = toDate(dateValue);
     return date.toLocaleDateString('en-IN', {
@@ -98,26 +105,29 @@ function formatDate(dateValue: any): string {
   }
 }
 
-// Helper function to get current stage index
-function getCurrentStageIndex(status: OrderEmailStatus): number {
-  const stageMap: Record<OrderEmailStatus, number> = {
+// Helper function to get current stage index based on order status
+function getCurrentStageIndex(status: OrderStatus): number {
+  const stageMap: Partial<Record<OrderStatus, number>> = {
+    pending: 0,
     confirmed: 0,
     packed: 1,
     shipped: 2,
-    out_for_delivery: 3,
-    delivered: 4,
-    cancelled: 0,
-    refunded: 0,
+    delivered: 3,
   };
-  return stageMap[status] || 0;
+  return stageMap[status] ?? 0;
 }
 
 // Helper function to generate progress timeline HTML
-function generateProgressTimeline(currentStatus: OrderEmailStatus): string {
-  const currentIndex = getCurrentStageIndex(currentStatus);
+function generateProgressTimeline(status: OrderStatus): string {
+  const currentIndex = getCurrentStageIndex(status);
   
-  // For cancelled/refunded, show different timeline
-  if (currentStatus === 'cancelled' || currentStatus === 'refunded') {
+  // For cancelled/cancellation statuses, show different timeline
+  if (status === 'cancelled' || status === 'cancellation_requested' || status === 'cancellation_rejected') {
+    const icon = status === 'cancelled' ? '✖' : status === 'cancellation_requested' ? '⏳' : '✖';
+    const label = status === 'cancelled' ? 'Order Cancelled' : 
+                  status === 'cancellation_requested' ? 'Cancellation Requested' : 'Cancellation Rejected';
+    const color = status === 'cancelled' ? '#EF4444' : '#F59E0B';
+    
     return `
       <div style="background-color: #1A2235; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid rgba(0, 200, 255, 0.2);">
         <h3 style="margin: 0 0 16px; color: #00C8FF; font-size: 16px; font-weight: 600;">Order Progress</h3>
@@ -131,14 +141,30 @@ function generateProgressTimeline(currentStatus: OrderEmailStatus): string {
             <span style="color: #E2E8F0; font-size: 14px;">Order Confirmed</span>
           </div>
           <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="color: ${currentStatus === 'cancelled' ? '#EF4444' : '#F59E0B'}; font-size: 18px;">${currentStatus === 'cancelled' ? '✖' : '💰'}</span>
-            <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${currentStatus === 'cancelled' ? 'Order Cancelled' : 'Order Refunded'}</span>
+            <span style="color: ${color}; font-size: 18px;">${icon}</span>
+            <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${label}</span>
           </div>
         </div>
       </div>
     `;
   }
 
+  // For pending status, show minimal timeline
+  if (status === 'pending') {
+    return `
+      <div style="background-color: #1A2235; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid rgba(0, 200, 255, 0.2);">
+        <h3 style="margin: 0 0 16px; color: #00C8FF; font-size: 16px; font-weight: 600;">Order Progress</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="color: #F59E0B; font-size: 18px;">⏳</span>
+            <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">Order Pending - Awaiting Confirmation</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Normal progress timeline for confirmed/packed/shipped/delivered
   const timelineHTML = TIMELINE_STAGES.map((stage, index) => {
     const isCompleted = index < currentIndex;
     const isCurrent = index === currentIndex;
@@ -169,7 +195,12 @@ function generateProgressTimeline(currentStatus: OrderEmailStatus): string {
 // Helper function to generate product cards HTML
 function generateProductCards(items: Order['items']): string {
   if (!items || items.length === 0) {
-    return '';
+    return `
+      <div style="margin: 24px 0;">
+        <h3 style="margin: 0 0 16px; color: #FFFFFF; font-size: 18px; font-weight: 600;">Order Items</h3>
+        <p style="color: #94A3B8; font-size: 14px;">No items in this order.</p>
+      </div>
+    `;
   }
 
   const productCards = items.map(item => {
@@ -208,14 +239,18 @@ function generateProductCards(items: Order['items']): string {
 
 // Helper function to generate payment summary HTML
 function generatePaymentSummary(order: Order): string {
-  const subtotal = order.subtotal || 0;
-  const gstAmount = order.gstAmount || 0;
-  const gstPercentage = order.gstPercentage || 0;
-  const shippingFee = order.shippingFee || 0;
-  const deliveryCharge = order.deliveryCharge || 0;
-  const discount = order.discount || 0;
-  const walletUsed = order.walletUsed || 0;
-  const total = order.total || 0;
+  const subtotal = order.subtotal ?? 0;
+  const gstAmount = order.gstAmount ?? 0;
+  const gstPercentage = order.gstPercentage ?? 0;
+  const shippingFee = order.shippingFee ?? 0;
+  const deliveryCharge = order.deliveryCharge ?? 0;
+  const discount = order.discount ?? 0;
+  const walletUsed = order.walletUsed ?? 0;
+  const total = order.total ?? 0;
+
+  // Calculate CGST and SGST (half of GST each)
+  const cgst = gstAmount / 2;
+  const sgst = gstAmount / 2;
 
   return `
     <div style="background-color: #1A2235; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid rgba(0, 200, 255, 0.2);">
@@ -226,10 +261,17 @@ function generatePaymentSummary(order: Order): string {
         <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(subtotal)}</span>
       </div>
       
-      ${gstAmount > 0 ? `
+      ${cgst > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-        <span style="color: #94A3B8; font-size: 14px;">Tax (${gstPercentage}%)</span>
-        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(gstAmount)}</span>
+        <span style="color: #94A3B8; font-size: 14px;">CGST (${gstPercentage / 2}%)</span>
+        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(cgst)}</span>
+      </div>
+      ` : ''}
+      
+      ${sgst > 0 ? `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+        <span style="color: #94A3B8; font-size: 14px;">SGST (${gstPercentage / 2}%)</span>
+        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(sgst)}</span>
       </div>
       ` : ''}
       
@@ -268,7 +310,7 @@ function generatePaymentSummary(order: Order): string {
       
       <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 16px; margin-top: 16px;">
         <div style="display: flex; justify-content: space-between;">
-          <span style="color: #FFFFFF; font-size: 18px; font-weight: 700;">Total Paid</span>
+          <span style="color: #FFFFFF; font-size: 18px; font-weight: 700;">Grand Total</span>
           <span style="color: #00C8FF; font-size: 20px; font-weight: 700;">${formatCurrency(total)}</span>
         </div>
       </div>
@@ -277,12 +319,11 @@ function generatePaymentSummary(order: Order): string {
 }
 
 // Helper function to generate order summary card HTML
-function generateOrderSummaryCard(order: Order, status: OrderEmailStatus, estimatedDelivery?: string): string {
+function generateOrderSummaryCard(order: Order, estimatedDelivery?: string): string {
   const orderNumber = order.orderNumber || 'N/A';
   const orderDate = formatDate(order.createdAt);
-  const paymentMethod = order.payment?.razorpayPaymentId ? 'Razorpay' : 'Online Payment';
   const paymentStatus = order.payment?.status === 'captured' ? 'Paid' : 'Pending';
-  const statusConfig = STATUS_CONFIG[status];
+  const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.confirmed;
 
   return `
     <div style="background-color: #1A2235; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid rgba(0, 200, 255, 0.2);">
@@ -318,13 +359,14 @@ function generateOrderSummaryCard(order: Order, status: OrderEmailStatus, estima
 }
 
 // Helper function to generate CTA buttons HTML
-function generateCTAButtons(order: Order, status: OrderEmailStatus): string {
+function generateCTAButtons(order: Order): string {
   const trackingUrl = 'https://theskytechnology.in/orders';
   const invoiceUrl = order.invoiceUrl;
   const websiteUrl = 'https://theskytechnology.in';
+  const status = order.status;
 
-  // For cancelled/refunded, show different buttons
-  if (status === 'cancelled' || status === 'refunded') {
+  // For cancelled/cancellation statuses, show different buttons
+  if (status === 'cancelled' || status === 'cancellation_requested' || status === 'cancellation_rejected') {
     return `
       <div style="text-align: center; margin: 32px 0;">
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
@@ -427,14 +469,15 @@ function generateFooter(customerEmail?: string): string {
 // Main function to generate premium order email template
 export function generatePremiumOrderEmailTemplate(
   order: Order,
-  status: OrderEmailStatus,
   estimatedDelivery?: string
-): string {
-  const statusConfig = STATUS_CONFIG[status];
+): { html: string; subject: string } {
+  // Use the actual order.status directly
+  const status = order.status;
+  const statusConfig = STATUS_CONFIG[status] || STATUS_CONFIG.confirmed;
   const customerName = order.customerName || 'Customer';
   const customerEmail = order.userEmail;
 
-  return `
+  const html = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -538,7 +581,7 @@ export function generatePremiumOrderEmailTemplate(
             </p>
 
             <!-- Order Summary Card -->
-            ${generateOrderSummaryCard(order, status, estimatedDelivery)}
+            ${generateOrderSummaryCard(order, estimatedDelivery)}
 
             <!-- Progress Timeline -->
             ${generateProgressTimeline(status)}
@@ -550,7 +593,7 @@ export function generatePremiumOrderEmailTemplate(
             ${generatePaymentSummary(order)}
 
             <!-- CTA Buttons -->
-            ${generateCTAButtons(order, status)}
+            ${generateCTAButtons(order)}
 
             <!-- Support Section -->
             ${generateSupportSection()}
@@ -570,4 +613,9 @@ export function generatePremiumOrderEmailTemplate(
     </body>
     </html>
   `;
+
+  return {
+    html,
+    subject: statusConfig.subject,
+  };
 }

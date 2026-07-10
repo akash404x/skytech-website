@@ -3,7 +3,7 @@ import { adminDb, adminStorage } from './firebase-admin';
 import { getProductPrice, getProductImageUrl } from './cart';
 import { mapProduct } from './firestore-mappers';
 import { generateInvoiceNumber } from './invoice-utils';
-import { sendEmail, getOrderStatusEmailTemplate } from './email-service';
+import { sendEmail, getOrderStatusEmailTemplate, getOrderStatusEmailSubject } from './email-service';
 import { markCouponAsUsed, validateCoupon } from './coupon-service';
 import type { CartItem, OrderItem, ShippingAddress, UserProfile } from './types';
 
@@ -334,9 +334,10 @@ export async function createVerifiedOrder(input: {
         console.log('Customer Name:', order.customerName);
         
         const emailHtml = getOrderStatusEmailTemplate(order, 'pending');
+        const emailSubject = getOrderStatusEmailSubject(order, 'pending');
         const emailResult = await sendEmail({
           to: order.userEmail,
-          subject: 'Order Pending Once Confirmed You Will Be Notified and The Order Staus You will Be Able To See In The Website - Sky Tech',
+          subject: emailSubject,
           html: emailHtml,
         });
         

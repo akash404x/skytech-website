@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/server-auth';
 import { adminDb } from '@/lib/firebase-admin';
-import { sendEmail, getOrderStatusEmailTemplate, getReturnApprovedEmailTemplate, getReplacementApprovedEmailTemplate } from '@/lib/email-service';
-import { sendOrderStatusEmail } from '@/lib/sendOrderEmail';
+import { sendEmail, getOrderStatusEmailTemplate, getOrderStatusEmailSubject, getReturnApprovedEmailTemplate, getReplacementApprovedEmailTemplate } from '@/lib/email-service';
 import { processOrderRefund } from '@/lib/refund-service';
 import { generateInvoiceNumber } from '@/lib/invoice-utils';
 import type { Order, NotificationType } from '@/lib/types';
@@ -212,26 +211,14 @@ export async function POST(request: Request) {
       // Get customer name from order or email
       const customerName = order.customerName || order.userEmail?.split('@')[0] || 'Customer';
 
-      // Send email using new Nodemailer system
-      emailResult = await sendOrderStatusEmail({
-        orderId: order.orderNumber,
-        customerName,
-        customerEmail: order.userEmail,
-        status: capitalizedStatus as any,
-        orderDate,
+      // Send email using new premium template system
+      emailHtml = getOrderStatusEmailTemplate(order, status);
+      emailSubject = getOrderStatusEmailSubject(order, status);
+      emailResult = await sendEmail({
+        to: order.userEmail,
+        subject: emailSubject,
+        html: emailHtml,
       });
-
-      // If new email system fails, fall back to old system
-      if (!emailResult.success) {
-        console.warn('New email system failed, falling back to old system:', emailResult.error);
-        emailHtml = getOrderStatusEmailTemplate(order, status);
-        emailSubject = `Order ${capitalizedStatus} - SkyTech`;
-        emailResult = await sendEmail({
-          to: order.userEmail,
-          subject: emailSubject,
-          html: emailHtml,
-        });
-      }
     }
 
     // Log email notification

@@ -1,6 +1,6 @@
 import { EmailService } from './email-provider';
-import { generatePremiumOrderEmailTemplate, OrderEmailStatus } from './premium-order-email-template';
-import type { Order } from './types';
+import { generatePremiumOrderEmailTemplate } from './premium-order-email-template';
+import type { Order, OrderStatus as DbOrderStatus } from './types';
 
 // Order status types (legacy, kept for compatibility)
 export type OrderStatus = 'Pending' | 'Confirmed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
@@ -28,24 +28,24 @@ const getSubject = (orderId: string, status: OrderStatus): string => {
   return subjects[status];
 };
 
-// Map legacy status to premium email status
-const mapToPremiumStatus = (status: OrderStatus): OrderEmailStatus => {
-  const statusMap: Record<OrderStatus, OrderEmailStatus> = {
-    Pending: 'confirmed',
+// Map legacy status to database OrderStatus type
+const mapToDbOrderStatus = (status: OrderStatus): DbOrderStatus => {
+  const statusMap: Record<OrderStatus, DbOrderStatus> = {
+    Pending: 'pending',
     Confirmed: 'confirmed',
     Processing: 'packed',
     Shipped: 'shipped',
     Delivered: 'delivered',
     Cancelled: 'cancelled',
   };
-  return statusMap[status] || 'confirmed';
+  return statusMap[status] || 'pending';
 };
 
 // Generate HTML email template using premium template
 const generateEmailTemplate = (data: OrderEmailData): string => {
   // This function is kept for backward compatibility but now uses the premium template
   // Note: This requires an Order object, so callers should use the new function directly
-  const premiumStatus = mapToPremiumStatus(data.status);
+  const dbStatus = mapToDbOrderStatus(data.status);
   
   // Create a minimal Order object for the template
   const minimalOrder: Partial<Order> = {
@@ -57,7 +57,7 @@ const generateEmailTemplate = (data: OrderEmailData): string => {
     subtotal: 0,
     total: 0,
     currency: 'INR',
-    status: premiumStatus as any,
+    status: dbStatus,
     payment: { razorpayOrderId: '', razorpayPaymentId: '', amount: 0, currency: 'INR', status: 'captured' },
     shippingAddress: {
       fullName: data.customerName,
@@ -71,7 +71,8 @@ const generateEmailTemplate = (data: OrderEmailData): string => {
     timeline: [],
   };
   
-  return generatePremiumOrderEmailTemplate(minimalOrder as Order, premiumStatus, data.estimatedDelivery);
+  const result = generatePremiumOrderEmailTemplate(minimalOrder as Order, data.estimatedDelivery);
+  return result.html;
 };
 
 // Main function to send order status email

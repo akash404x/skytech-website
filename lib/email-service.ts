@@ -1,7 +1,7 @@
 import { EmailService } from './email-provider';
 import { toDate } from './format';
 import type { Order } from './types';
-import { generatePremiumOrderEmailTemplate, OrderEmailStatus } from './premium-order-email-template';
+import { generatePremiumOrderEmailTemplate } from './premium-order-email-template';
 
 export async function getEmailDebugInfo() {
   const config: any = {
@@ -92,23 +92,16 @@ export async function sendEmail({
   }
 }
 
-export function getOrderStatusEmailTemplate(order: Order, status: string): string {
-  // Map order status to premium email status
-  const statusMap: Record<string, OrderEmailStatus> = {
-    pending: 'confirmed',
-    confirmed: 'confirmed',
-    packed: 'packed',
-    shipped: 'shipped',
-    delivered: 'delivered',
-    cancelled: 'cancelled',
-    cancellation_requested: 'cancelled',
-    cancellation_rejected: 'confirmed',
-  };
+export function getOrderStatusEmailTemplate(order: Order, status?: string): string {
+  // Use the new premium template - it now uses order.status directly
+  const result = generatePremiumOrderEmailTemplate(order);
+  return result.html;
+}
 
-  const premiumStatus = statusMap[status] || 'confirmed';
-  
-  // Use the new premium template
-  return generatePremiumOrderEmailTemplate(order, premiumStatus);
+export function getOrderStatusEmailSubject(order: Order, status?: string): string {
+  // Use the new premium template - it now uses order.status directly
+  const result = generatePremiumOrderEmailTemplate(order);
+  return result.subject;
 }
 
 export function getReturnApprovedEmailTemplate(order: Order, amount: number): string {

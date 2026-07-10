@@ -3,7 +3,7 @@ import { getAuthenticatedUser } from '@/lib/server-auth';
 import { FieldValue } from 'firebase-admin/firestore';
 import { adminDb } from '@/lib/firebase-admin';
 import { validateCheckoutItems } from '@/lib/server-checkout';
-import { sendEmail, getOrderStatusEmailTemplate } from '@/lib/email-service';
+import { sendEmail, getOrderStatusEmailTemplate, getOrderStatusEmailSubject } from '@/lib/email-service';
 import { generateReceiptNumber } from '@/lib/invoice-utils';
 import { markCouponAsUsed } from '@/lib/coupon-service';
 import { generatePaymentReceiptEmailTemplate } from '@/lib/payment-receipt-email';

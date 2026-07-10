@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/server-auth';
 import { adminDb } from '@/lib/firebase-admin';
-import { sendEmail, getOrderStatusEmailTemplate } from '@/lib/email-service';
+import { sendEmail, getOrderStatusEmailTemplate, getOrderStatusEmailSubject } from '@/lib/email-service';
 import type { Order, NotificationType } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
     // Send email notification
     const emailHtml = getOrderStatusEmailTemplate(order, 'shipped');
-    const emailSubject = 'Order Shipped - SkyTech';
+    const emailSubject = getOrderStatusEmailSubject(order, 'shipped');
     const notificationTypeValue: NotificationType = 'order_shipped';
 
     const emailResult = await sendEmail({
