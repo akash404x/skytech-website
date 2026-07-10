@@ -26,6 +26,14 @@ const STATUS_CONFIG: Record<OrderStatus, {
     bgColor: 'rgba(0, 200, 255, 0.15)',
     subject: 'Order Confirmed - SkyTech',
   },
+  processing: {
+    emoji: '⚙️',
+    title: 'ORDER PROCESSING',
+    message: 'Your order is currently being processed by our team. We are preparing your items for shipment.',
+    color: '#8B5CF6',
+    bgColor: 'rgba(139, 92, 246, 0.15)',
+    subject: 'Your Order Is Being Processed',
+  },
   packed: {
     emoji: '📦',
     title: 'ORDER PACKED',
@@ -41,6 +49,14 @@ const STATUS_CONFIG: Record<OrderStatus, {
     color: '#0EA5E9',
     bgColor: 'rgba(14, 165, 233, 0.15)',
     subject: 'Your Order Has Been Shipped',
+  },
+  out_for_delivery: {
+    emoji: '🚛',
+    title: 'OUT FOR DELIVERY',
+    message: 'Your order is out for delivery and will reach you soon! Our courier partner will deliver it to your doorstep today.',
+    color: '#F97316',
+    bgColor: 'rgba(249, 115, 22, 0.15)',
+    subject: 'Your Order Is Out For Delivery',
   },
   delivered: {
     emoji: '✅',
@@ -80,8 +96,10 @@ const STATUS_CONFIG: Record<OrderStatus, {
 const TIMELINE_STAGES: Array<{ key: OrderStatus; label: string }> = [
   { key: 'pending', label: 'Order Placed' },
   { key: 'confirmed', label: 'Order Confirmed' },
+  { key: 'processing', label: 'Processing' },
   { key: 'packed', label: 'Packed' },
   { key: 'shipped', label: 'Shipped' },
+  { key: 'out_for_delivery', label: 'Out for Delivery' },
   { key: 'delivered', label: 'Delivered' },
 ];
 
@@ -111,9 +129,11 @@ function getCurrentStageIndex(status: OrderStatus): number {
   const stageMap: Partial<Record<OrderStatus, number>> = {
     pending: 0,
     confirmed: 1,
-    packed: 2,
-    shipped: 3,
-    delivered: 4,
+    processing: 2,
+    packed: 3,
+    shipped: 4,
+    out_for_delivery: 5,
+    delivered: 6,
   };
   return stageMap[status] ?? 0;
 }
@@ -259,67 +279,81 @@ function generatePaymentSummary(order: Order): string {
   const cgst = gstAmount / 2;
   const sgst = gstAmount / 2;
 
+  // Calculate payable amount before wallet
+  const payableBeforeWallet = subtotal + gstAmount + shippingFee + deliveryCharge - discount;
+  
+  // Calculate grand total: max(0, payable - wallet used)
+  const grandTotal = Math.max(0, payableBeforeWallet - walletUsed);
+  
+  // Check if fully paid by wallet
+  const isFullyPaidByWallet = walletUsed >= payableBeforeWallet;
+
   return `
     <div style="background-color: #1A2235; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid rgba(0, 200, 255, 0.2);">
       <h3 style="margin: 0 0 16px; color: #00C8FF; font-size: 16px; font-weight: 600;">Payment Summary</h3>
       
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #94A3B8; font-size: 14px;">Subtotal</span>
-        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(subtotal)}</span>
+        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600; text-align: right;">= ${formatCurrency(subtotal)}</span>
       </div>
       
       ${cgst > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #94A3B8; font-size: 14px;">CGST (${gstPercentage / 2}%)</span>
-        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(cgst)}</span>
+        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600; text-align: right;">= ${formatCurrency(cgst)}</span>
       </div>
       ` : ''}
       
       ${sgst > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #94A3B8; font-size: 14px;">SGST (${gstPercentage / 2}%)</span>
-        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(sgst)}</span>
+        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600; text-align: right;">= ${formatCurrency(sgst)}</span>
       </div>
       ` : ''}
       
       ${shippingFee > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #94A3B8; font-size: 14px;">Shipping</span>
-        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(shippingFee)}</span>
+        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600; text-align: right;">= ${formatCurrency(shippingFee)}</span>
       </div>
       ` : `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #94A3B8; font-size: 14px;">Shipping</span>
-        <span style="color: #10B981; font-size: 14px; font-weight: 600;">FREE</span>
+        <span style="color: #10B981; font-size: 14px; font-weight: 600; text-align: right;">= FREE</span>
       </div>
       `}
       
       ${deliveryCharge > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #94A3B8; font-size: 14px;">Delivery Charge</span>
-        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">${formatCurrency(deliveryCharge)}</span>
+        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600; text-align: right;">= ${formatCurrency(deliveryCharge)}</span>
       </div>
       ` : ''}
       
       ${discount > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #10B981; font-size: 14px;">Discount</span>
-        <span style="color: #10B981; font-size: 14px; font-weight: 600;">-${formatCurrency(discount)}</span>
+        <span style="color: #10B981; font-size: 14px; font-weight: 600; text-align: right;">= -${formatCurrency(discount)}</span>
       </div>
       ` : ''}
       
       ${walletUsed > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #94A3B8; font-size: 14px;">Wallet Used</span>
-        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600;">-${formatCurrency(walletUsed)}</span>
+        <span style="color: #E2E8F0; font-size: 14px; font-weight: 600; text-align: right;">= -${formatCurrency(walletUsed)}</span>
       </div>
       ` : ''}
       
       <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 16px; margin-top: 16px;">
-        <div style="display: flex; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
           <span style="color: #FFFFFF; font-size: 18px; font-weight: 700;">Grand Total</span>
-          <span style="color: #00C8FF; font-size: 20px; font-weight: 700;">${formatCurrency(total)}</span>
+          <span style="color: #00C8FF; font-size: 20px; font-weight: 700; text-align: right;">= ${formatCurrency(grandTotal)}</span>
         </div>
+        ${isFullyPaidByWallet ? `
+        <div style="margin-top: 8px; text-align: right;">
+          <span style="color: #10B981; font-size: 14px; font-weight: 600;">✅ Fully Paid using Wallet</span>
+        </div>
+        ` : ''}
       </div>
     </div>
   `;

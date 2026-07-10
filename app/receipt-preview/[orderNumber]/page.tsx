@@ -21,8 +21,18 @@ export default function ReceiptPreviewPage() {
         const response = await fetch(`/api/receipts/download?orderNumber=${encodeURIComponent(orderNumber)}`);
 
         if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'Failed to fetch receipt');
+          const contentType = response.headers.get('content-type');
+          console.error('Response not OK:', response.status, contentType);
+          const text = await response.text();
+          console.error('Response body:', text);
+          throw new Error(`Failed to fetch receipt: ${response.status}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('Non-JSON response:', text);
+          throw new Error('Invalid response format from server');
         }
 
         const data = await response.json();

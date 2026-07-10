@@ -12,7 +12,15 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
   const delivery = order.deliveryCharge || 0;
   const wallet = order.walletUsed || 0;
   const discount = order.discount || 0;
-  const grandTotal = subtotal + gst + shipping + delivery - wallet - discount;
+  
+  // Calculate payable amount before wallet
+  const payableBeforeWallet = subtotal + gst + shipping + delivery - discount;
+  
+  // Calculate grand total: max(0, payable - wallet used)
+  const grandTotal = Math.max(0, payableBeforeWallet - wallet);
+  
+  // Check if fully paid by wallet
+  const isFullyPaidByWallet = wallet >= payableBeforeWallet;
 
   // Format dates (display only)
   const invoiceDate = new Date().toLocaleDateString('en-IN', {
@@ -472,14 +480,14 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
                 {/* Subtotal */}
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400">Subtotal</span>
-                  <span className="text-white font-medium">₹{subtotal.toFixed(2)}</span>
+                  <span className="text-white font-medium text-right">= ₹{subtotal.toFixed(2)}</span>
                 </div>
 
                 {/* CGST */}
                 {gst > 0 && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400">CGST (9%)</span>
-                    <span className="text-white font-medium">₹{cgst.toFixed(2)}</span>
+                    <span className="text-white font-medium text-right">= ₹{cgst.toFixed(2)}</span>
                   </div>
                 )}
 
@@ -487,7 +495,7 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
                 {gst > 0 && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400">SGST (9%)</span>
-                    <span className="text-white font-medium">₹{sgst.toFixed(2)}</span>
+                    <span className="text-white font-medium text-right">= ₹{sgst.toFixed(2)}</span>
                   </div>
                 )}
 
@@ -495,7 +503,7 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
                 {shipping > 0 && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400">Shipping</span>
-                    <span className="text-white font-medium">₹{shipping.toFixed(2)}</span>
+                    <span className="text-white font-medium text-right">= ₹{shipping.toFixed(2)}</span>
                   </div>
                 )}
 
@@ -503,7 +511,7 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
                 {delivery > 0 && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400">Delivery</span>
-                    <span className="text-white font-medium">₹{delivery.toFixed(2)}</span>
+                    <span className="text-white font-medium text-right">= ₹{delivery.toFixed(2)}</span>
                   </div>
                 )}
 
@@ -511,7 +519,7 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
                 {wallet > 0 && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400">Wallet Used</span>
-                    <span className="text-red-400 font-medium">-₹{wallet.toFixed(2)}</span>
+                    <span className="text-red-400 font-medium text-right">= -₹{wallet.toFixed(2)}</span>
                   </div>
                 )}
 
@@ -519,15 +527,22 @@ export default function InvoiceTemplate({ order }: InvoiceTemplateProps) {
                 {discount > 0 && (
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-gray-400">Discount</span>
-                    <span className="text-green-400 font-medium">-₹{discount.toFixed(2)}</span>
+                    <span className="text-green-400 font-medium text-right">= -₹{discount.toFixed(2)}</span>
                   </div>
                 )}
 
                 {/* Total */}
                 <div className="flex justify-between items-center pt-3 mt-3 border-t-2 border-[#38BDF8]/30">
                   <span className="text-[#38BDF8] font-bold text-lg">TOTAL</span>
-                  <span className="text-[#38BDF8] font-bold text-xl">₹{grandTotal.toFixed(2)}</span>
+                  <span className="text-[#38BDF8] font-bold text-xl text-right">= ₹{grandTotal.toFixed(2)}</span>
                 </div>
+                
+                {/* Fully Paid Message */}
+                {isFullyPaidByWallet && (
+                  <div className="flex justify-end mt-2">
+                    <span className="text-green-400 font-semibold text-xs">✅ Fully Paid using Wallet</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

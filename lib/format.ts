@@ -41,8 +41,10 @@ export function orderStatusLabel(status: OrderStatus) {
   const labels: Record<OrderStatus, string> = {
     pending: 'Pending',
     confirmed: 'Confirmed',
+    processing: 'Processing',
     packed: 'Packed',
     shipped: 'Shipped',
+    out_for_delivery: 'Out for Delivery',
     delivered: 'Delivered',
     cancelled: 'Cancelled',
     cancellation_requested: 'Cancellation Requested',
@@ -56,8 +58,10 @@ export function statusBadgeClass(status: OrderStatus) {
   const classes: Record<OrderStatus, string> = {
     pending: 'bg-yellow-100 text-yellow-700',
     confirmed: 'bg-emerald-100 text-emerald-700',
+    processing: 'bg-purple-100 text-purple-700',
     packed: 'bg-amber-100 text-amber-700',
     shipped: 'bg-blue-100 text-blue-700',
+    out_for_delivery: 'bg-orange-100 text-orange-700',
     delivered: 'bg-green-100 text-green-700',
     cancelled: 'bg-red-100 text-red-700',
     cancellation_requested: 'bg-yellow-100 text-yellow-700',

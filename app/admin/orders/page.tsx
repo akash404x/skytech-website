@@ -12,7 +12,7 @@ import { mapOrder } from '@/lib/firestore-mappers';
 import { formatCurrency, formatDate, orderStatusLabel, statusBadgeClass, toDate } from '@/lib/format';
 import type { Order, OrderStatus } from '@/lib/types';
 
-const ORDER_STATUSES: OrderStatus[] = ['pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'cancellation_requested', 'cancellation_rejected'];
+const ORDER_STATUSES: OrderStatus[] = ['pending', 'confirmed', 'processing', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'cancellation_requested', 'cancellation_rejected'];
 
 export default function AdminOrders() {
   const { getIdToken } = useAuth();

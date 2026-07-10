@@ -31,6 +31,7 @@ export async function POST(request: Request) {
     }
 
     const order = { id: orderDoc.id, ...orderDoc.data() } as Order;
+    const oldStatus = order.status;
 
     // Update order status
     await adminDb.collection('orders').doc(orderId).update({
@@ -50,12 +51,16 @@ export async function POST(request: Request) {
       timeline: [...(order.timeline || []), timelineEvent],
     });
 
+    // Re-fetch order to get the updated status
+    const updatedOrderDoc = await adminDb.collection('orders').doc(orderId).get();
+    const updatedOrder = { id: updatedOrderDoc.id, ...updatedOrderDoc.data() } as Order;
+
     // Auto-generate invoice when order is confirmed
-    if (status === 'confirmed' && !order.invoiceNumber) {
+    if (status === 'confirmed' && !updatedOrder.invoiceNumber) {
       try {
         console.log('=== GENERATING INVOICE FOR CONFIRMED ORDER ===');
         console.log('Order ID:', orderId);
-        console.log('Order Number:', order.orderNumber);
+        console.log('Order Number:', updatedOrder.orderNumber);
 
         const invoiceNumber = generateInvoiceNumber();
         const invoiceDate = new Date();
@@ -65,24 +70,24 @@ export async function POST(request: Request) {
           const invoiceRef = adminDb.collection('invoices').doc();
           const invoiceData = {
             id: invoiceRef.id,
-            orderId: order.id,
-            orderNumber: order.orderNumber,
-            userId: order.userId,
-            userEmail: order.userEmail,
+            orderId: updatedOrder.id,
+            orderNumber: updatedOrder.orderNumber,
+            userId: updatedOrder.userId,
+            userEmail: updatedOrder.userEmail,
             invoiceNumber,
-            customerName: order.customerName,
-            customerPhone: order.customerPhone,
-            billingAddress: order.shippingAddress,
-            shippingAddress: order.shippingAddress,
-            items: order.items,
-            subtotal: order.subtotal,
-            gstAmount: order.gstAmount,
-            gstPercentage: order.gstPercentage,
-            shippingFee: order.shippingFee,
-            deliveryCharge: order.deliveryCharge,
-            discount: order.discount,
-            total: order.total,
-            currency: order.currency,
+            customerName: updatedOrder.customerName,
+            customerPhone: updatedOrder.customerPhone,
+            billingAddress: updatedOrder.shippingAddress,
+            shippingAddress: updatedOrder.shippingAddress,
+            items: updatedOrder.items,
+            subtotal: updatedOrder.subtotal,
+            gstAmount: updatedOrder.gstAmount,
+            gstPercentage: updatedOrder.gstPercentage,
+            shippingFee: updatedOrder.shippingFee,
+            deliveryCharge: updatedOrder.deliveryCharge,
+            discount: updatedOrder.discount,
+            total: updatedOrder.total,
+            currency: updatedOrder.currency,
             invoiceDate,
             status: 'generated',
           };
@@ -116,12 +121,12 @@ export async function POST(request: Request) {
     if (status === 'cancelled') {
       console.log('=== ADMIN ORDER CANCELLATION ===');
       console.log('Admin Cancel Triggered: Order ID:', orderId);
-      console.log('Admin Cancel Triggered: Order Number:', order.orderNumber);
+      console.log('Admin Cancel Triggered: Order Number:', updatedOrder.orderNumber);
       
       // Process refund asynchronously (don't block response)
-      processOrderRefund(order).catch((error) => {
+      processOrderRefund(updatedOrder).catch((error) => {
         console.error('=== REFUND PROCESSING FAILED AFTER CANCELLATION ===');
-        console.error('Admin Cancel: Failed to process refund for order:', order.orderNumber);
+        console.error('Admin Cancel: Failed to process refund for order:', updatedOrder.orderNumber);
         console.error('Admin Cancel: Error details:', error);
         console.error('Admin Cancel: Error message:', error instanceof Error ? error.message : 'Unknown error');
         console.error('========================================');
@@ -134,39 +139,51 @@ export async function POST(request: Request) {
     let notificationTypeValue: NotificationType = 'order_confirmed';
     let emailResult: { success: boolean; error?: string };
 
+    // Add logging for debugging
+    console.log('=== ORDER STATUS EMAIL DEBUG ===');
+    console.log('Old Status:', oldStatus);
+    console.log('New Status:', updatedOrder.status);
+    console.log('Recipient:', updatedOrder.userEmail);
+
     if (notificationType === 'return_approved') {
-      emailHtml = getReturnApprovedEmailTemplate(order, order.total);
+      emailHtml = getReturnApprovedEmailTemplate(updatedOrder, updatedOrder.total);
       emailSubject = 'Return Approved - SkyTech';
       notificationTypeValue = 'return_approved';
+      console.log('Selected Email Template: return_approved');
+      console.log('Email Subject:', emailSubject);
       emailResult = await sendEmail({
-        to: order.userEmail,
+        to: updatedOrder.userEmail,
         subject: emailSubject,
         html: emailHtml,
       });
     } else if (notificationType === 'replacement_approved') {
-      emailHtml = getReplacementApprovedEmailTemplate(order);
+      emailHtml = getReplacementApprovedEmailTemplate(updatedOrder);
       emailSubject = 'Replacement Approved - SkyTech';
       notificationTypeValue = 'replacement_approved';
+      console.log('Selected Email Template: replacement_approved');
+      console.log('Email Subject:', emailSubject);
       emailResult = await sendEmail({
-        to: order.userEmail,
+        to: updatedOrder.userEmail,
         subject: emailSubject,
         html: emailHtml,
       });
     } else if (notificationType === 'wallet_credited') {
-      emailHtml = getReturnApprovedEmailTemplate(order, body.amount || order.total);
+      emailHtml = getReturnApprovedEmailTemplate(updatedOrder, body.amount || updatedOrder.total);
       emailSubject = 'Wallet Credited - SkyTech';
       notificationTypeValue = 'wallet_credited';
+      console.log('Selected Email Template: wallet_credited');
+      console.log('Email Subject:', emailSubject);
       emailResult = await sendEmail({
-        to: order.userEmail,
+        to: updatedOrder.userEmail,
         subject: emailSubject,
         html: emailHtml,
       });
     } else {
       // Use new Nodemailer-based email system for order status updates
       let orderDate: string;
-      if (order.createdAt) {
+      if (updatedOrder.createdAt) {
         // Handle Firestore timestamp conversion
-        const timestamp = order.createdAt;
+        const timestamp = updatedOrder.createdAt;
         if (typeof timestamp === 'object' && 'toDate' in timestamp) {
           orderDate = timestamp.toDate().toLocaleDateString('en-US', {
             year: 'numeric',
@@ -198,38 +215,43 @@ export async function POST(request: Request) {
       const statusToNotificationType: Record<string, NotificationType> = {
         pending: 'order_placed',
         confirmed: 'order_confirmed',
+        processing: 'order_processing',
         packed: 'order_packed',
         shipped: 'order_shipped',
+        out_for_delivery: 'order_out_for_delivery',
         delivered: 'order_delivered',
         cancelled: 'order_cancelled',
       };
-      notificationTypeValue = statusToNotificationType[status] || 'order_confirmed';
+      notificationTypeValue = statusToNotificationType[updatedOrder.status] || 'order_confirmed';
 
       // Capitalize status for email
-      const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1);
+      const capitalizedStatus = updatedOrder.status.charAt(0).toUpperCase() + updatedOrder.status.slice(1);
 
       // Get customer name from order or email
-      const customerName = order.customerName || order.userEmail?.split('@')[0] || 'Customer';
+      const customerName = updatedOrder.customerName || updatedOrder.userEmail?.split('@')[0] || 'Customer';
 
-      // Send email using new premium template system
-      emailHtml = getOrderStatusEmailTemplate(order, status);
-      emailSubject = getOrderStatusEmailSubject(order, status);
+      // Send email using new premium template system - use updatedOrder.status
+      emailHtml = getOrderStatusEmailTemplate(updatedOrder, updatedOrder.status);
+      emailSubject = getOrderStatusEmailSubject(updatedOrder, updatedOrder.status);
+      console.log('Selected Email Template:', updatedOrder.status);
+      console.log('Email Subject:', emailSubject);
       emailResult = await sendEmail({
-        to: order.userEmail,
+        to: updatedOrder.userEmail,
         subject: emailSubject,
         html: emailHtml,
       });
     }
+    console.log('================================');
 
     // Log email notification
     const emailLogRef = adminDb.collection('emailLogs').doc();
     const emailLogData: any = {
       id: emailLogRef.id,
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      userId: order.userId,
-      userEmail: order.userEmail,
-      subject: emailSubject || `Order ${status.charAt(0).toUpperCase() + status.slice(1)} - SkyTech`,
+      orderId: updatedOrder.id,
+      orderNumber: updatedOrder.orderNumber,
+      userId: updatedOrder.userId,
+      userEmail: updatedOrder.userEmail,
+      subject: emailSubject || `Order ${updatedOrder.status.charAt(0).toUpperCase() + updatedOrder.status.slice(1)} - SkyTech`,
       template: notificationTypeValue,
       status: emailResult.success ? 'sent' : 'failed',
       sentAt: emailResult.success ? new Date() : null,
@@ -245,13 +267,13 @@ export async function POST(request: Request) {
     const notificationLogRef = adminDb.collection('notifications').doc();
     const notificationData: any = {
       id: notificationLogRef.id,
-      orderId: order.id,
-      orderNumber: order.orderNumber,
-      userId: order.userId,
-      userEmail: order.userEmail,
+      orderId: updatedOrder.id,
+      orderNumber: updatedOrder.orderNumber,
+      userId: updatedOrder.userId,
+      userEmail: updatedOrder.userEmail,
       type: notificationTypeValue,
       status: emailResult.success ? 'sent' : 'failed',
-      data: { status },
+      data: { status: updatedOrder.status },
       sentAt: emailResult.success ? new Date() : null,
       createdAt: new Date(),
     };
@@ -264,7 +286,7 @@ export async function POST(request: Request) {
     }
     await notificationLogRef.set(notificationData);
 
-    console.log('Order status updated successfully:', { orderId, status, notificationType });
+    console.log('Order status updated successfully:', { orderId, status: updatedOrder.status, notificationType });
 
     return NextResponse.json({
       success: true,

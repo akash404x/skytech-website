@@ -289,7 +289,7 @@ export default function OrdersPage() {
 
   const handleViewInvoice = (orderNumber: string) => {
     try {
-      window.open(`/invoice-preview/${orderNumber}`, '_blank');
+      window.open(`/invoice-preview/${orderNumber}`, '_self');
     } catch (error) {
       console.error('Error viewing invoice:', error);
       toast.error('Invoice not available yet');
@@ -298,7 +298,7 @@ export default function OrdersPage() {
 
   const handleViewReceipt = (order: Order) => {
     try {
-      window.open(`/receipt-preview/${order.orderNumber}`, '_blank');
+      window.open(`/receipt-preview/${order.orderNumber}`, '_self');
     } catch (error) {
       console.error('Error viewing receipt:', error);
       toast.error('Receipt not available yet');

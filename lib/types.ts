@@ -3,7 +3,7 @@ export type AccountStatus = 'active' | 'suspended';
 export type ProductStatus = 'active' | 'inactive';
 export type ServiceStatus = 'active' | 'inactive';
 export type WorkStatus = 'active' | 'inactive' | 'draft';
-export type OrderStatus = 'pending' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled' | 'cancellation_requested' | 'cancellation_rejected';
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'cancellation_requested' | 'cancellation_rejected';
 export type PaymentStatus = 'captured' | 'failed';
 export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
@@ -13,7 +13,7 @@ export type ReplacementStatus = 'requested' | 'approved' | 'rejected' | 'pickup_
 export type WalletTransactionType = 'credit' | 'debit';
 export type WalletTransactionStatus = 'pending' | 'completed' | 'failed';
 export type EmailStatus = 'pending' | 'sent' | 'failed';
-export type NotificationType = 'order_placed' | 'order_confirmed' | 'order_packed' | 'order_shipped' | 'order_delivered' | 'order_cancelled' | 'return_approved' | 'replacement_approved' | 'wallet_credited';
+export type NotificationType = 'order_placed' | 'order_confirmed' | 'order_processing' | 'order_packed' | 'order_shipped' | 'order_out_for_delivery' | 'order_delivered' | 'order_cancelled' | 'return_approved' | 'replacement_approved' | 'wallet_credited';
 export type CouponDiscountType = 'fixed' | 'percentage';
 export type CouponStatus = 'active' | 'used' | 'expired';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';

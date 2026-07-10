@@ -66,54 +66,59 @@ export function generatePaymentReceiptEmailTemplate(receipt: PaymentReceipt): st
       
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #64748B;">Subtotal</span>
-        <span style="color: #1F2937; font-weight: 600;">${formatCurrency(receipt.subtotal)}</span>
+        <span style="color: #1F2937; font-weight: 600; text-align: right;">= ${formatCurrency(receipt.subtotal)}</span>
       </div>
       
       ${receipt.cgst > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #64748B;">CGST</span>
-        <span style="color: #1F2937; font-weight: 600;">${formatCurrency(receipt.cgst)}</span>
+        <span style="color: #1F2937; font-weight: 600; text-align: right;">= ${formatCurrency(receipt.cgst)}</span>
       </div>
       ` : ''}
       
       ${receipt.sgst > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #64748B;">SGST</span>
-        <span style="color: #1F2937; font-weight: 600;">${formatCurrency(receipt.sgst)}</span>
+        <span style="color: #1F2937; font-weight: 600; text-align: right;">= ${formatCurrency(receipt.sgst)}</span>
       </div>
       ` : ''}
       
       ${receipt.shippingFee > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #64748B;">Shipping</span>
-        <span style="color: #1F2937; font-weight: 600;">${formatCurrency(receipt.shippingFee)}</span>
+        <span style="color: #1F2937; font-weight: 600; text-align: right;">= ${formatCurrency(receipt.shippingFee)}</span>
       </div>
       ` : `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #64748B;">Shipping</span>
-        <span style="color: #10B981; font-weight: 600;">FREE</span>
+        <span style="color: #10B981; font-weight: 600; text-align: right;">= FREE</span>
       </div>
       `}
       
       ${receipt.deliveryCharge > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #64748B;">Delivery Charges</span>
-        <span style="color: #1F2937; font-weight: 600;">${formatCurrency(receipt.deliveryCharge)}</span>
+        <span style="color: #1F2937; font-weight: 600; text-align: right;">= ${formatCurrency(receipt.deliveryCharge)}</span>
       </div>
       ` : ''}
       
       ${receipt.walletUsed > 0 ? `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
         <span style="color: #64748B;">Wallet Used</span>
-        <span style="color: #1F2937; font-weight: 600;">-${formatCurrency(receipt.walletUsed)}</span>
+        <span style="color: #1F2937; font-weight: 600; text-align: right;">= -${formatCurrency(receipt.walletUsed)}</span>
       </div>
       ` : ''}
       
       <div style="border-top: 2px solid #0EA5FF; padding-top: 16px; margin-top: 16px;">
-        <div style="display: flex; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
           <span style="color: #1F2937; font-size: 18px; font-weight: bold;">Grand Total</span>
-          <span style="color: #0EA5FF; font-size: 20px; font-weight: bold;">${formatCurrency(receipt.grandTotal)}</span>
+          <span style="color: #0EA5FF; font-size: 20px; font-weight: bold; text-align: right;">= ${formatCurrency(receipt.grandTotal)}</span>
         </div>
+        ${receipt.walletUsed > 0 && receipt.grandTotal === 0 ? `
+        <div style="margin-top: 8px; text-align: right;">
+          <span style="color: #10B981; font-size: 14px; font-weight: 600;">✅ Fully Paid using Wallet</span>
+        </div>
+        ` : ''}
       </div>
     </div>
 
