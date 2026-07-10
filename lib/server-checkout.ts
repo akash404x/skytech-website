@@ -12,6 +12,9 @@ export interface ValidatedCheckout {
   subtotal: number;
   total: number;
   currency: string;
+  shippingFee?: number;
+  deliveryCharge?: number;
+  walletUsed?: number;
 }
 
 export function validateShippingAddress(address: ShippingAddress) {
@@ -32,7 +35,14 @@ export function validateShippingAddress(address: ShippingAddress) {
   }
 }
 
-export async function validateCheckoutItems(items: Pick<CartItem, 'productId' | 'quantity'>[]) {
+export async function validateCheckoutItems(
+  items: Pick<CartItem, 'productId' | 'quantity'>[],
+  options?: {
+    shippingFee?: number;
+    deliveryCharge?: number;
+    walletUsed?: number;
+  }
+) {
   if (!Array.isArray(items) || items.length === 0) {
     throw new Response('Cart is empty', { status: 400 });
   }
@@ -72,12 +82,19 @@ export async function validateCheckoutItems(items: Pick<CartItem, 'productId' | 
   }
 
   const subtotal = checkedItems.reduce((total, item) => total + item.lineTotal, 0);
+  const shippingFee = options?.shippingFee ?? 0;
+  const deliveryCharge = options?.deliveryCharge ?? 0;
+  const walletUsed = options?.walletUsed ?? 0;
+  const total = subtotal + shippingFee + deliveryCharge - walletUsed;
 
   return {
     items: checkedItems,
     subtotal,
-    total: subtotal,
+    total,
     currency: 'INR',
+    shippingFee,
+    deliveryCharge,
+    walletUsed,
   } satisfies ValidatedCheckout;
 }
 

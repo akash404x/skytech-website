@@ -78,6 +78,7 @@ const STATUS_CONFIG: Record<OrderStatus, {
 
 // Progress timeline stages - must match OrderStatus values
 const TIMELINE_STAGES: Array<{ key: OrderStatus; label: string }> = [
+  { key: 'pending', label: 'Order Placed' },
   { key: 'confirmed', label: 'Order Confirmed' },
   { key: 'packed', label: 'Packed' },
   { key: 'shipped', label: 'Shipped' },
@@ -109,10 +110,10 @@ function formatDate(dateValue: any): string {
 function getCurrentStageIndex(status: OrderStatus): number {
   const stageMap: Partial<Record<OrderStatus, number>> = {
     pending: 0,
-    confirmed: 0,
-    packed: 1,
-    shipped: 2,
-    delivered: 3,
+    confirmed: 1,
+    packed: 2,
+    shipped: 3,
+    delivered: 4,
   };
   return stageMap[status] ?? 0;
 }
@@ -212,18 +213,24 @@ function generateProductCards(items: Order['items']): string {
     const lineTotal = item.lineTotal || 0;
 
     return `
-      <div style="display: flex; gap: 16px; padding: 16px; background-color: #1A2235; border-radius: 12px; margin-bottom: 12px; border: 1px solid rgba(0, 200, 255, 0.1);">
-        <div style="flex-shrink: 0;">
-          <img src="${productImage}" alt="${productName}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background-color: #0B1220;">
+      <div style="display: table; width: 100%; padding: 16px; background-color: #1A2235; border-radius: 12px; margin-bottom: 12px; border: 1px solid rgba(0, 200, 255, 0.1);">
+        <div style="display: table-cell; vertical-align: top; width: 80px; padding-right: 16px;">
+          <img src="${productImage}" alt="${productName}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; background-color: #0B1220; display: block;">
         </div>
-        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-          <h4 style="margin: 0 0 4px; color: #FFFFFF; font-size: 16px; font-weight: 600;">${productName}</h4>
+        <div style="display: table-cell; vertical-align: top;">
+          <h4 style="margin: 0 0 4px; color: #FFFFFF; font-size: 16px; font-weight: 600; word-wrap: break-word; overflow-wrap: break-word;">${productName}</h4>
           ${productCategory ? `<p style="margin: 0 0 8px; color: #94A3B8; font-size: 13px;">${productCategory}</p>` : ''}
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #94A3B8; font-size: 13px;">Qty: ${quantity}</span>
-            <span style="color: #00C8FF; font-size: 16px; font-weight: 600;">${formatCurrency(lineTotal)}</span>
+          <div style="display: table; width: 100%;">
+            <div style="display: table-cell; vertical-align: middle;">
+              <span style="color: #94A3B8; font-size: 13px;">Qty: ${quantity}</span>
+            </div>
+            <div style="display: table-cell; vertical-align: middle; text-align: right;">
+              <span style="color: #00C8FF; font-size: 16px; font-weight: 600;">${formatCurrency(lineTotal)}</span>
+            </div>
           </div>
-          <span style="color: #64748B; font-size: 12px;">${formatCurrency(unitPrice)} each</span>
+          <div style="margin-top: 4px;">
+            <span style="color: #64748B; font-size: 12px;">${formatCurrency(unitPrice)} each</span>
+          </div>
         </div>
       </div>
     `;

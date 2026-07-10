@@ -392,6 +392,14 @@ export interface PaymentReceipt {
   status: 'paid';
   pdfUrl?: string;
   createdAt?: DateValue;
+  // Payment summary fields to match receipt preview
+  subtotal: number;
+  cgst: number;
+  sgst: number;
+  shippingFee: number;
+  deliveryCharge: number;
+  walletUsed: number;
+  items: OrderItem[];
 }
 
 export interface Invoice {

@@ -32,10 +32,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const checkout = await validateCheckoutItems(body.items);
+    const checkout = await validateCheckoutItems(body.items, {
+      shippingFee: body.shippingFee || 0,
+      deliveryCharge: body.deliveryCharge || 0,
+      walletUsed: body.walletAmount || 0,
+    });
 
     // Calculate final payable amount including all charges and discounts
-    const subtotal = checkout.total;
+    const subtotal = checkout.subtotal;
     const gstAmount = body.gstAmount || 0;
     const shippingFee = body.shippingFee || 0;
     const deliveryCharge = body.deliveryCharge || 0;
@@ -243,6 +247,14 @@ export async function POST(request: Request) {
           grandTotal: checkout.total,
           currency: checkout.currency,
           status: 'paid',
+          // Payment summary fields to match receipt preview
+          subtotal: checkout.subtotal,
+          cgst: (body.gstAmount || 0) / 2,
+          sgst: (body.gstAmount || 0) / 2,
+          shippingFee: checkout.shippingFee || 0,
+          deliveryCharge: checkout.deliveryCharge || 0,
+          walletUsed: checkout.walletUsed || 0,
+          items: checkout.items,
         };
 
         console.log('Attempting to write receipt to Firestore...');
@@ -336,10 +348,18 @@ export async function POST(request: Request) {
         grandTotal: checkout.total,
         currency: checkout.currency,
         status: 'paid',
+        // Payment summary fields to match receipt preview
+        subtotal: checkout.subtotal,
+        cgst: (body.gstAmount || 0) / 2,
+        sgst: (body.gstAmount || 0) / 2,
+        shippingFee: checkout.shippingFee || 0,
+        deliveryCharge: checkout.deliveryCharge || 0,
+        walletUsed: checkout.walletUsed || 0,
+        items: checkout.items,
       };
 
       // Send payment receipt email
-      const emailHtml = generatePaymentReceiptEmailTemplate(receipt, checkout.items);
+      const emailHtml = generatePaymentReceiptEmailTemplate(receipt);
       const emailResult = await sendEmail({
         to: order.userEmail,
         subject: `Payment Receipt - ${receipt.receiptNumber} - Sky Tech`,

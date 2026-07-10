@@ -18,6 +18,7 @@ interface VerifyPaymentBody {
   razorpayPaymentId: string;
   razorpaySignature: string;
   walletAmount?: number;
+  walletUsed?: number;
   couponCode?: string;
   discountAmount?: number;
   gstAmount?: number;
@@ -231,9 +232,17 @@ export async function POST(request: Request) {
         grandTotal: checkout.total,
         currency: checkout.currency,
         status: 'paid',
+        // Payment summary fields to match receipt preview
+        subtotal: checkout.subtotal,
+        cgst: (body.gstAmount || 0) / 2,
+        sgst: (body.gstAmount || 0) / 2,
+        shippingFee: body.shippingFee || 0,
+        deliveryCharge: body.deliveryCharge || 0,
+        walletUsed: body.walletUsed || 0,
+        items: checkout.items,
       };
 
-      const emailHtml = generatePaymentReceiptEmailTemplate(receipt, checkout.items);
+      const emailHtml = generatePaymentReceiptEmailTemplate(receipt);
       const emailResult = await sendEmail({
         to: profile.email,
         subject: `Payment Receipt - ${receipt.receiptNumber} - Sky Tech`,
