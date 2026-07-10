@@ -319,7 +319,7 @@ function generateOrderSummaryCard(order: Order, status: OrderEmailStatus, estima
 
 // Helper function to generate CTA buttons HTML
 function generateCTAButtons(order: Order, status: OrderEmailStatus): string {
-  const trackingUrl = order.trackingUrl || 'https://theskytechnology.in/orders';
+  const trackingUrl = 'https://theskytechnology.in/orders';
   const invoiceUrl = order.invoiceUrl;
   const websiteUrl = 'https://theskytechnology.in';
 
