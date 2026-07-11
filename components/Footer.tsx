@@ -27,9 +27,9 @@ const footerLinks: Record<string, Array<{ name: string; href: string; icon?: Luc
   ],
   Social: [
     { name: 'Twitter', href: '#', icon: Share2 },
-    { name: 'Instagram', href: '#', icon: Globe },
-    { name: 'LinkedIn', href: '#', icon: Share2 },
-    { name: 'Facebook', href: '#', icon: MessageCircle },
+    { name: 'Instagram', href: 'https://www.instagram.com/theskytechnology', icon: Globe },
+    { name: 'LinkedIn', href: 'https://www.linkedin.com/company/theskytechnology', icon: Share2 },
+    { name: 'Whatsapp', href: 'https://wa.me/918429372020?text=Hi', icon: MessageCircle },
   ],
 };
 
